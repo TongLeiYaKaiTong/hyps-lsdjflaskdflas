@@ -1,32 +1,302 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Geometries</title>
+	<head>
+		<meta charset="utf-8" />
+		<title>中海油海上石油平台管理系统</title>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
-    <!-- 主页面css -->
-    <link rel="stylesheet" href="./css/main.css">
+		<style>
+			body {
+				font-size: 12px;
+				color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+			
+			#top2 {
+				position: absolute;
+				left: 0px;
+				top: 0px;
+				height: 44px;
+				width: 100%;
+				background: #001729;
+			}
+			
+			#title {
+				position: absolute;
+				left: 25px;
+				font-size: 16px;
+				top: 50%;
+				height: 20px;
+				margin-top: -10px;
+			}
+			
+			#main {
+				position: absolute;
+				left: 0px;
+				top: 44px;
+				width: 100%;
+				height: calc(100% - 44px);
+				background: #f5f5f5;
+			}
+			
+			#showall {
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				width: 1098px;
+				height: 541px;
+				margin-left: -549px;
+				margin-top: -270.5px;
+				overflow-x: hidden;
+				overflow-y: auto;
+			}
+			
+			#showall::-webkit-scrollbar {
+				display: none;
+			}
+			
+			#askbg {
+				position: absolute;
+				left: 0px;
+				top: 0px;
+				width: 100%;
+				height: 100%;
+				z-index: 2;
+				display: none;
+			}
+			
+			#askdiv {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				width: 320px;
+				height: 213px;
+				margin-top: -106.5px;
+				margin-left: -160px;
+				background: #ffffff;
+				border-radius: 5px;
+			}
+			
+			#submit{
+				position:absolute;
+				left:20px;
+				bottom:20px;
+				color:#ffffff;
+				width:130px;
+				height:30px;
+				background: #466176;
+				line-height:30px;
+				text-align: center;
+				border-radius: 5px;
+				font-size:14px;
+				cursor: pointer;
+			}
+			
+			#cancel{
+				position:absolute;
+				right:20px;
+				bottom:20px;
+				color:#466176;
+				width:130px;
+				height:30px;
+				background: #bec8cf;
+				line-height:30px;
+				text-align: center;
+				border-radius: 5px;
+				font-size:14px;
+				cursor: pointer;
+			}
+			
+			#ask{
+				position: absolute;
+				top:90px;
+				left:0px;
+				width:100%;
+				height:20px;
+				text-align: center;
+				font-size:14px;
+				color:#484848;
+			}
+			
+			#cancel2{
+				position:absolute;
+				right:10px;
+				top:0px;
+				width:20px;
+				height:20px;
+				cursor:pointer;
+				background-image: url(img/btn_cancel.png);
+			}
+			
+			#showarea{
+				position: absolute;
+				left: 0px;
+				top: 0px;
+				width: 100%;
+				height: 100%;
+				z-index: 3;
+				display: none;
+			}
+			
+			#left{
+				position:absolute;
+				left:0px;
+				top:0px;
+				width:20%;
+				height:100%;
+				color:#000000;
+			}
+			
+			#top3 {
+				position: absolute;
+				left: 0px;
+				top: 0px;
+				height: 44px;
+				width: 100%;
+			}
+			
+			#stitle {
+				position: absolute;
+				left: 25px;
+				font-size: 16px;
+				top: 50%;
+				height: 20px;
+				margin-top: -10px;
+			}
+			#treebg{
+				position:absolute;
+				left:0px;
+				top:44px;
+				width:100%;
+				height:calc(100% - 44px);
+				background: #ffffff;
+				overflow:auto;
+			}
+			
+			#right{
+				position:absolute;
+				left:20%;
+				top:0px;
+				width:80%;
+				height:100%;
+				background: #ffffff;
+			}
+			
+			#biaotiarea{
+				position:absolute;
+				left:0px;
+				top:0px;
+				width:100%;
+				height:44px;
+				background: #f2f2f2;
+			}
+			
+			#biaoti {
+				position: absolute;
+				left: 23px;
+				font-size: 16px;
+				top: 50%;
+				height: 20px;
+				margin-top: -10px;
+				color: #484848;
+			}
+			
+			#container{
+				position:absolute;
+				left:0px;
+				top:44px;
+				width:100%;
+				height:calc(100% - 44px);;
+			}
+			
+			#back{
+				position:absolute;
+				right:10px;
+				top:50%;
+				width:20px;
+				height:14px;
+				margin-top: -7px;
+				background-image: url(img/btn_back.png);
+				background-size: cover;
+				cursor:pointer;
+				z-index: 10;
+			}
+			
+			#loading{
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				background: #ededed;
+				display: none;
+				opacity: 0.8;
+			}
+			
+			#loadingImg{
+				position: absolute;
+				top: 40%;
+				left: 47%;
+				width: 65px;
+				height: 65px;
+			}
+			
+			#loadingText{
+				position: absolute;
+				top: 50%;
+				width: 100%;
+				text-align: center;
+				color: #000000;
+			}
+			
+		</style>
+	</head>
 
-    <!-- jquery -->
-    <script src="./js/build/jquery-3.4.1.min.js"></script>
-
-    <!-- three -->
-    <script src="./js/three/build/three.js"></script>
-    <script src="./js/three/controls/OrbitControls.js"></script>
-    <script src="./js/three/libs/dat.gui.min.js"></script>
-    <script src="./js/three/CurveExtras.js"></script>
-
-
-</head>
-
-<body>
-    <div id="container"></div>
-</body>
-
-<!-- 主页面js -->
-<script src="./js/main.js"></script>
+	<body>
+		<div id="top2">
+			<div id="title">中海油海上石油平台管理系统</div>
+		</div>
+		<div id="main">
+			<div id="showall"></div>
+			<div id="loading">
+				<img alt="" id="loadingImg" src="img/loading.gif">
+				<p id="loadingText">页面加载中</p>
+			</div>
+			
+			<div id="askbg">
+				<div id="askdiv">
+					<div id="submit">确定</div>
+					<div id="cancel">取消</div>
+					<div id="ask"></div>
+					<div id="cancel2"></div>
+				</div>
+			</div>
+		</div>
+		
+		<div id="showarea">
+			<div id="left">
+				<div id="top3">
+					<div id="stitle">中海油海上石油平台管理系统</div>
+				</div>
+				<div id="treebg" class="ztree" style="z-index: 9;">
+				</div>
+			</div>
+			<div id="right">
+				<div id="biaotiarea">
+					<div id="biaoti"></div>
+					<div id="back"></div>
+				</div>
+				<div id="container"></div>
+			</div>
+		</div>
+		
+		<link rel="stylesheet" href="css/zTreeStyle/zTreeStyle.css" type="text/css">
+		<script type="text/javascript" src="js/zTree/jquery-1.4.4.min.js"></script>
+		<script type="text/javascript" src="js/zTree/jquery.ztree.core.js"></script>
+		<script type="text/javascript" src="js/three.js"></script>
+		<script type="text/javascript" src="js/OrbitControls.js"></script>
+		<script type="text/javascript" src="js/main.js"></script>
+	</body>
 
 </html>

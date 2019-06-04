@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>fileOpen</title>
+		<link rel="stylesheet" href="css/main_m.css">
+		<script src="js/build/jquery.min.js" defer></script>
+		<script src="js/main_m.js" defer></script>
+	</head>
+	<body>
+		<div id="background">
+			<!-- 选择文件 -->
+			<div id="chooseFile">
+				<div class="title">
+					<div class="back"></div>
+					<div class="text">选择文件</div>
+					<div class="delete"></div>
+				</div>
+				<div class="content">
+					<div class="rvm">
+						<span class="head">
+							<span class="subTitle">RVM (必选)</span>
+							<span class="uploadFile">
+								<span class="icon"></span>
+								<span class="text">上传文件</span>
+							</span>
+						</span>
+						<div class="noFile">
+							<div class="info">
+								<span class="icon"></span>
+								<span class="text">暂无文件，请点击右上角上传文件</span>
+							</div>
+						</div>
+						<!-- <span>document.rvm</span>
+						<span>picture.rvm</span>
+						<span>picture.rvm</span>
+						<span>picture.rvm</span>
+						<span>picture.rvm</span>
+						<span>picture.rvm</span> -->
+					</div>
+					<div class="att">
+						<span class="head">
+							<span class="subTitle">ATT</span>
+							<span class="uploadFile">
+								<span class="icon"></span>
+								<span class="text">上传文件</span>
+							</span>
+						</span>
+						<span>document.att</span>
+						<span>picture.att</span>
+						<span>picture.att</span>
+						<span>picture.att</span>
+						<span>picture.att</span>
+						<span>picture.att</span>  
+					</div>
+				</div>
+				<div class="submissionArea">
+					<div class="checkBox">
+						<span class="icon"></span>
+						<span class="text">强制重新解析</span>
+					</div>
+					<div class="buttonPane">
+						<button id="yes">确定</button>
+						<button id="no">取消</button>
+					</div>
+				</div>
+			</div>
+			<!-- 未选择rvm文件 错误 -->
+			<div id="notChooseRvm">
+				<div class="icon"></div>
+				<div class="text">未选择rvm文件，请选选择rvm文件</div>
+				<div  class="errorButton">
+					<button id="errorYes">确定</button>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

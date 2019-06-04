@@ -1,279 +1,205 @@
 
-let container;
+//1.根据后台显示项目
+var container = document.getElementById("container");
+var ask = document.getElementById("ask");
+var showarea = document.getElementById("showarea");
+var top2 = document.getElementById("top2");
+var showall = document.getElementById("showall");
+var yes = document.getElementById("submit");
+var projectname = "";
+var project = [{
+	name: "project1",
+}, {
+	name: "project2",
+}, {
+	name: "project3",
+}];
 
-let camera, scene, renderer, splineCamera, cameraHelper, cameraEye;
+var imgUrl = [];
+imgUrl.push("./img/project1.png");
+imgUrl.push("./img/project2.png");
+imgUrl.push("./img/project3.png");
 
-let binormal = new THREE.Vector3();
-let normal = new THREE.Vector3();
+var askbg = document.getElementById("askbg");
+var askdiv = document.getElementById("askdiv");
+var newgroup;
+var swidth = 330;
+var sheight = 248;
+var lwidth = 54;
+var lheight = 45;
 
-let pipeSpline = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 10, - 10), new THREE.Vector3(10, 0, - 10),
-    new THREE.Vector3(20, 0, 0), new THREE.Vector3(30, 0, 10),
-    new THREE.Vector3(30, 0, 20), new THREE.Vector3(20, 0, 30),
-    new THREE.Vector3(10, 0, 30), new THREE.Vector3(0, 0, 30),
-    new THREE.Vector3(- 10, 10, 30), new THREE.Vector3(- 10, 20, 30),
-    new THREE.Vector3(0, 30, 30), new THREE.Vector3(10, 30, 30),
-    new THREE.Vector3(20, 30, 15), new THREE.Vector3(10, 30, 10),
-    new THREE.Vector3(0, 30, 10), new THREE.Vector3(- 10, 20, 10),
-    new THREE.Vector3(- 10, 10, 10), new THREE.Vector3(0, 0, 10),
-    new THREE.Vector3(10, - 10, 10), new THREE.Vector3(20, - 15, 10),
-    new THREE.Vector3(30, - 15, 10), new THREE.Vector3(40, - 15, 10),
-    new THREE.Vector3(50, - 15, 10), new THREE.Vector3(60, 0, 10),
-    new THREE.Vector3(70, 0, 0), new THREE.Vector3(80, 0, 0),
-    new THREE.Vector3(90, 0, 0), new THREE.Vector3(100, 0, 0)
-]);
+for(var i = 0; i < project.length; i++) {
+	var projdiv = document.createElement("div");
+	showall.appendChild(projdiv);
+	projdiv.style.cssText = "position:absolute;top:" + (parseInt(i / 3) * (sheight + lheight)) + "px;left:" + (i % 3 * (swidth + lwidth)) + "px;width:330px;height:248px;border-radius:5px;cursor:pointer;";
+	projdiv.nid = project[i].name;
 
-let sampleClosedSpline = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, - 40, - 40),
-    new THREE.Vector3(0, 40, - 40),
-    new THREE.Vector3(0, 140, - 40),
-    new THREE.Vector3(0, 40, 40),
-    new THREE.Vector3(0, - 40, 40)
-]);
+	var titlediv = document.createElement("div");
+	projdiv.appendChild(titlediv);
+	titlediv.style.cssText = "position:absolute;left:0px;bottom:0px;width:100%;height:60px;background: #FFFFFF;"
+	titlediv.nid = project[i].name;
 
-sampleClosedSpline.curveType = 'catmullrom';
-sampleClosedSpline.closed = true;
+	var title = document.createElement("div");
+	titlediv.appendChild(title);
+	title.style.cssText = "color:#484848;position:absolute;left:19px;top:50%;height:20px;margin-top: -10px;font-size: 14px;";
+	title.innerHTML = project[i].name;
+	title.nid = project[i].name;
 
-// Keep a dictionary of Curve instances
-let splines = {
-    GrannyKnot: new THREE.Curves.GrannyKnot(),
-    HeartCurve: new THREE.Curves.HeartCurve(3.5),
-    VivianiCurve: new THREE.Curves.VivianiCurve(70),
-    KnotCurve: new THREE.Curves.KnotCurve(),
-    HelixCurve: new THREE.Curves.HelixCurve(),
-    TrefoilKnot: new THREE.Curves.TrefoilKnot(),
-    TorusKnot: new THREE.Curves.TorusKnot(20),
-    CinquefoilKnot: new THREE.Curves.CinquefoilKnot(20),
-    TrefoilPolynomialKnot: new THREE.Curves.TrefoilPolynomialKnot(14),
-    FigureEightPolynomialKnot: new THREE.Curves.FigureEightPolynomialKnot(),
-    DecoratedTorusKnot4a: new THREE.Curves.DecoratedTorusKnot4a(),
-    DecoratedTorusKnot4b: new THREE.Curves.DecoratedTorusKnot4b(),
-    DecoratedTorusKnot5a: new THREE.Curves.DecoratedTorusKnot5a(),
-    DecoratedTorusKnot5c: new THREE.Curves.DecoratedTorusKnot5c(),
-    PipeSpline: pipeSpline,
-    SampleClosedSpline: sampleClosedSpline
-};
+	var pic = document.createElement("img");
+	projdiv.appendChild(pic);
+	pic.style.cssText = "position:absolute;left:0px;top:0px;width:100%;height:188px;";
+	pic.src = imgUrl[i]
+	pic.nid = project[i].name;
 
-let parent, tubeGeometry, mesh;
-
-let params = {
-    spline: 'GrannyKnot',
-    scale: 4,
-    extrusionSegments: 100,
-    radiusSegments: 3,
-    closed: true,
-    animationView: false,
-    lookAhead: false,
-    cameraHelper: false,
-};
-
-let material = new THREE.MeshLambertMaterial({ color: 0xff00ff });
-
-let wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, opacity: 0.3, wireframe: true, transparent: true });
-
-function addTube() {
-
-    if (mesh !== undefined) {
-
-        parent.remove(mesh);
-        mesh.geometry.dispose();
-
-    }
-
-    let extrudePath = splines[params.spline];
-
-    tubeGeometry = new THREE.TubeBufferGeometry(extrudePath, params.extrusionSegments, 2, params.radiusSegments, params.closed);
-
-    addGeometry(tubeGeometry);
-
-    setScale();
-
+	projdiv.onclick = function(event) {
+		var target = event.srcElement.nid;
+		askbg.style.display = "block";
+		ask.innerHTML = "是否进入" + target + "管理场景？";
+		projectname = target;
+	}
+}
+var list=[];
+submit.onclick = function(event) {
+	askbg.style.display = "none";
+	loading.style.display = "block";
+	console.log(projectname);
+	window.location.href= "project.html?name=" + projectname;
 }
 
-function setScale() {
+var cancel = document.getElementById("cancel");
+cancel.onclick = function() {
+	askbg.style.display = "none";
+}
+var cancel2 = document.getElementById("cancel2");
+cancel2.onclick = function() {
+	askbg.style.display = "none";
+}
 
-    mesh.scale.set(params.scale, params.scale, params.scale);
+//提取信息生成目录树
+function mulushu(list) {
+	var setting = {
+		data: {
+			simpleData: {
+				enable: true,
+				idKey: "id",
+				pIdKey: "pId",
+				rootPId: null
+			}
+		},
+		callback: {
+			onClick: nodeClick,
+			onExpand: function(event, treeId, treeNode) {
+				//console.log(treeNode);
+				addSubNode(treeNode);
+			}
+		}
+	};
 
+	var list2 = [];
+	var len = list.length;
+	for(var i = 0; i < len; i++) {
+		if(list[i].pId == 0)
+			list2.push(list[i]);
+	}
+
+	//console.log(list2);
+	var zNodes = list2;
+
+	var zTree = $.fn.zTree.init($("#treebg"), setting, zNodes);
+	
+	function nodeClick(event, treeId, treeNode, clickFlag) {
+		//console.log(treeNode);
+		lightallchildren(treeNode);
+	}
+
+	function addSubNode(treeNode) {
+		if(!treeNode.isParent) return;
+		var s = treeNode.children;
+		if(s != undefined)
+			return;
+		var data0 = [];
+		for(var i = 0; i < list.length; i++) {
+			if(list[i].pId == treeNode.id) {
+				data0.push(list[i]);
+			}
+		}
+		zTree.addNodes(treeNode, data0);
+	}
+
+	function lightallchildren(treeNode) {
+		//console.log(treeNode.children);
+		var childlist = [];
+		if(treeNode.allchildren == undefined) {
+			findthischild(treeNode);
+			treeNode.allchildren = childlist;
+		}
+		for(var i = 0; i < newgroup.children.length; i++) {
+			var obj = newgroup.children[i];
+			obj.material.emissive.r = 0;
+		}
+		for(var i = 0; i < treeNode.allchildren.length; i++) {
+			var obj = scene.getObjectByName(childlist[i]);
+			if(obj!=undefined && obj.material!=undefined){
+				obj.material.emissive.r = 1;
+			}
+		}
+		function findthischild(treeNode) {
+			if(treeNode.type == "Mesh") {
+				childlist.push(treeNode.name);
+			}
+			if(treeNode.type == "Group") {
+				var count = 0;
+				for(var i = 0; i < list.length; i++) {
+					if(list[i].pId == treeNode.id) {
+						count++;
+					}
+				}
+				if(count > 0) {
+					for(var i = 0; i < list.length; i++) {
+						if(list[i].pId == treeNode.id) {
+							findthischild(list[i]);
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 
-function addGeometry(geometry) {
-
-    // 3D shape
-
-    mesh = new THREE.Mesh(geometry, material);
-    let wireframe = new THREE.Mesh(geometry, wireframeMaterial);
-    mesh.add(wireframe);
-
-    parent.add(mesh);
-
+function getData(name){
+	list=[];
+	var startDate = new Date();//获取系统当前时间
+	console.log("开始取数据的时间：" +  startDate.toLocaleString());
+	$.ajax({
+		type: 'post',
+		async: false,
+		dataType: 'json',
+		url: 'selectxml.action',
+		data: {projectname:name},
+		success: function (data) {
+			data0 = eval(data);
+			var endDate = new Date();//获取系统当前时间
+			console.log("获取到数据的时间：" +  endDate.toLocaleString());
+			
+			for(var i = 0; i < data0.length; i++) {
+				var obj = {};
+				obj.id = parseInt(data0[i].id);
+				obj.pId = parseInt(data0[i].pid);
+				obj.type = data0[i].type;
+				obj.name = data0[i].name;
+				if(data0[i].model != "null") {
+					obj.model = JSON.parse(data0[i].model);
+				} else {
+					obj.model = "null";
+				}
+				if(data0[i].isparent == "true") {
+					obj.isParent = true;
+				} else {
+					obj.isParent = false;
+				}
+				list.push(obj);
+			}
+		}
+	});
 }
-
-function animateCamera() {
-
-    cameraHelper.visible = params.cameraHelper;
-    cameraEye.visible = params.cameraHelper;
-
-}
-
-init();
-animate();
-
-function init() {
-
-    container = document.getElementById('container');
-
-    // camera
-
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 10000);
-    camera.position.set(0, 50, 500);
-
-    // scene
-
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0);
-
-    // light
-
-    let light = new THREE.DirectionalLight(0xffffff);
-    light.position.set(0, 0, 1);
-    scene.add(light);
-
-    // tube
-
-    parent = new THREE.Object3D();
-    scene.add(parent);
-
-    splineCamera = new THREE.PerspectiveCamera(84, window.innerWidth / window.innerHeight, 0.01, 1000);
-    parent.add(splineCamera);
-
-    cameraHelper = new THREE.CameraHelper(splineCamera);
-    scene.add(cameraHelper);
-
-    addTube();
-
-    // debug camera
-
-    cameraEye = new THREE.Mesh(new THREE.SphereBufferGeometry(5), new THREE.MeshBasicMaterial({ color: 0xdddddd }));
-    parent.add(cameraEye);
-
-    cameraHelper.visible = params.cameraHelper;
-    cameraEye.visible = params.cameraHelper;
-
-    // renderer
-
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    container.appendChild(renderer.domElement);
-
-    // dat.GUI
-
-    let gui = new dat.GUI({ width: 300 });
-
-    let folderGeometry = gui.addFolder('Geometry');
-    folderGeometry.add(params, 'spline', Object.keys(splines)).onChange(function () {
-
-        addTube();
-
-    });
-    folderGeometry.add(params, 'scale', 2, 10).step(2).onChange(function () {
-
-        setScale();
-
-    });
-    folderGeometry.open();
-
-    let folderCamera = gui.addFolder('Parameter');
-    folderCamera.add(params, 'extrusionSegments', 50, 500).step(50).onChange(function () {
-
-        addTube();
-
-    });
-    folderCamera.add(params, 'animationView').onChange(function () {
-
-        animateCamera();
-
-    });
-    folderCamera.add(params, 'lookAhead').onChange(function () {
-
-        animateCamera();
-
-    });
-    folderCamera.add(params, 'cameraHelper').onChange(function () {
-
-        animateCamera();
-
-    });
-    folderCamera.open();
-
-    let controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-    window.addEventListener('resize', onWindowResize, false);
-
-};
-
-function onWindowResize() {
-
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-};
-
-function animate() {
-
-    requestAnimationFrame(animate);
-
-    render();
-};
-
-function render() {
-
-    // animate camera along spline
-
-    let time = Date.now();
-    let looptime = 20 * 1000;
-    let t = (time % looptime) / looptime;
-
-    let pos = tubeGeometry.parameters.path.getPointAt(t);
-    pos.multiplyScalar(params.scale);
-
-    // interpolation
-
-    let segments = tubeGeometry.tangents.length;
-    let pickt = t * segments;
-    let pick = Math.floor(pickt);
-    let pickNext = (pick + 1) % segments;
-
-    binormal.subVectors(tubeGeometry.binormals[pickNext], tubeGeometry.binormals[pick]);
-    binormal.multiplyScalar(pickt - pick).add(tubeGeometry.binormals[pick]);
-
-    let dir = tubeGeometry.parameters.path.getTangentAt(t);
-    let offset = 15;
-
-    normal.copy(binormal).cross(dir);
-
-    // we move on a offset on its binormal
-
-    pos.add(normal.clone().multiplyScalar(offset));
-
-    splineCamera.position.copy(pos);
-    cameraEye.position.copy(pos);
-
-    // using arclength for stablization in look ahead
-
-    let lookAt = tubeGeometry.parameters.path.getPointAt((t + 30 / tubeGeometry.parameters.path.getLength()) % 1).multiplyScalar(params.scale);
-
-    // camera orientation 2 - up orientation via normal
-
-    if (!params.lookAhead) lookAt.copy(pos).add(dir);
-    splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
-    splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
-
-    cameraHelper.update();
-
-    renderer.render(scene, params.animationView === true ? splineCamera : camera);
-
-};
