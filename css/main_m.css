@@ -113,12 +113,16 @@ html,body{
 .att{
 	margin: 0px 16px 0px 5px;
 }
-#chooseFile>.content>div>span:not(:first-child){
+/* #chooseFile>.content>div>span:not(:first-child){ */
+ #chooseFile>.content>div>span{
 	height: 28px;
 	font-size: 12px;
 	color: #484848;
 	line-height: 30px;
 	/* background-color: red; */
+}
+#chooseFile>.content>div>span:hover{
+	background-color: #e6e6e6;
 }
 #chooseFile>.content .head{
 	height: 32px;
@@ -248,4 +252,7 @@ html,body{
 	background: url(../img/openFile/pic_empty.png) no-repeat;
 	background-size: contain;
 	display: block;
+}
+.active{
+	background-color: #347cb6 !important;
 }
