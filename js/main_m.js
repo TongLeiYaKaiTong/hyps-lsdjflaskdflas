@@ -1,5 +1,34 @@
 window.onload = function(){
+	
 	//--------------------点击事件---------------
+	//#打开
+	$("#nav>.menu-area .open").click(function(){
+		$("#chooseFile").show();
+	});
+	//#复选框
+	 /* $("#chooseFile>.submissionArea .icon").click(function(){ 
+		 console.log("dianji"); */
+		/* $("#chooseFile>.submissionArea .icon").toggle(function(){
+			console.log("单数");
+			$("#chooseFile>.submissionArea .icon").css({
+				"background":"url(./img/openFile/btn_checkbox_selected.png)",
+				"display":"inline-block"
+			});
+		},function(){
+			console.log("偶数");
+			$("#chooseFile>.submissionArea .icon").css({
+				"background":"url(./img/openFile/btn_checkbox_unselected.png)",
+				"display":"inline-block"
+			});
+		},function(){
+			console.log("单数");
+			$("#chooseFile>.submissionArea .icon").css({
+				"background":"url(./img/openFile/btn_checkbox_selected.png)",
+				"display":"inline-block"
+			});
+		}); */
+	/* }); */
+	
 	//#解析
 	$("#yes").click(function(){
 		$("#notChooseRvm").css("display","flex");
@@ -16,19 +45,22 @@ window.onload = function(){
 		$("#chooseFile>.content>div.att>span").removeClass("active");
 		$(this).addClass("active");
 	});
-	 /* $.ajax({
+	 $.ajax({
 		type:"POST",
-		url:"http://www.toolkip.com/haiyouservice/seervmWebService1.asmx?aspxerrorpath=/haiyouservice/seervmWebService1.asmx/allFiles",
+		url:"http://www.toolkip.com/haiyouservice/seervmWebService1.asmx/allFiles",
 		ansyc:true,
 		data:{},
 		success:function(data){
 			console.log(data);
+			var sth = eval(data);
+			console.log(sth);
+			//arrayMnplton(eval(data));
 		},
 		error:function(e){
 			console.log(e.responseText);
 		}
 		
-	}); */
+	});
 	//
 	$(".submissionArea .icon").click(
 		
