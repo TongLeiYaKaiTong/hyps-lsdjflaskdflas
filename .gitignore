@@ -1,6 +1,4 @@
-
-.vscode/settings.json
 .gitattributes
-js/main.1.js
 node_modules
 package-lock.json
+.vscode

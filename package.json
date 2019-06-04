@@ -1,0 +1,23 @@
+{
+  "name": "pdms-E23862B9-91F9-486B-9487-7F18628181C2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "transform.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hanshuai1994/pdms-E23862B9-91F9-486B-9487-7F18628181C2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hanshuai1994/pdms-E23862B9-91F9-486B-9487-7F18628181C2/issues"
+  },
+  "homepage": "https://github.com/hanshuai1994/pdms-E23862B9-91F9-486B-9487-7F18628181C2#readme",
+  "dependencies": {
+    "less": "^3.9.0"
+  }
+}

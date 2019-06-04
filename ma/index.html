@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				margin: 0px;
+				background-color: #FFFFFF;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<script src="../js/three/build/three.js"></script>
+		<script src="./js/extend_geometry.js"></script>
+		<script src="../js/three/controls/OrbitControls.js"></script>
+		<script src="../js/three/libs/stats.min.js"></script>
+		<script id="vertexShader" type="x-shader/x-vertex">
+			precision highp float;
+			uniform mat4 modelViewMatrix;
+			uniform mat4 projectionMatrix;
+			attribute vec3 position;
+			attribute vec3 offset;
+			attribute vec2 uv;
+			attribute vec4 orientation;
+			attribute vec3 normal;
+			varying vec2 vUv;
+			varying vec3 vPosition;
+			varying vec3 vNormal;
+			// http://www.geeks3d.com/20141201/how-to-rotate-a-vertex-by-a-quaternion-in-glsl/
+			vec3 applyQuaternionToVector( vec4 q, vec3 v ){
+				return v + 2.0 * cross( q.xyz, cross( q.xyz, v ) + q.w * v );
+			}
+			void main() {
+				vPosition = applyQuaternionToVector( orientation, position );
+				//vUv = uv; -->	
+				vNormal = normal;
+				// vec3 positionEye = ( modelViewMatrix * matrix * vec4( position, 1.0 ) ).xyz; -->
+				//vPosition = positionEye;
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + vPosition, 1.0 );
+			}
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			#extension GL_OES_standard_derivatives : enable
+			precision highp float;
+			uniform sampler2D map;
+			//varying vec2 vUv; 
+			varying vec3 vPosition;
+			varying vec3 vNormal;
+			void main() {
+				float diffuse = dot( vNormal, vec3( 0.0, 0.0, 1.0 ) );
+				gl_FragColor = diffuse*vec4(0,1.0,0,1.0);
+			}
+		</script>
+		<script src="./js/main.js"></script>
+	</body>
+</html>

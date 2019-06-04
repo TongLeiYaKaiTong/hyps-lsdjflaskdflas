@@ -1,136 +1,205 @@
-let container;//html容器
 
-let camera, scene, renderer;//three 三组件
+//1.根据后台显示项目
+var container = document.getElementById("container");
+var ask = document.getElementById("ask");
+var showarea = document.getElementById("showarea");
+var top2 = document.getElementById("top2");
+var showall = document.getElementById("showall");
+var yes = document.getElementById("submit");
+var projectname = "";
+var project = [{
+	name: "project1",
+}, {
+	name: "project2",
+}, {
+	name: "project3",
+}];
 
-let controls;//控制器
+var imgUrl = [];
+imgUrl.push("./img/project1.png");
+imgUrl.push("./img/project2.png");
+imgUrl.push("./img/project3.png");
 
-let primitives;//几何集合
+var askbg = document.getElementById("askbg");
+var askdiv = document.getElementById("askdiv");
+var newgroup;
+var swidth = 330;
+var sheight = 248;
+var lwidth = 54;
+var lheight = 45;
 
-let material = new THREE.MeshPhongMaterial({ color: 0xff00ff });//统一材质
+for(var i = 0; i < project.length; i++) {
+	var projdiv = document.createElement("div");
+	showall.appendChild(projdiv);
+	projdiv.style.cssText = "position:absolute;top:" + (parseInt(i / 3) * (sheight + lheight)) + "px;left:" + (i % 3 * (swidth + lwidth)) + "px;width:330px;height:248px;border-radius:5px;cursor:pointer;";
+	projdiv.nid = project[i].name;
 
-function render() {
+	var titlediv = document.createElement("div");
+	projdiv.appendChild(titlediv);
+	titlediv.style.cssText = "position:absolute;left:0px;bottom:0px;width:100%;height:60px;background: #FFFFFF;"
+	titlediv.nid = project[i].name;
 
-    renderer.render(scene, camera);
+	var title = document.createElement("div");
+	titlediv.appendChild(title);
+	title.style.cssText = "color:#484848;position:absolute;left:19px;top:50%;height:20px;margin-top: -10px;font-size: 14px;";
+	title.innerHTML = project[i].name;
+	title.nid = project[i].name;
 
-};
+	var pic = document.createElement("img");
+	projdiv.appendChild(pic);
+	pic.style.cssText = "position:absolute;left:0px;top:0px;width:100%;height:188px;";
+	pic.src = imgUrl[i]
+	pic.nid = project[i].name;
 
-function animate() {
+	projdiv.onclick = function(event) {
+		var target = event.srcElement.nid;
+		askbg.style.display = "block";
+		ask.innerHTML = "是否进入" + target + "管理场景？";
+		projectname = target;
+	}
+}
+var list=[];
+submit.onclick = function(event) {
+	askbg.style.display = "none";
+	loading.style.display = "block";
+	console.log(projectname);
+	window.location.href= "project.html?name=" + projectname;
+}
 
-    requestAnimationFrame(animate);
+var cancel = document.getElementById("cancel");
+cancel.onclick = function() {
+	askbg.style.display = "none";
+}
+var cancel2 = document.getElementById("cancel2");
+cancel2.onclick = function() {
+	askbg.style.display = "none";
+}
 
-    render();
-};
+//提取信息生成目录树
+function mulushu(list) {
+	var setting = {
+		data: {
+			simpleData: {
+				enable: true,
+				idKey: "id",
+				pIdKey: "pId",
+				rootPId: null
+			}
+		},
+		callback: {
+			onClick: nodeClick,
+			onExpand: function(event, treeId, treeNode) {
+				//console.log(treeNode);
+				addSubNode(treeNode);
+			}
+		}
+	};
 
-function init() {
+	var list2 = [];
+	var len = list.length;
+	for(var i = 0; i < len; i++) {
+		if(list[i].pId == 0)
+			list2.push(list[i]);
+	}
 
-    container = document.getElementById('container');
+	//console.log(list2);
+	var zNodes = list2;
 
-    // renderer
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    container.appendChild(renderer.domElement);
+	var zTree = $.fn.zTree.init($("#treebg"), setting, zNodes);
+	
+	function nodeClick(event, treeId, treeNode, clickFlag) {
+		//console.log(treeNode);
+		lightallchildren(treeNode);
+	}
 
-    // scene
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0);
+	function addSubNode(treeNode) {
+		if(!treeNode.isParent) return;
+		var s = treeNode.children;
+		if(s != undefined)
+			return;
+		var data0 = [];
+		for(var i = 0; i < list.length; i++) {
+			if(list[i].pId == treeNode.id) {
+				data0.push(list[i]);
+			}
+		}
+		zTree.addNodes(treeNode, data0);
+	}
 
-    // light
-    let light = new THREE.DirectionalLight(0xffffff);
-    light.position.set(1, 1, 1);
-    scene.add(light);
-
-    scene.add(new THREE.AmbientLight(0x404040));
-
-    // camera
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 10000);
-    camera.position.set(0, 50, 500);
-
-    // controls
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-    // Object3D
-    primitives = new THREE.Object3D();
-    scene.add(primitives);
-
-    // 添加几何体
-    // addBox();
-    // addCylinder();
-    addSphericaldish();
-
-    window.addEventListener('resize', onWindowResize, false);
-
-};
-
-function onWindowResize() {
-
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-};
-
-// box 立方体
-const addBox = (cfg) => {
-    let geometry = new THREE.BoxGeometry(10, 10, 10);
-    let cube = new THREE.Mesh(geometry, material);
-    primitives.add(cube);
-};
-
-// cylinder 圆柱体
-const addCylinder = (cfg) => {
-    let geometry = new THREE.CylinderGeometry(5, 5, 20, 32);
-    let cylinder = new THREE.Mesh(geometry, material);
-    primitives.add(cylinder);
-};
-
-// elliptical-dish 椭圆形盘
-const addEllipticaldish = (cfg) => {
-    let geometry = new THREE.CylinderGeometry(5, 5, 20, 32);
-    let cylinder = new THREE.Mesh(geometry, material);
-    primitives.add(cylinder);
-};
-
-// spherical-dish 球形盘
-
-const addSphericaldish = () => {
-    // primitives.add(new THREE.Mesh(SphericaldishGeometry(76, 38), material));
-
-    // primitives.add(new THREE.Mesh(SphericaldishGeometry(76, 30), material));
-    let geo = new THREE.IcosahedronGeometry(38, 2);
-    geo.computeVertexNormals();
-    primitives.add(new THREE.Mesh(geo, material));
-};
-
-/**
- * @param {*} diameter 开口直径
- * @param {*} height 球冠高
- * @param {*} widthSegments 水平分段数 【默认32】
- * @param {*} heightSegments 垂直分段数 【默认16】
- */
-const SphericaldishGeometry = (diameter, height, widthSegments = 32, heightSegments = 4) => {
+	function lightallchildren(treeNode) {
+		//console.log(treeNode.children);
+		var childlist = [];
+		if(treeNode.allchildren == undefined) {
+			findthischild(treeNode);
+			treeNode.allchildren = childlist;
+		}
+		for(var i = 0; i < newgroup.children.length; i++) {
+			var obj = newgroup.children[i];
+			obj.material.emissive.r = 0;
+		}
+		for(var i = 0; i < treeNode.allchildren.length; i++) {
+			var obj = scene.getObjectByName(childlist[i]);
+			if(obj!=undefined && obj.material!=undefined){
+				obj.material.emissive.r = 1;
+			}
+		}
+		function findthischild(treeNode) {
+			if(treeNode.type == "Mesh") {
+				childlist.push(treeNode.name);
+			}
+			if(treeNode.type == "Group") {
+				var count = 0;
+				for(var i = 0; i < list.length; i++) {
+					if(list[i].pId == treeNode.id) {
+						count++;
+					}
+				}
+				if(count > 0) {
+					for(var i = 0; i < list.length; i++) {
+						if(list[i].pId == treeNode.id) {
+							findthischild(list[i]);
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 
-    let r = diameter / 2; //开口半径
-
-    let radius = Math.floor(((height * height) + (r * r)) / (2 * height)); //半径 
-
-    let a = radius - height;
-
-    let geometry = new THREE.Geometry();
-
-    // dish 段
-    geometry.merge(new THREE.SphereGeometry(radius, widthSegments, heightSegments, undefined, undefined, undefined, Math.atan(r / a)));
-
-    // bottom plane
-    let bottomPlane = new THREE.CircleGeometry(r, widthSegments);
-    bottomPlane.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / 2));
-    bottomPlane.applyMatrix(new THREE.Matrix4().makeTranslation(0, a, 0));
-    // geometry.merge(bottomPlane);
-
-    return geometry;
-};
-
-init();
-animate();
+function getData(name){
+	list=[];
+	var startDate = new Date();//获取系统当前时间
+	console.log("开始取数据的时间：" +  startDate.toLocaleString());
+	$.ajax({
+		type: 'post',
+		async: false,
+		dataType: 'json',
+		url: 'selectxml.action',
+		data: {projectname:name},
+		success: function (data) {
+			data0 = eval(data);
+			var endDate = new Date();//获取系统当前时间
+			console.log("获取到数据的时间：" +  endDate.toLocaleString());
+			
+			for(var i = 0; i < data0.length; i++) {
+				var obj = {};
+				obj.id = parseInt(data0[i].id);
+				obj.pId = parseInt(data0[i].pid);
+				obj.type = data0[i].type;
+				obj.name = data0[i].name;
+				if(data0[i].model != "null") {
+					obj.model = JSON.parse(data0[i].model);
+				} else {
+					obj.model = "null";
+				}
+				if(data0[i].isparent == "true") {
+					obj.isParent = true;
+				} else {
+					obj.isParent = false;
+				}
+				list.push(obj);
+			}
+		}
+	});
+}
