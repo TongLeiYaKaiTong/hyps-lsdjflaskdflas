@@ -201,16 +201,17 @@ function init(name, list) {
 	const height = $('#container').height();
 
 	camera = new THREE.PerspectiveCamera(45, width / height, 1, 200000000);
-	camera.position.set(100, 200, 300);
+	// camera.position.set(100, 200, 300);
+	camera.position.set(0, 0, 100);
 	out_camera = camera
 
 	controls = new THREE.OrbitControls(camera, container, update_view_controller);
-	controls.target.set(0, 100, 0);
+	// controls.target.set(0, 100, 0);
 	controls.update();
 	out_controls = controls
 
 	scene = new THREE.Scene();
-	scene.background = new THREE.Color(0xa0a0a0);
+	scene.background = new THREE.Color(0xf0f0f0);
 	//scene.fog = new THREE.Fog(0xa0a0a0, 200, 2000);
 
 	renderer = new THREE.WebGLRenderer({
