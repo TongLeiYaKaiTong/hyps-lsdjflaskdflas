@@ -127,6 +127,74 @@ function PDMSLoader() {
     //     };
     // };
 
+    function FaceGroupGeometry(arr) {
+
+        let vertices_array = [];
+
+        let geo = new THREE.BufferGeometry();
+
+        for (let i = 0, len = arr.length; i < len; i++) {
+            let num = arr[i];
+            // console.log(num)
+
+            //先算当前大面的中点坐标
+            let x_sum = 0, y_sum = 0, z_sum = 0;
+            for (let j = i + 1; j < i + 3 * num + 1; j += 3) {
+                x_sum += arr[j];
+                y_sum += arr[j + 2];
+                z_sum += arr[j + 1];
+            };
+            x_sum /= num;
+            y_sum /= num;
+            z_sum /= num;
+
+            // console.log('大面中点坐标',x_sum,y_sum,z_sum)
+            for (let j = i + 1; j < i + 3 * (num - 1) + 1; j += 3) { //一循环一个三角片
+                vertices_array.push(arr[j]);
+                vertices_array.push(arr[j + 2]);
+                vertices_array.push(-arr[j + 1]);
+
+                vertices_array.push(arr[j + 3]);
+                vertices_array.push(arr[j + 5]);
+                vertices_array.push(-arr[j + 4]);
+
+                //中点
+                vertices_array.push(x_sum);
+                vertices_array.push(y_sum);
+                vertices_array.push(-z_sum);
+                // console.log(arr[j+3],arr[j+5],arr[j+4])
+            };
+            //最后一个面
+            vertices_array.push(arr[i + 3 * (num - 1) + 1]);
+            vertices_array.push(arr[i + 3 * (num - 1) + 3]);
+            vertices_array.push(-arr[i + 3 * (num - 1) + 2]);
+            // console.log('最后三个数字是',arr[3*(num-1)+1],arr[3*(num-1)+3],arr[3*(num-1)+2])
+            vertices_array.push(arr[i + 1]);
+            vertices_array.push(arr[i + 3]);
+            vertices_array.push(-arr[i + 2]);
+
+            //中点
+            vertices_array.push(x_sum);
+            vertices_array.push(y_sum);
+            vertices_array.push(-z_sum);
+
+            // console.log('最前三个数字是',arr[i+1],arr[i+3],arr[i+2])
+
+            //然后取刚push的几个点的中点计算一个
+            i += 3 * num;
+        };
+
+        let vertices = new Float32Array(vertices_array);
+        // var normals = new Float32Array( [] );
+        geo.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        // geo.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
+
+        geo.computeVertexNormals();
+
+        return geo;
+
+    };
+
 
     // ==================================================PDMS文件解析区域================================================== 
 
@@ -307,7 +375,8 @@ function PDMSLoader() {
                 break;
             case 10:  //Line 
                 break;
-            case 11:  //FaceGroup   
+            case 11:  //FaceGroup
+                geo = FaceGroupGeometry(arr);
                 break;
         };
 
