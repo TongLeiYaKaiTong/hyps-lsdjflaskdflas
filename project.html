@@ -216,7 +216,7 @@
 	<!-- 选择文件 -->
 	<div id="chooseFile">
 		<div class="title">
-			<div class="back"></div>
+			<!-- <div class="back"></div> -->
 			<div class="text">选择文件</div>
 			<div class="delete"></div>
 		</div>
@@ -228,13 +228,16 @@
 						<span class="icon"></span>
 						<span class="text">上传文件</span>
 					</span>
+					<input type="file" id="rvmInputFile">
 				</div>
 				<div class="noFile">
 					<div class="info">
+						<!-- <input type="file"> -->
 						<span class="icon"></span>
 						<span class="text">暂无文件，请点击右上角上传文件</span>
 					</div>
 				</div>
+				<div class="fileList"></div>
 			</div>
 			<div class="att">
 				<div class="head">
@@ -243,6 +246,7 @@
 						<span class="icon"></span>
 						<span class="text">上传文件</span>
 					</span>
+					<input type="file" id="attInputFile">
 				</div>
 				<div class="noFile">
 					<div class="info">
@@ -250,15 +254,16 @@
 						<span class="text">暂无文件，请点击右上角上传文件</span>
 					</div>
 				</div>
+				<div class="fileList"></div>
 			</div>
 		</div>
 		<div class="submissionArea">
 			<div class="checkBox">
-				<span class="icon"></span>
-				<span class="text">强制重新解析</span>
+				<span class="icon unselect" id="checkboxIcon"></span>
+				<label class="text" id="checkboxText">强制重新解析</label>
 			</div>
 			<div class="buttonPane">
-				<button id="yes">确定</button>
+				<button id="yes" disabled="disabled" class="yesDisabled">确定</button>
 				<button id="no">取消</button>
 			</div>
 		</div>
