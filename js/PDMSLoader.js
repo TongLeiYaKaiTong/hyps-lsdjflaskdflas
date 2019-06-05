@@ -100,33 +100,37 @@ function PDMSLoader() {
     /**
      * snot
      */
-    // THREE.SnoutGeometry = class SnoutGeometry extends THREE.CylinderGeometry {
-    //     constructor(radius_bottom, radius_top, height, x_offset = 0, z_offset = 0) {
-    //         super(radius_top, radius_bottom, height, 32);
+    THREE.SnoutGeometry = function SnoutGeometry(radius_bottom, radius_top, height, x_offset, z_offset) {
+        x_offset = x_offset || 0;
+        z_offset = z_offset || 0;
 
-    //         this.type = 'SnoutGeometry';
+        THREE.CylinderGeometry.call(this, radius_top, radius_bottom, height, 32);
 
-    //         const vertices = this.vertices;
-    //         const length = vertices.length;
+        this.type = 'SnoutGeometry';
 
-    //         // 全部向上偏移高度
-    //         for (let i = 0; i < length; i++) {
-    //             const vector = vertices[i];
-    //             vector.y += height;
-    //         };
+        const vertices = this.vertices;
+        const length = vertices.length;
 
-    //         // 获取顶部点
-    //         const top_vertices = vertices.slice(0, length / 2 - 1);
-    //         top_vertices.push(vertices[length - 2]);
+        // 全部向上偏移高度
+        for (let i = 0; i < length; i++) {
+            const vector = vertices[i];
+            vector.y += height;
+        };
 
-    //         // 顶部圆环顶点偏移
-    //         for (const vector of top_vertices) {
-    //             vector.x += x_offset;
-    //             vector.z += z_offset;
-    //         };
-    //     };
-    // };
+        // 获取顶部点
+        const top_vertices = vertices.slice(0, length / 2 - 1);
+        top_vertices.push(vertices[length - 2]);
 
+        // 顶部圆环顶点偏移
+        for (let i = 0; i < top_vertices.length; i++) {
+            const vector = top_vertices[i];
+            vector.x += x_offset;
+            vector.z += z_offset;
+        }
+    };
+
+    THREE.SnoutGeometry.prototype = Object.create(THREE.CylinderGeometry.prototype);
+    THREE.SnoutGeometry.prototype.constructor = THREE.SnoutGeometry;
 
     // ==================================================PDMS文件解析区域================================================== 
 
@@ -297,7 +301,7 @@ function PDMSLoader() {
                 geo = DishGeometry(false, arr[0], arr[1], 8);
                 break;
             case 7:   //Snout
-                // geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
+                geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
                 break;
             case 8:  //CYLINDER 
                 geo = new THREE.CylinderBufferGeometry(arr[0], arr[0], arr[1], 8);
