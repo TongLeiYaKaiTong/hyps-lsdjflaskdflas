@@ -1,11 +1,3 @@
-$(function () {
-
-})
-
-$(function () {
-
-})
-
 // ============================ dom事件绑定 ============================
 // 下拉菜单鼠标移入触发
 $(".menu-box").mouseover(function () {
@@ -186,7 +178,7 @@ $(function() {
 // 	window.location.href= "index.html";
 // }
 
-// let water
+let water
 // let renderer
 // let camera
 // let out_camera;
@@ -262,7 +254,8 @@ function init(name, list) {
 	);
 
 	water.rotation.x = - Math.PI / 2;
-	// scene.add(water);
+	water.visible = false;
+	scene.add(water);
 
 	// Skybox
 	var sky = new THREE.Sky();
@@ -285,7 +278,6 @@ function init(name, list) {
 	cubeCamera.renderTarget.texture.generateMipmaps = true;
 	cubeCamera.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
 
-	// scene.background = cubeCamera.renderTarget;
 
 	function updateSun() {
 
@@ -303,21 +295,33 @@ function init(name, list) {
 
 	}
 
-	// updateSun();
+	updateSun();
 
+	// 海水开关按钮
+	$('#nav>.menu-area>.water>.icon').click(function () {
+		$(this).parent().toggleClass('on');
+
+		if ($(this).parent().hasClass('on')) {
+			scene.background = cubeCamera.renderTarget;
+			water.visible = true;
+		} else {
+			scene.background = new THREE.Color(0xf0f0f0);
+			water.visible = false;
+		}
+	})
 
 	// ground
-	var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), new THREE.MeshPhongMaterial({
-		color: 0x999999,
-		depthWrite: false
-	}));
-	mesh.rotation.x = -Math.PI / 2;
-	mesh.receiveShadow = true;
+	// var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), new THREE.MeshPhongMaterial({
+	// 	color: 0x999999,
+	// 	depthWrite: false
+	// }));
+	// mesh.rotation.x = -Math.PI / 2;
+	// mesh.receiveShadow = true;
 	// scene.add(mesh);
 
-	var grid = new THREE.GridHelper(2000, 20, 0x000000, 0x000000);
-	grid.material.opacity = 0.2;
-	grid.material.transparent = true;
+	// var grid = new THREE.GridHelper(2000, 20, 0x000000, 0x000000);
+	// grid.material.opacity = 0.2;
+	// grid.material.transparent = true;
 	// scene.add(grid);
 
 	new PDMSLoader().load(
@@ -342,10 +346,6 @@ function init(name, list) {
 	var data;
 
 	function onWindowResize() {
-		// var left0 = window.innerHeight * 0.2;
-		// var width0 = window.innerWidth * 0.8;
-		// var top0 = 44;
-		// var height0 = window.innerHeight - 44;
 		const width = $('#container').width();
 		const height = $('#container').height();
 		camera.aspect = width / height;
@@ -417,8 +417,9 @@ function init(name, list) {
 function animate2() {
 	requestAnimationFrame(animate2);
 
-	if (water)
+	if (water && $('#nav>.menu-area>.water').hasClass('on')) {
 		water.material.uniforms['time'].value += 5.0 / 60.0;
+	}
 
 	if (renderer) {
 		renderer.render(scene, camera);
