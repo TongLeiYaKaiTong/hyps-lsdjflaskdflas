@@ -208,15 +208,15 @@ function PDMSLoader() {
     };
 
     /** 四棱台几何
-     * @param {*} height 四棱台高
      * @param {*} x_top 顶部x方向长度
      * @param {*} y_top 顶部y方向长度
      * @param {*} x_bottom 底部x方向长度
      * @param {*} y_bottom 底部y方向长度
      * @param {*} x_offset 顶面中心和底面中心x方向的偏移量
      * @param {*} y_offset 顶面中心和底面中心y方向的偏移量
+     * @param {*} height 四棱台高
      */
-    function PyramidGeometry( x_top, y_top, x_bottom, y_bottom, x_offset, y_offset,height) {
+    function PyramidGeometry(x_top, y_top, x_bottom, y_bottom, x_offset, y_offset, height) {
         let half_x_b = x_bottom / 2;
         let half_y_b = y_bottom / 2;
         let half_x_t = x_top / 2;
@@ -507,7 +507,7 @@ function PDMSLoader() {
         switch (type) {
             case 1:   //PYRAMID 
                 console.log(arr);
-                
+
                 // geo = PyramidGeometry(arr[0], arr[2], arr[1], arr[4], arr[3], arr[6], arr[5]);
                 geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
                 break;
