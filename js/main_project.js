@@ -1,9 +1,9 @@
-$(function() {
+$(function () {
 
 })
 
-$(function() {
-	
+$(function () {
+
 })
 
 // ============================ dom事件绑定 ============================
@@ -160,15 +160,22 @@ if (getData.indexOf("?") != -1) {
 }
 // console.log(projectname);
 var list = [];
-$('#loading').hide();
-// window.onload = function (event) {
 
-// 	// init2(name,list);
-// 	$('#loading').hide();
+// window.onload = function (event) {
+// 	console.log(123);
+	
+
+
 // 	// showarea.style.display = "block";
 // 	// var lastDate = new Date();//获取系统当前时间
 // 	// console.log("页面加载完成：" +  lastDate.toLocaleString());
 // }
+
+$(function() {
+	
+	init(name, list);
+	$('#loading').hide();
+})
 
 // var back = document.getElementById("back");
 // back.onclick = function() {
@@ -182,18 +189,10 @@ $('#loading').hide();
 // let out_controls;
 // let view_controller; //视角球控制
 // let view_controller_renderer; //视角球控制
-function init2(name, list) {
+function init(name, list) {
 	console.log('进入threejs场景init')
-	// showarea.style.display = "block";
-	// var biaoti = document.getElementById("biaoti");
-	//console.log(name);
-	// biaoti.innerHTML = name;
 	var container = document.getElementById("container");
 
-	// var left0 = window.innerHeight * 0.2;
-	// var width0 = window.innerWidth * 0.8;
-	// var top0 = 44;
-	// var height0 = window.innerHeight - 44;
 	const width = $('#container').width();
 	const height = $('#container').height();
 
@@ -235,8 +234,6 @@ function init2(name, list) {
 	scene.add(light);
 
 	// Water
-
-	// var waterGeometry = new THREE.PlaneBufferGeometry( 10000, 10000 );
 	var waterGeometry = new THREE.CircleBufferGeometry(100000, 16);
 
 	water = new THREE.Water(
@@ -260,11 +257,9 @@ function init2(name, list) {
 	);
 
 	water.rotation.x = - Math.PI / 2;
-	// console.log('water', water);
-	scene.add(water);
+	// scene.add(water);
 
 	// Skybox
-
 	var sky = new THREE.Sky();
 
 	var uniforms = sky.material.uniforms;
@@ -285,7 +280,7 @@ function init2(name, list) {
 	cubeCamera.renderTarget.texture.generateMipmaps = true;
 	cubeCamera.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
 
-	scene.background = cubeCamera.renderTarget;
+	// scene.background = cubeCamera.renderTarget;
 
 	function updateSun() {
 
@@ -303,7 +298,7 @@ function init2(name, list) {
 
 	}
 
-	updateSun();
+	// updateSun();
 
 
 	// ground
@@ -319,6 +314,21 @@ function init2(name, list) {
 	grid.material.opacity = 0.2;
 	grid.material.transparent = true;
 	// scene.add(grid);
+
+	new PDMSLoader().load(
+		"./js/rvm_att/rvmData2.js",
+		"",
+		function (data) {
+			console.log(data);
+			if (data.dataType == "group") scene.add(data.data);
+		},
+		function (evt) {
+			if (evt.lengthComputable) {
+				let percentComplete = evt.loaded / evt.total;
+				console.log(Math.round(percentComplete * 100) + "%");
+			};
+		}
+	);
 
 
 	window.addEventListener('resize', onWindowResize, false);
