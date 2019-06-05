@@ -1,9 +1,9 @@
-$(function() {
+$(function () {
 
 })
 
-$(function() {
-	
+$(function () {
+
 })
 
 // ============================ dom事件绑定 ============================
@@ -90,16 +90,18 @@ $('#nav>.menu-area>.view-box>.dropdown-menu>li>a').click(function () {
 function downloadGLTF(model, fileName) {
 	const exporter = new THREE.GLTFExporter();
 
-	exporter.parse(model, (result) => {
-		if (result instanceof ArrayBuffer) {
-			downloadArrayBuffer(result, fileName + '.glb')
-		} else {
-			const text = JSON.stringify(result);
-			downloadString(text, fileName + '.gltf')
-		}
-	}, {
-			binary: true
-		})
+	exporter.parse(
+		model,
+		function (result) {
+			if (result instanceof ArrayBuffer) {
+				downloadArrayBuffer(result, fileName + '.glb')
+			} else {
+				const text = JSON.stringify(result);
+				downloadString(text, fileName + '.gltf')
+			}
+		},
+		{ binary: true }
+	)
 }
 
 // 下载obj格式模型
@@ -118,9 +120,11 @@ function exportCollada(model, fileName) {
 
 	const result = exporter.parse(model);
 	downloadString(result.data, fileName + '.dae');
-	result.textures.forEach(tex => {
-		downloadArrayBuffer(tex.data, `${tex.name}.${tex.ext}`);
-	});
+	result.textures.forEach(
+		function (tex) {
+			downloadArrayBuffer(tex.data, "".concat(tex.name, ".").concat(tex.ext));
+		}
+	);
 }
 
 // 以text形式下载
@@ -358,8 +362,9 @@ function init2(name, list) {
 			raycaster.setFromCamera(mouse, controls.object);
 
 			//左侧目录树关联的变回去
-			for (let o of last_emissive_array)
-				o.material.emissive.r = 0
+			for (let i = 0; i < last_emissive_array.length; i++) {
+				last_emissive_array[i].material.emissive.r = 0;
+			}
 
 			if (selected_mesh)
 				selected_mesh.material.emissive.r = 0;
@@ -453,8 +458,9 @@ function mulushu(list) {
 	}, 3000)
 	function nodeClick(event, treeId, treeNode, clickFlag) {
 		//console.log(treeNode);
-		for (let o of last_emissive_array)
-			o.material.emissive.r = 0
+		for (let i = 0; i < last_emissive_array.length; i++) {
+			last_emissive_array[i].material.emissive.r = 0;
+		}
 		lightallchildren(model.getObjectByName(treeNode.name));
 		if (selected_mesh)
 			selected_mesh.material.emissive.r = 0;
@@ -482,8 +488,9 @@ function mulushu(list) {
 			last_emissive_array.push(obj)
 		} else {
 			if (obj.type == 'Group') {
-				for (let o of obj.children)
-					lightallchildren(o)
+				for (let i = 0; i < obj.length; i++) {
+					lightallchildren(obj[i]);
+				}	
 			}
 		}
 	}
@@ -591,8 +598,9 @@ function buildmodel(list) {
 					delete_array.push(o)
 				}
 			})
-			for (let o of delete_array) {
+			for (let i = 0; i < delete_array.length; i++) {
 				// console.log('移除空的group',o)
+				const o = delete_array[i];
 				o.parent.remove(o)
 			}
 
@@ -605,14 +613,15 @@ function buildmodel(list) {
 				}
 			})
 			// console.log('parent_array',parent_array)
-
-			for (let o of parent_array) {
+			for (let i = 0; i < parent_array.length; i++) {
+				const o = parent_array[i];
 				// console.log('运行函数',o)
 				let geometry_array = [];
-				for (let o1 of o.children) {
-					if (o1.geometry)
-						geometry_array.push(o1.geometry)
+				for (let i = 0; i < o.children.length; i++) {
+					const o1 = o.children[i];
+					if (o1.geometry) geometry_array.push(o1.geometry);
 				}
+
 				// console.log(geometry_array)
 				//开始进行合并
 				// console.warn('合并成功了一次0')
@@ -627,7 +636,8 @@ function buildmodel(list) {
 
 			//是否是空的group
 			function is_no_children_group(o) {
-				for (var c of o.children) {
+				for (let i = 0; i < o.children.length; i++) {
+					const c = o.children[i];
 					if (c.type == 'Group') {
 						return false
 					}
@@ -638,9 +648,10 @@ function buildmodel(list) {
 			//children是不是一个种类
 			function is_children_same_kind(group) {
 				let kind = group.children[0].type;
-				for (let o of group.children) {
+				for (let i = 0; i < group.children.length; i++) {
+					const o = group.children[i];
 					if (o.type != kind)
-						return false
+					return false
 				}
 				return true
 			}
@@ -666,7 +677,7 @@ function buildmodel(list) {
 				solving = true; // 进入处理状态
 			}
 		} else {
-			const range = `${parseInt((rate * 100))}%`;
+			const range = "".concat(parseInt(rate * 100), "%");
 			$('#loading>.progress.load>.progress-bar').css('width', range).text(range);
 		}
 
@@ -693,9 +704,11 @@ function read_ztree(object, array, pid) {
 	}
 	array.push(new_o)
 	if (object.children.length > 0) {
-		new_o.isParent = true
-		for (let o of object.children)
+		new_o.isParent = true;
+		for (let i = 0; i < object.children.length; i++) {
+			const o = object.children[i];
 			read_ztree(o, array, new_o.id)
+		}
 	} else {
 		new_o.isParent = false
 		return;
@@ -855,7 +868,7 @@ $('#inquery_texture img').click(function () {
 function showMaskImg(title, type) {
 	$(".mask-img>.top>.title").html(title.substring(0, title.length - 4));
 	$(".mask-img>.img").attr("class", "img");
-	$(".mask-img>.img").addClass(`img-type${type}`);
+	$(".mask-img>.img").addClass("img-type".concat(type));
 	$(".mask-img").show();
 
 };
