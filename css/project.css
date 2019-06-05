@@ -264,6 +264,26 @@ a:focus {
 #nav > .menu-area > .btn:hover {
   color: #347cb6;
 }
+#nav > .menu-area > .water {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+}
+#nav > .menu-area > .water.on > .icon {
+  background-image: url(../img/icon/btn_on.png);
+}
+#nav > .menu-area > .water > .label-w {
+  font-size: 14px;
+}
+#nav > .menu-area > .water > .icon {
+  display: flex;
+  width: 45px;
+  height: 28px;
+  cursor: pointer;
+  background-image: url(../img/icon/btn_off.png);
+  background-position: center;
+  background-repeat: no-repeat;
+}
 #nav > .user-area {
   position: absolute;
   top: 0;
