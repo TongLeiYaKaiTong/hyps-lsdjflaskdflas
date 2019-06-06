@@ -141,7 +141,7 @@ function downloadModel(blob, filename) {
 }
 
 /**
- * loading界面对象
+ * @name loading界面对象
  * @param {string} text 初始化文本
  */
 function LoadingBox(text) {
