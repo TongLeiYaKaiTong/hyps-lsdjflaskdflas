@@ -4,6 +4,8 @@ function PDMSLoader() {
 
     let PDMSGroup = new THREE.Group();
 
+    let maxX, maxY, maxZ, minX, minY, minZ;
+
     // ==================================================颜色数组表区域==================================================
     const colorArray = [
         new THREE.Color('#F0F0F0'),
@@ -82,15 +84,15 @@ function PDMSLoader() {
         // dish 段
         // geometry.merge(new THREE.SphereGeometry(r, widthSegments, heightSegments, undefined, undefined, undefined, Math.atan(radius / a)));
         let sphere = new THREE.SphereGeometry(r, widthSegments, heightSegments, undefined, undefined, 0, Math.atan(radius / a));
-        sphere.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI));
-        sphere.applyMatrix(new THREE.Matrix4().makeTranslation(0, a, 0));
+        // sphere.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI));
+        sphere.applyMatrix(new THREE.Matrix4().makeTranslation(0, -a, 0));
         geometry.merge(sphere);
 
         // 有遮盖
         if (cover) {
             // bottom plane
             let bottomPlane = new THREE.CircleGeometry(radius, widthSegments);
-            bottomPlane.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+            bottomPlane.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / 2));
             geometry.merge(bottomPlane);
         };
 
@@ -216,9 +218,9 @@ function PDMSLoader() {
      * @param {*} y_offset 顶面中心和底面中心y方向的偏移量
      * @param {*} height 四棱台高
      */
-    function PyramidGeometry(x_bottom,y_bottom,x_top, y_top, y_offset, x_offset, height) {
+    function PyramidGeometry(x_bottom, y_bottom, x_top, y_top, y_offset, x_offset, height) {
         console.log(x_top, y_top, x_bottom, y_bottom, x_offset, y_offset, height)
-		let half_x_b = x_bottom / 2;
+        let half_x_b = x_bottom / 2;
         let half_y_b = y_bottom / 2;
         let half_x_t = x_top / 2;
         let half_y_t = y_top / 2;
@@ -227,16 +229,16 @@ function PDMSLoader() {
         var geometry = new THREE.Geometry();
 
         //bottom v
-        geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, -half_y_b  ));
-        geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, -half_y_b ));
-        geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, half_y_b ));
-        geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, half_y_b ));
+        geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, -half_y_b));
+        geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, -half_y_b));
+        geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, half_y_b));
+        geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, half_y_b));
 
         //top v
-        geometry.vertices.push(new THREE.Vector3(-half_x_t +x_offset, half_h, -half_y_t- y_offset));
-        geometry.vertices.push(new THREE.Vector3(half_x_t +x_offset, half_h, -half_y_t- y_offset));
-        geometry.vertices.push(new THREE.Vector3(half_x_t +x_offset, half_h, half_y_t- y_offset));
-        geometry.vertices.push(new THREE.Vector3(-half_x_t +x_offset, half_h, half_y_t- y_offset));
+        geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, half_h, -half_y_t - y_offset));
+        geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, half_h, -half_y_t - y_offset));
+        geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, half_h, half_y_t - y_offset));
+        geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, half_h, half_y_t - y_offset));
 
         //=====================================
         //bottom
@@ -266,33 +268,33 @@ function PDMSLoader() {
         //the face normals and vertex normals can be calculated automatically if not supplied above
         geometry.computeFaceNormals();
         geometry.computeVertexNormals();
-		
-		geometry.translate(x_offset/2,0,y_offset/2)
+
+        geometry.translate(x_offset / 2, 0, y_offset / 2)
         return geometry;
     };
 
     /** 圆环几何 （半圆环）
-     * @param {*} R_in 内圆半径
      * @param {*} R_out 外圆半径
-     * @param {*} angle 角度 (0°~360°)
+     * @param {*} R_in 内圆半径
+     * @param {*} radian 弧度
      */
-    function CircularTorusGeometry(R_in, R_out, angle) {
-        let R = (R_out + R_in) / 2;
-        let sectionR = (R_out - R_in) / 2;
+    function CircularTorusGeometry(R_out, R_in, radian) {
+        // let R = (R_out + R_in) / 2;
+        // let sectionR = (R_out - R_in) / 2;
 
-        var geometry = new THREE.TorusGeometry(R, sectionR, 16, 16, angle * Math.PI / 180);
-        geometry.rotateX(0.5 * Math.PI);
-
+        let geometry = new THREE.TorusGeometry(R_out, R_in, 8, 6, radian);
+        // geometry.rotateZ(0.5 * Math.PI);
+        geometry.rotateX(-0.5 * Math.PI);
 
         //平移再旋转
-        var geometry1 = new THREE.CircleGeometry(sectionR, 8).applyMatrix(new THREE.Matrix4().makeTranslation(R, 0, 0));
+        // let geometry1 = new THREE.CircleGeometry(R_in, 8).applyMatrix(new THREE.Matrix4().makeTranslation(R_out, 0, 0));
 
-        //旋转再平移
-        var geometry2 = new THREE.CircleGeometry(sectionR, 8).applyMatrix(new THREE.Matrix4().makeRotationY(1 * Math.PI));
+        // //旋转再平移
+        // let geometry2 = new THREE.CircleGeometry(R_in, 8).applyMatrix(new THREE.Matrix4().makeRotationY(Math.PI));
 
-        console.log(angle * Math.PI / 180);
-        geometry.merge(geometry1, new THREE.Matrix4().makeRotationY(-angle * Math.PI / 180));
-        geometry.merge(geometry2, new THREE.Matrix4().makeTranslation(R, 0, 0));
+        // // // console.log(radian * Math.PI / 180);
+        // geometry.merge(geometry1, new THREE.Matrix4().makeRotationY(-radian));
+        // geometry.merge(geometry2, new THREE.Matrix4().makeTranslation(R_out, 0, 0));
         return geometry;
     };
 
@@ -315,12 +317,19 @@ function PDMSLoader() {
         geometry.translate(0, -height / 2, 0);
 
         let geometry1 = geometry.clone();
-        geometry1.applyMatrix(new THREE.Matrix4().makeScale(1, -1, 1))
-        for (let f of geometry1.faces) {
+        geometry1.applyMatrix(new THREE.Matrix4().makeScale(1, -1, 1));
+
+        for (let i = 0; i < geometry1.faces.length; i++) {
+            let f = geometry1.faces[i];
             let record_c = f.c;
             f.c = f.b;
             f.b = record_c;
         };
+        // for (let f of geometry1.faces) {
+        //     let record_c = f.c;
+        //     f.c = f.b;
+        //     f.b = record_c;
+        // };
 
         geometry.merge(geometry1);
 
@@ -328,21 +337,34 @@ function PDMSLoader() {
         let geometry2 = new THREE.CylinderGeometry(R_in, R_in, height, segment, 1, true, 0.5 * Math.PI, -angle_r);
         //外圈竖面
         let geometry3 = new THREE.CylinderGeometry(R_out, R_out, height, segment, 1, true, 0.5 * Math.PI, -angle_r);
-        for (let f of geometry3.faces) {
+
+        for (let i = 0; i < geometry3.faces.length; i++) {
+            let f = geometry3.faces[i];
             let record_c = f.c;
             f.c = f.b;
             f.b = record_c;
         };
+        // for (let f of geometry3.faces) {
+        //     let record_c = f.c;
+        //     f.c = f.b;
+        //     f.b = record_c;
+        // };
         geometry.merge(geometry2);
         geometry.merge(geometry3);
 
         var geometry4 = new THREE.PlaneGeometry(2 * sectionR, height);
         geometry4.translate(R, 0, 0);
-        for (let f of geometry4.faces) {
+        for (let i = 0; i < geometry4.faces.length; i++) {
+            let f = geometry4.faces[i];
             let record_c = f.c;
             f.c = f.b;
             f.b = record_c;
         };
+        // for (let f of geometry4.faces) {
+        //     let record_c = f.c;
+        //     f.c = f.b;
+        //     f.b = record_c;
+        // };
         geometry.merge(geometry4);
 
         var geometry5 = new THREE.PlaneGeometry(2 * sectionR, height);
@@ -356,15 +378,15 @@ function PDMSLoader() {
 
     // ==================================================PDMS文件解析区域================================================== 
 
-    // ===================================MVR文件解析模块=================================== 
+    // ===================================RVM文件解析模块=================================== 
 
     /** load函数
-     * @param {*} mvrUrl 
+     * @param {*} rvmUrl 
      * @param {*} attUrl 【可选】路径  example : "js/rvm_att/project.ATT" 
      */
-    scope.load = function (mvrUrl, attUrl, onLoad, onProgress, onError) {
-        if (!mvrUrl || mvrUrl == "") {
-            onError('没有检测到mvrUrl路径');
+    scope.load = function (rvmUrl, attUrl, onLoad, onProgress, onError) {
+        if (!rvmUrl || rvmUrl == "") {
+            onError('没有检测到rvmUrl路径');
             return;
         };
 
@@ -374,21 +396,29 @@ function PDMSLoader() {
         $.ajax({
             type: 'GET',
             dataType: 'json',
-            url: mvrUrl,
+            url: rvmUrl,
             xhr: function () { //进度
                 let xhr = new window.XMLHttpRequest();
                 xhr.addEventListener("progress", onProgress, false);
                 return xhr;
             },
             success: function (data) { //成功
+
                 forEachRVMData(data);
                 analysisATT(attUrl, onProgress, onLoad, onError);
-                if (onLoad) onLoad({ dataType: "group", data: PDMSGroup });
+
+                if (onLoad) onLoad({
+                    original: data,
+                    PDMSObject: PDMSGroup,
+                    rvmTree: formatRVMData(data),
+                    boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
+                    center: getCenter(),
+                });
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
                 onError(thrownError);
-            }
+            },
         });
     };
 
@@ -443,6 +473,19 @@ function PDMSLoader() {
         });
     };
 
+    /** 格式化RVM数据
+     * @param {*} data 
+     */
+    function formatRVMData(data) {
+        data[0].children = [];
+        for (let i = 1, len = data.length; i < len; i++) {
+            let element = data[i];
+            element.children = [];
+            data[element.PID].children.push(element);
+        };
+        return data[0];
+    };
+
     // 遍历RVM数据
     function forEachRVMData(data) {
         for (let i = 0, len = data.length; i < len; i++) {
@@ -457,17 +500,23 @@ function PDMSLoader() {
 
             for (let j = 0; j < PRIMSNum; j++) {
 
-                abc(element.PRIMS[j], colorArray[element.C]);
+                setPDMSMember(element.PRIMS[j], colorArray[element.C]);
 
             };
 
         };
     };
 
-    function abc(PRIM, color) {
+    // 设置PDMS的每一个部位的构建
+    function setPDMSMember(PRIM, color) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
+
         if (geo) {
-            let mlt = new THREE.MeshLambertMaterial({ color: 0x4169E1, wireframe: false });
+
+            geo.computeBoundingBox();
+            reviseBoundingBox(geo.boundingBox);
+
+            let mlt = new THREE.MeshLambertMaterial({ color: color, wireframe: false });
             let mesh = new THREE.Mesh(geo, mlt);
             let mtx = PRIM.Direction;//12位矩阵
 
@@ -476,21 +525,25 @@ function PDMSLoader() {
                 mtx[0], mtx[1], mtx[2], 0,
                 mtx[3], mtx[4], mtx[5], 0,
                 mtx[6], mtx[7], mtx[8], 0,
-                mtx[9], mtx[11], -mtx[10], 1]// Y Z轴颠倒
-            // 0.001, 0, 0, 0,
-            // 0, 0.001, 0, 0,
-            // 0, 0, 0, 0.001,
-            // mtx[9], mtx[11],mtx[10], 1];// Y Z轴颠倒
-            // let P = new THREE.Vector3()				
-            let Q = new THREE.Quaternion();
-            // let S = new THREE.Vector3();				
-            Matrix4.decompose(mesh.position, Q, mesh.scale)
-            mesh.rotation.setFromQuaternion(Q, 'XZY')
+                mtx[9], mtx[11], -mtx[10], 1];// Y Z轴颠倒
 
-            let record = mesh.rotation.z
-            mesh.rotation.z = -mesh.rotation.y
-            mesh.rotation.y = record
-            // console.log(P,Q,S)
+            let Q = new THREE.Quaternion();
+            Matrix4.decompose(mesh.position, Q, mesh.scale);
+            
+			mesh.rotation.setFromQuaternion(Q, 'XYZ');
+			
+			// console.warn(mtx[0], mtx[1], mtx[2], 0,
+                // mtx[3], mtx[4], mtx[5], 0,
+                // mtx[6], mtx[7], mtx[8], 0,
+                // mtx[9], mtx[11], -mtx[10], 1)
+			// console.log(mesh.rotation.x)
+			// console.log(mesh.rotation.y)
+			// console.log(mesh.rotation.z)
+            let record = mesh.rotation.z;
+            mesh.rotation.z = -mesh.rotation.y;
+            mesh.rotation.y = record;
+			mesh.rotation.order = 'XZY'
+            // console.log(Q,S)
 
             // mesh.applyMatrix(Matrix4);
             PDMSGroup.add(mesh);
@@ -499,19 +552,41 @@ function PDMSLoader() {
 
     };
 
+    // 修正场景包围盒
+    function reviseBoundingBox(box3) {
+        // console.log(box3.max, box3.min);
+
+        if (!maxX || (maxX && maxX < box3.max.x)) maxX = box3.max.x;
+        if (!maxY || (maxY && maxY < box3.max.y)) maxY = box3.max.y;
+        if (!maxZ || (maxZ && maxZ < box3.max.z)) maxZ = box3.max.z;
+
+        if (!minX || (minX && minX > box3.min.x)) minX = box3.min.x;
+        if (!minY || (minY && minY > box3.min.y)) minY = box3.min.y;
+        if (!minZ || (minZ && minZ > box3.min.z)) minZ = box3.min.z;
+    };
+
+    function getCenter() {
+        //计算中心点
+        return [
+            (maxX + minX) / 2000,
+            (maxY + minY) / 2000,
+            (maxZ + minZ) / 2000
+        ];
+
+    };
 
     function getGeometryByGeotype(type, arr) {
 
         let geo;//几何
 
-        // if (type != 1) return geo;
+        // if (type != 4 && type != 8) return geo;
+        // if (type != 4) return geo;
 
         switch (type) {
-            case 1:   //PYRAMID 
-                console.log(arr);
-
+            case 1:   //Pyramid 
+                // console.log(arr);
                 // geo = PyramidGeometry(arr[0], arr[2], arr[1], arr[4], arr[3], arr[6], arr[5]);
-                geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
+                // geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
                 break;
             case 2:   //Box
                 geo = new THREE.BoxGeometry(arr[0], arr[2], arr[1]);
@@ -519,7 +594,8 @@ function PDMSLoader() {
             case 3:   //RectangularTorus
                 geo = RectangularTorusGeometry(arr[0], arr[1], arr[2], arr[3]);
                 break;
-            case 4:   //CTORUS
+            case 4:   //CircularTorus
+                // console.log(arr);
                 geo = CircularTorusGeometry(arr[0], arr[1], arr[2]);
                 break;
             case 5:   //EllipticalDish Dish有遮挡
@@ -531,7 +607,7 @@ function PDMSLoader() {
             case 7:   //Snout
                 geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
                 break;
-            case 8:  //CYLINDER 
+            case 8:  //Cylinder 
                 geo = new THREE.CylinderBufferGeometry(arr[0], arr[0], arr[1], 8);
                 break;
             case 9:  //Sphere
@@ -548,6 +624,9 @@ function PDMSLoader() {
 
         return geo;
     };
+
+    scope.DishGeometry = DishGeometry;
+    scope.CircularTorusGeometry = CircularTorusGeometry;
 
 
 };
@@ -586,7 +665,7 @@ function init() {
 
     // scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0);
+    scene.background = new THREE.Color(0x000000);
 
     // light
     let light1 = new THREE.DirectionalLight(0xffffff, 0.45);
@@ -594,14 +673,14 @@ function init() {
     scene.add(light1);
 
     let light2 = new THREE.DirectionalLight(0xffffff, 0.45);
-    light2.position.set(-1, 1, 1);
+    light2.position.set(-1, -1, 1);
     scene.add(light2);
 
-    scene.add(new THREE.AmbientLight(0x404040, 0.1));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.1));
 
     // camera
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 1000000);
-    camera.position.set(0, 0, 80);
+    camera.position.set(0, 0, 50);
 
     // controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -613,13 +692,43 @@ function init() {
     // AxesHelper
     scene.add(new THREE.AxesHelper(5));
 
+    // scene.add(new THREE.Mesh(new THREE.TorusGeometry(10, 3, 8, 6, Math.PI)));
+
     new PDMSLoader().load(
         // "./js/rvm_att/pyrout.js",
         "./js/rvm_att/rvmData2.js",
         "",
         function (data) {
             console.log(data);
-            if (data.dataType == "group") scene.add(data.data);
+            if (data.PDMSObject) scene.add(data.PDMSObject);
+            console.log();
+            
+
+            // if (data.center && data.boundingBox) {
+
+                // let box = data.boundingBox;
+                // console.log(box);
+                
+                // let center = data.center;
+
+                // let boxH = new THREE.Box3();
+                // boxH.setFromCenterAndSize(new THREE.Vector3(box[0] * 1000, box[1]* 1000, box[2]* 1000), new THREE.Vector3(box[3]* 1000, box[4]* 1000, box[5]* 1000));
+                // let helper = new THREE.Box3Helper(boxH, 0xffff00);
+                // scene.add(helper);
+
+                // let diagonal = Math.sqrt(
+                    // Math.pow(box[0] - box[3], 2) +
+                    // Math.pow(box[1] - box[4], 2) +
+                    // Math.pow(box[2] - box[5], 2));
+
+                // camera.position.set(center[0] - diagonal, center[1] + diagonal, center[2] + diagonal);
+
+                // controls.target.set(center[0], center[1], center[2]);
+
+                // controls.update();
+
+            // };
+
         },
         function (evt) {
             if (evt.lengthComputable) {
