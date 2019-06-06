@@ -565,7 +565,7 @@ function mulushu(list) {
 
 	var zTree = $.fn.zTree.init($("#treebg"), setting, zNodes);
 
-	setTimeout(function () {
+	// setTimeout(function () {
 		var treeObj = $.fn.zTree.getZTreeObj("treebg");
 		var nodes = treeObj.getNodes();
 		for (var i = 0; i < nodes.length; i++) { //设置节点展开
@@ -573,7 +573,7 @@ function mulushu(list) {
 		}
 		addSubNode(nodes[0]);
 		console.log('自动展开')
-	}, 3000)
+	// }, 3000)
 	function nodeClick(event, treeId, treeNode, clickFlag) {
 		//console.log(treeNode);
 		for (let i = 0; i < last_emissive_array.length; i++) {
