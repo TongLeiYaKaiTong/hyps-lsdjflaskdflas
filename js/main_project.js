@@ -206,6 +206,30 @@ function LoadingBox(text) {
 	}
 }
 
+/**
+ * @name 获取目录树列表信息
+ * @param {array} list 待填充的数组
+ * @param {*} data 待解析数据
+ */
+function fill_tree_list(list, data) {
+	const new_data = {
+		id: data.ID,
+		pId: data.PID,
+		name: data.NAME
+	}
+	if (data.children && data.children.length > 0) {
+		new_data.isParent = true;
+		const length = data.children.length
+		for (let i = 0; i < length; i++) {
+			const item = data.children[i];
+			fill_tree_list(list, item);
+		}
+	} else {
+		new_data.isParent = false;
+	}
+
+	list.push(new_data);
+}
 
 var model;//模型本身
 
@@ -395,7 +419,16 @@ function init(name, list) {
 		"",
 		function (data) {
 			console.log(data);
-			if (data.PDMSObject) scene.add(data.PDMSObject);
+			if (data.PDMSObject) {
+				scene.add(data.PDMSObject);
+				model = data.PDMSObject
+			}
+
+			if (data.rvmTree) {
+				const list = [];
+				fill_tree_list(list, data.rvmTree);
+				mulushu(list)
+			}
 		},
 		function (evt) {
 			if (evt.lengthComputable) {
