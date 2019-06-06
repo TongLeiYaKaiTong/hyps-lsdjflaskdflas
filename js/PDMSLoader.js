@@ -528,7 +528,7 @@ function PDMSLoader() {
 
             let Q = new THREE.Quaternion();
             Matrix4.decompose(mesh.position, Q, mesh.scale);
-            mesh.rotation.setFromQuaternion(Q, 'XZY');
+            mesh.rotation.setFromQuaternion(Q, 'XYZ');
 
             let record = mesh.rotation.z;
             mesh.rotation.z = -mesh.rotation.y;
