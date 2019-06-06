@@ -241,12 +241,12 @@ $(function() {
 // }
 
 let water
-// let renderer
-// let camera
-// let out_camera;
-// let out_controls;
-// let view_controller; //视角球控制
-// let view_controller_renderer; //视角球控制
+let renderer
+let camera
+let out_camera;
+let out_controls;
+let view_controller; //视角球控制
+let view_controller_renderer; //视角球控制
 function init(name, list) {
 	console.log('进入threejs场景init')
 	var container = document.getElementById("container");
@@ -260,7 +260,7 @@ function init(name, list) {
 	out_camera = camera
 
 	controls = new THREE.OrbitControls(camera, container, update_view_controller);
-	// controls.target.set(0, 100, 0);
+	controls.target.set(0, 0, 0);
 	controls.update();
 	out_controls = controls
 
