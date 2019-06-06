@@ -183,13 +183,16 @@ function LoadingBox(text) {
 	$(progress).addClass('progress').css({
 		'margin-top': '20px',
 		'width': '50%',
+		'display': 'flex',
 	})
 
 	// 进度条进度区
-	const progress_bar = '<div class="progress-bar" role="progressbar" style="width: 0%;">0%</div>';
-	$(progress).append(progress_bar);
+	for (let i = 0; i < 100; i++) {
+		const span = document.createElement('span');
+		$(progress).append(span);
+		$(span).css('width', '100%');
+	}
 	
-
 	// 更新显示文本
 	this.updateText = function(text) {
 		$(text_dom).text(text);
@@ -197,7 +200,8 @@ function LoadingBox(text) {
 
 	// 更新进度条
 	this.updateRange = function(range) {
-		$(progress).find('>.progress-bar').text(range).css('width', range);
+		this.updateText('已加载' + range + '%');
+		$(progress).find('>span:nth-child(-n+'+ range +')').css('background-color', '#337ab7');
 	}
 
 	// 移除进度界面
@@ -413,7 +417,7 @@ function init(name, list) {
 	// grid.material.opacity = 0.2;
 	// grid.material.transparent = true;
 	// scene.add(grid);
-
+	const loadingBox = new LoadingBox('加载中...');
 	new PDMSLoader().load(
 		"./js/rvm_att/rvmData2.js",
 		"",
@@ -429,11 +433,14 @@ function init(name, list) {
 				fill_tree_list(list, data.rvmTree);
 				mulushu(list)
 			}
+
+			loadingBox.remove();
 		},
 		function (evt) {
 			if (evt.lengthComputable) {
 				let percentComplete = evt.loaded / evt.total;
-				console.log(Math.round(percentComplete * 100) + "%");
+				// console.log(Math.round(percentComplete * 100) + "%");
+				loadingBox.updateRange(Math.round(percentComplete * 100))
 			};
 		}
 	);
