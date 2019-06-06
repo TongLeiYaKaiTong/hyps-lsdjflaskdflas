@@ -1,4 +1,17 @@
 // ============================ dom事件绑定 ============================
+// 取消默认右键功能
+document.oncontextmenu = function (event) {
+	event.preventDefault();
+}
+// 没点到导航按键时，删除导航按键
+$('body').mousedown(function(event) {
+	const target = event.target
+	if ($(target).hasClass('walk_to_target')) {
+		console.log('导航');
+	} else {
+		$('.walk_to_target').remove();
+	}
+})
 // 下拉菜单鼠标移入触发
 $(".menu-box").mouseover(function () {
 	$(this).addClass('open');
@@ -183,13 +196,16 @@ function LoadingBox(text) {
 	$(progress).addClass('progress').css({
 		'margin-top': '20px',
 		'width': '50%',
+		'display': 'flex',
 	})
 
 	// 进度条进度区
-	const progress_bar = '<div class="progress-bar" role="progressbar" style="width: 0%;">0%</div>';
-	$(progress).append(progress_bar);
+	for (let i = 0; i < 100; i++) {
+		const span = document.createElement('span');
+		$(progress).append(span);
+		$(span).css('width', '100%');
+	}
 	
-
 	// 更新显示文本
 	this.updateText = function(text) {
 		$(text_dom).text(text);
@@ -197,7 +213,8 @@ function LoadingBox(text) {
 
 	// 更新进度条
 	this.updateRange = function(range) {
-		$(progress).find('>.progress-bar').text(range).css('width', range);
+		this.updateText('已加载' + range + '%');
+		$(progress).find('>span:nth-child(-n+'+ range +')').css('background-color', '#337ab7');
 	}
 
 	// 移除进度界面
@@ -206,6 +223,30 @@ function LoadingBox(text) {
 	}
 }
 
+/**
+ * @name 获取目录树列表信息
+ * @param {array} list 待填充的数组
+ * @param {*} data 待解析数据
+ */
+function fill_tree_list(list, data) {
+	const new_data = {
+		id: data.ID,
+		pId: data.PID,
+		name: data.NAME
+	}
+	if (data.children && data.children.length > 0) {
+		new_data.isParent = true;
+		const length = data.children.length
+		for (let i = 0; i < length; i++) {
+			const item = data.children[i];
+			fill_tree_list(list, item);
+		}
+	} else {
+		new_data.isParent = false;
+	}
+
+	list.push(new_data);
+}
 
 var model;//模型本身
 
@@ -389,18 +430,30 @@ function init(name, list) {
 	// grid.material.opacity = 0.2;
 	// grid.material.transparent = true;
 	// scene.add(grid);
-
+	const loadingBox = new LoadingBox('加载中...');
 	new PDMSLoader().load(
 		"./js/rvm_att/rvmData2.js",
 		"",
 		function (data) {
 			console.log(data);
-			if (data.PDMSObject) scene.add(data.PDMSObject);
+			if (data.PDMSObject) {
+				scene.add(data.PDMSObject);
+				model = data.PDMSObject
+			}
+
+			if (data.rvmTree) {
+				const list = [];
+				fill_tree_list(list, data.rvmTree);
+				mulushu(list)
+			}
+
+			loadingBox.remove();
 		},
 		function (evt) {
 			if (evt.lengthComputable) {
 				let percentComplete = evt.loaded / evt.total;
-				console.log(Math.round(percentComplete * 100) + "%");
+				// console.log(Math.round(percentComplete * 100) + "%");
+				loadingBox.updateRange(Math.round(percentComplete * 100))
 			};
 		}
 	);
@@ -506,6 +559,26 @@ function mulushu(list) {
 		},
 		callback: {
 			onClick: nodeClick,
+			onRightClick: function(event, treeId, treeNode) {
+				if (treeNode) {
+					console.log('event', event);
+					console.log('treeId', treeId);
+					console.log('treeNode', treeNode);
+
+					const guide_dom = document.createElement('span');
+					$(guide_dom).addClass('walk_to_target').text('导航到目标').css({
+						'position': 'fixed',
+						'top': event.pageY + 'px',
+						'left': event.pageX + 'px',
+						'background-color': '#5bc0de',
+						'padding': '5px 8px',
+						'color': '#fff',
+						'border-radius': '5px',
+						'cursor': 'pointer',
+					})
+					$('body').append(guide_dom);
+				}
+			},
 			onExpand: function (event, treeId, treeNode) {
 				//console.log(treeNode);
 				addSubNode(treeNode);
@@ -525,7 +598,7 @@ function mulushu(list) {
 
 	var zTree = $.fn.zTree.init($("#treebg"), setting, zNodes);
 
-	setTimeout(function () {
+	// setTimeout(function () {
 		var treeObj = $.fn.zTree.getZTreeObj("treebg");
 		var nodes = treeObj.getNodes();
 		for (var i = 0; i < nodes.length; i++) { //设置节点展开
@@ -533,7 +606,7 @@ function mulushu(list) {
 		}
 		addSubNode(nodes[0]);
 		console.log('自动展开')
-	}, 3000)
+	// }, 3000)
 	function nodeClick(event, treeId, treeNode, clickFlag) {
 		//console.log(treeNode);
 		for (let i = 0; i < last_emissive_array.length; i++) {
