@@ -82,15 +82,15 @@ function PDMSLoader() {
         // dish 段
         // geometry.merge(new THREE.SphereGeometry(r, widthSegments, heightSegments, undefined, undefined, undefined, Math.atan(radius / a)));
         let sphere = new THREE.SphereGeometry(r, widthSegments, heightSegments, undefined, undefined, 0, Math.atan(radius / a));
-        sphere.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI));
-        sphere.applyMatrix(new THREE.Matrix4().makeTranslation(0, a, 0));
+        // sphere.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI));
+        sphere.applyMatrix(new THREE.Matrix4().makeTranslation(0, -a, 0));
         geometry.merge(sphere);
 
         // 有遮盖
         if (cover) {
             // bottom plane
             let bottomPlane = new THREE.CircleGeometry(radius, widthSegments);
-            bottomPlane.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+            bottomPlane.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / 2));
             geometry.merge(bottomPlane);
         };
 
@@ -270,27 +270,26 @@ function PDMSLoader() {
     };
 
     /** 圆环几何 （半圆环）
-     * @param {*} R_in 内圆半径
      * @param {*} R_out 外圆半径
-     * @param {*} angle 角度 (0°~360°)
+     * @param {*} R_in 内圆半径
+     * @param {*} radian 弧度
      */
-    function CircularTorusGeometry(R_in, R_out, angle) {
-        let R = (R_out + R_in) / 2;
-        let sectionR = (R_out - R_in) / 2;
+    function CircularTorusGeometry(R_out, R_in, radian) {
+        // let R = (R_out + R_in) / 2;
+        // let sectionR = (R_out - R_in) / 2;
 
-        var geometry = new THREE.TorusGeometry(R, sectionR, 16, 16, angle * Math.PI / 180);
-        geometry.rotateX(0.5 * Math.PI);
+        var geometry = new THREE.TorusGeometry(R_out, R_in, 16, 16, radian);
+        // geometry.rotateX(-0.5 * Math.PI);
 
+        // //平移再旋转
+        // var geometry1 = new THREE.CircleGeometry(sectionR, 8).applyMatrix(new THREE.Matrix4().makeTranslation(R, 0, 0));
 
-        //平移再旋转
-        var geometry1 = new THREE.CircleGeometry(sectionR, 8).applyMatrix(new THREE.Matrix4().makeTranslation(R, 0, 0));
+        // //旋转再平移
+        // var geometry2 = new THREE.CircleGeometry(sectionR, 8).applyMatrix(new THREE.Matrix4().makeRotationY(Math.PI));
 
-        //旋转再平移
-        var geometry2 = new THREE.CircleGeometry(sectionR, 8).applyMatrix(new THREE.Matrix4().makeRotationY(1 * Math.PI));
-
-        console.log(angle * Math.PI / 180);
-        geometry.merge(geometry1, new THREE.Matrix4().makeRotationY(-angle * Math.PI / 180));
-        geometry.merge(geometry2, new THREE.Matrix4().makeTranslation(R, 0, 0));
+        // // console.log(radian * Math.PI / 180);
+        // geometry.merge(geometry1, new THREE.Matrix4().makeRotationY(-radian));
+        // geometry.merge(geometry2, new THREE.Matrix4().makeTranslation(R, 0, 0));
         return geometry;
     };
 
@@ -379,14 +378,17 @@ function PDMSLoader() {
                 return xhr;
             },
             success: function (data) { //成功
+                if (onLoad) onLoad({ dataType: "original", data: data });
                 forEachRVMData(data);
                 analysisATT(attUrl, onProgress, onLoad, onError);
                 if (onLoad) onLoad({ dataType: "group", data: PDMSGroup });
+                // if (onLoad) onLoad({ dataType: "mvrTree", data: formatMVRData(data) });
+                // data = [];
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
                 onError(thrownError);
-            }
+            },
         });
     };
 
@@ -441,6 +443,19 @@ function PDMSLoader() {
         });
     };
 
+    /** 格式化MVR数据
+     * @param {*} data 
+     */
+    function formatMVRData(data) {
+        data[0].children = [];
+        for (let i = 1, len = data.length; i < len; i++) {
+            let element = data[i];
+            element.children = [];
+            data[element.PID].children.push(element);
+        };
+        return data[0];
+    };
+
     // 遍历RVM数据
     function forEachRVMData(data) {
         for (let i = 0, len = data.length; i < len; i++) {
@@ -455,17 +470,18 @@ function PDMSLoader() {
 
             for (let j = 0; j < PRIMSNum; j++) {
 
-                abc(element.PRIMS[j], colorArray[element.C]);
+                setPDMSMember(element.PRIMS[j], colorArray[element.C]);
 
             };
 
         };
     };
 
-    function abc(PRIM, color) {
+    // 设置PDMS的每一个部位的构建
+    function setPDMSMember(PRIM, color) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
         if (geo) {
-            let mlt = new THREE.MeshLambertMaterial({ color: 0x4169E1, wireframe: false });
+            let mlt = new THREE.MeshLambertMaterial({ color: 0x008fff, wireframe: false });
             let mesh = new THREE.Mesh(geo, mlt);
             let mtx = PRIM.Direction;//12位矩阵
 
@@ -474,20 +490,15 @@ function PDMSLoader() {
                 mtx[0], mtx[1], mtx[2], 0,
                 mtx[3], mtx[4], mtx[5], 0,
                 mtx[6], mtx[7], mtx[8], 0,
-                mtx[9], mtx[11], -mtx[10], 1]// Y Z轴颠倒
-            // 0.001, 0, 0, 0,
-            // 0, 0.001, 0, 0,
-            // 0, 0, 0, 0.001,
-            // mtx[9], mtx[11],mtx[10], 1];// Y Z轴颠倒
-            // let P = new THREE.Vector3()				
-            let Q = new THREE.Quaternion();
-            // let S = new THREE.Vector3();				
-            Matrix4.decompose(mesh.position, Q, mesh.scale)
-            mesh.rotation.setFromQuaternion(Q, 'XZY')
+                mtx[9], mtx[11], -mtx[10], 1];// Y Z轴颠倒
 
-            let record = mesh.rotation.z
-            mesh.rotation.z = -mesh.rotation.y
-            mesh.rotation.y = record
+            let Q = new THREE.Quaternion();
+            Matrix4.decompose(mesh.position, Q, mesh.scale);
+            mesh.rotation.setFromQuaternion(Q, 'XZY');
+
+            let record = mesh.rotation.z;
+            mesh.rotation.z = -mesh.rotation.y;
+            mesh.rotation.y = record;
             // console.log(P,Q,S)
 
             // mesh.applyMatrix(Matrix4);
@@ -502,14 +513,13 @@ function PDMSLoader() {
 
         let geo;//几何
 
-        if (type != 1) return geo;
+        if (type != 4 && type != 8 ) return geo;
 
         switch (type) {
-            case 1:   //PYRAMID 
-                console.log(arr);
-
+            case 1:   //Pyramid 
+                // console.log(arr);
                 // geo = PyramidGeometry(arr[0], arr[2], arr[1], arr[4], arr[3], arr[6], arr[5]);
-                geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
+                // geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
                 break;
             case 2:   //Box
                 geo = new THREE.BoxGeometry(arr[0], arr[2], arr[1]);
@@ -517,7 +527,8 @@ function PDMSLoader() {
             case 3:   //RectangularTorus
                 geo = RectangularTorusGeometry(arr[0], arr[1], arr[2], arr[3]);
                 break;
-            case 4:   //CTORUS
+            case 4:   //CircularTorus
+                console.log(arr);
                 geo = CircularTorusGeometry(arr[0], arr[1], arr[2]);
                 break;
             case 5:   //EllipticalDish Dish有遮挡
@@ -529,7 +540,7 @@ function PDMSLoader() {
             case 7:   //Snout
                 geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
                 break;
-            case 8:  //CYLINDER 
+            case 8:  //Cylinder 
                 geo = new THREE.CylinderBufferGeometry(arr[0], arr[0], arr[1], 8);
                 break;
             case 9:  //Sphere
@@ -546,6 +557,9 @@ function PDMSLoader() {
 
         return geo;
     };
+
+    scope.DishGeometry = DishGeometry;
+    scope.CircularTorusGeometry = CircularTorusGeometry;
 
 
 };
@@ -584,7 +598,7 @@ function init() {
 
     // scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0);
+    scene.background = new THREE.Color(0x000000);
 
     // light
     let light1 = new THREE.DirectionalLight(0xffffff, 0.45);
@@ -592,10 +606,10 @@ function init() {
     scene.add(light1);
 
     let light2 = new THREE.DirectionalLight(0xffffff, 0.45);
-    light2.position.set(-1, 1, 1);
+    light2.position.set(-1, -1, 1);
     scene.add(light2);
 
-    scene.add(new THREE.AmbientLight(0x404040, 0.1));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.1));
 
     // camera
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 1000000);
@@ -610,6 +624,8 @@ function init() {
 
     // AxesHelper
     scene.add(new THREE.AxesHelper(5));
+
+    // testAddGeo(new PDMSLoader().DishGeometry(true, 18, 10, 8));
 
     new PDMSLoader().load(
         "./js/rvm_att/rvmData2.js",
