@@ -140,8 +140,12 @@ function downloadModel(blob, filename) {
 	link.click();
 }
 
+/**
+ * loading界面对象
+ * @param {string} text 初始化文本
+ */
 function LoadingBox(text) {
-	// 进度界面框
+	// 界面外框
 	const element = document.createElement('div');
 	$('body').append(element);
 	$(element).css({
