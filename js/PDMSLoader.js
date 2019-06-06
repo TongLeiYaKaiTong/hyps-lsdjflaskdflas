@@ -216,26 +216,27 @@ function PDMSLoader() {
      * @param {*} y_offset 顶面中心和底面中心y方向的偏移量
      * @param {*} height 四棱台高
      */
-    function PyramidGeometry(x_top, y_top, x_bottom, y_bottom, x_offset, y_offset, height) {
-        let half_x_b = x_bottom / 2;
+    function PyramidGeometry(x_bottom,y_bottom,x_top, y_top, y_offset, x_offset, height) {
+        console.log(x_top, y_top, x_bottom, y_bottom, x_offset, y_offset, height)
+		let half_x_b = x_bottom / 2;
         let half_y_b = y_bottom / 2;
         let half_x_t = x_top / 2;
         let half_y_t = y_top / 2;
-
+        let half_h = height / 2;
 
         var geometry = new THREE.Geometry();
 
         //bottom v
-        geometry.vertices.push(new THREE.Vector3(-half_x_b, 0, -half_y_b));
-        geometry.vertices.push(new THREE.Vector3(half_x_b, 0, -half_y_b));
-        geometry.vertices.push(new THREE.Vector3(half_x_b, 0, half_y_b));
-        geometry.vertices.push(new THREE.Vector3(-half_x_b, 0, half_y_b));
+        geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, -half_y_b  ));
+        geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, -half_y_b ));
+        geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, half_y_b ));
+        geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, half_y_b ));
 
         //top v
-        geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, height, -half_y_t + y_offset));
-        geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, height, -half_y_t + y_offset));
-        geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, height, half_y_t + y_offset));
-        geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, height, half_y_t + y_offset));
+        geometry.vertices.push(new THREE.Vector3(-half_x_t +x_offset, half_h, -half_y_t- y_offset));
+        geometry.vertices.push(new THREE.Vector3(half_x_t +x_offset, half_h, -half_y_t- y_offset));
+        geometry.vertices.push(new THREE.Vector3(half_x_t +x_offset, half_h, half_y_t- y_offset));
+        geometry.vertices.push(new THREE.Vector3(-half_x_t +x_offset, half_h, half_y_t- y_offset));
 
         //=====================================
         //bottom
@@ -265,7 +266,8 @@ function PDMSLoader() {
         //the face normals and vertex normals can be calculated automatically if not supplied above
         geometry.computeFaceNormals();
         geometry.computeVertexNormals();
-
+		
+		geometry.translate(x_offset/2,0,y_offset/2)
         return geometry;
     };
 
@@ -502,7 +504,7 @@ function PDMSLoader() {
 
         let geo;//几何
 
-        if (type != 1) return geo;
+        // if (type != 1) return geo;
 
         switch (type) {
             case 1:   //PYRAMID 
@@ -612,6 +614,7 @@ function init() {
     scene.add(new THREE.AxesHelper(5));
 
     new PDMSLoader().load(
+        // "./js/rvm_att/pyrout.js",
         "./js/rvm_att/rvmData2.js",
         "",
         function (data) {
