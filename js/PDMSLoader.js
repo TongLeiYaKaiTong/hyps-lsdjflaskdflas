@@ -216,26 +216,27 @@ function PDMSLoader() {
      * @param {*} y_offset 顶面中心和底面中心y方向的偏移量
      * @param {*} height 四棱台高
      */
-    function PyramidGeometry(x_top, y_top, x_bottom, y_bottom, x_offset, y_offset, height) {
+    function PyramidGeometry(x_bottom, y_bottom, x_top, y_top, y_offset, x_offset, height) {
+        console.log(x_top, y_top, x_bottom, y_bottom, x_offset, y_offset, height)
         let half_x_b = x_bottom / 2;
         let half_y_b = y_bottom / 2;
         let half_x_t = x_top / 2;
         let half_y_t = y_top / 2;
-
+        let half_h = height / 2;
 
         var geometry = new THREE.Geometry();
 
         //bottom v
-        geometry.vertices.push(new THREE.Vector3(-half_x_b, 0, -half_y_b));
-        geometry.vertices.push(new THREE.Vector3(half_x_b, 0, -half_y_b));
-        geometry.vertices.push(new THREE.Vector3(half_x_b, 0, half_y_b));
-        geometry.vertices.push(new THREE.Vector3(-half_x_b, 0, half_y_b));
+        geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, -half_y_b));
+        geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, -half_y_b));
+        geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, half_y_b));
+        geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, half_y_b));
 
         //top v
-        geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, height, -half_y_t + y_offset));
-        geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, height, -half_y_t + y_offset));
-        geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, height, half_y_t + y_offset));
-        geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, height, half_y_t + y_offset));
+        geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, half_h, -half_y_t - y_offset));
+        geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, half_h, -half_y_t - y_offset));
+        geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, half_h, half_y_t - y_offset));
+        geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, half_h, half_y_t - y_offset));
 
         //=====================================
         //bottom
@@ -266,6 +267,7 @@ function PDMSLoader() {
         geometry.computeFaceNormals();
         geometry.computeVertexNormals();
 
+        geometry.translate(x_offset / 2, 0, y_offset / 2)
         return geometry;
     };
 
@@ -312,12 +314,19 @@ function PDMSLoader() {
         geometry.translate(0, -height / 2, 0);
 
         let geometry1 = geometry.clone();
-        geometry1.applyMatrix(new THREE.Matrix4().makeScale(1, -1, 1))
-        for (let f of geometry1.faces) {
+        geometry1.applyMatrix(new THREE.Matrix4().makeScale(1, -1, 1));
+
+        for (let i = 0; i < geometry1.faces.length; i++) {
+            let f = geometry1.faces[i];
             let record_c = f.c;
             f.c = f.b;
             f.b = record_c;
         };
+        // for (let f of geometry1.faces) {
+        //     let record_c = f.c;
+        //     f.c = f.b;
+        //     f.b = record_c;
+        // };
 
         geometry.merge(geometry1);
 
@@ -325,21 +334,34 @@ function PDMSLoader() {
         let geometry2 = new THREE.CylinderGeometry(R_in, R_in, height, segment, 1, true, 0.5 * Math.PI, -angle_r);
         //外圈竖面
         let geometry3 = new THREE.CylinderGeometry(R_out, R_out, height, segment, 1, true, 0.5 * Math.PI, -angle_r);
-        for (let f of geometry3.faces) {
+
+        for (let i = 0; i < geometry3.faces.length; i++) {
+            let f = geometry3.faces[i];
             let record_c = f.c;
             f.c = f.b;
             f.b = record_c;
         };
+        // for (let f of geometry3.faces) {
+        //     let record_c = f.c;
+        //     f.c = f.b;
+        //     f.b = record_c;
+        // };
         geometry.merge(geometry2);
         geometry.merge(geometry3);
 
         var geometry4 = new THREE.PlaneGeometry(2 * sectionR, height);
         geometry4.translate(R, 0, 0);
-        for (let f of geometry4.faces) {
+        for (let i = 0; i < geometry4.faces.length; i++) {
+            let f = geometry4.faces[i];
             let record_c = f.c;
             f.c = f.b;
             f.b = record_c;
         };
+        // for (let f of geometry4.faces) {
+        //     let record_c = f.c;
+        //     f.c = f.b;
+        //     f.b = record_c;
+        // };
         geometry.merge(geometry4);
 
         var geometry5 = new THREE.PlaneGeometry(2 * sectionR, height);
@@ -353,15 +375,15 @@ function PDMSLoader() {
 
     // ==================================================PDMS文件解析区域================================================== 
 
-    // ===================================MVR文件解析模块=================================== 
+    // ===================================RVM文件解析模块=================================== 
 
     /** load函数
-     * @param {*} mvrUrl 
+     * @param {*} rvmUrl 
      * @param {*} attUrl 【可选】路径  example : "js/rvm_att/project.ATT" 
      */
-    scope.load = function (mvrUrl, attUrl, onLoad, onProgress, onError) {
-        if (!mvrUrl || mvrUrl == "") {
-            onError('没有检测到mvrUrl路径');
+    scope.load = function (rvmUrl, attUrl, onLoad, onProgress, onError) {
+        if (!rvmUrl || rvmUrl == "") {
+            onError('没有检测到rvmUrl路径');
             return;
         };
 
@@ -371,19 +393,22 @@ function PDMSLoader() {
         $.ajax({
             type: 'GET',
             dataType: 'json',
-            url: mvrUrl,
+            url: rvmUrl,
             xhr: function () { //进度
                 let xhr = new window.XMLHttpRequest();
                 xhr.addEventListener("progress", onProgress, false);
                 return xhr;
             },
             success: function (data) { //成功
-                if (onLoad) onLoad({ dataType: "original", data: data });
+
                 forEachRVMData(data);
                 analysisATT(attUrl, onProgress, onLoad, onError);
-                if (onLoad) onLoad({ dataType: "group", data: PDMSGroup });
-                // if (onLoad) onLoad({ dataType: "mvrTree", data: formatMVRData(data) });
-                // data = [];
+
+                if (onLoad) onLoad({
+                    original: data,
+                    group: PDMSGroup,
+                    rvmTree: formatRVMData(data),
+                });
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
@@ -443,10 +468,10 @@ function PDMSLoader() {
         });
     };
 
-    /** 格式化MVR数据
+    /** 格式化RVM数据
      * @param {*} data 
      */
-    function formatMVRData(data) {
+    function formatRVMData(data) {
         data[0].children = [];
         for (let i = 1, len = data.length; i < len; i++) {
             let element = data[i];
@@ -513,7 +538,7 @@ function PDMSLoader() {
 
         let geo;//几何
 
-        if (type != 4 && type != 8 ) return geo;
+        // if (type != 4 && type != 8 ) return geo;
 
         switch (type) {
             case 1:   //Pyramid 
@@ -528,7 +553,7 @@ function PDMSLoader() {
                 geo = RectangularTorusGeometry(arr[0], arr[1], arr[2], arr[3]);
                 break;
             case 4:   //CircularTorus
-                console.log(arr);
+                // console.log(arr);
                 geo = CircularTorusGeometry(arr[0], arr[1], arr[2]);
                 break;
             case 5:   //EllipticalDish Dish有遮挡
@@ -567,104 +592,105 @@ function PDMSLoader() {
 
 //=============================测试场景==========================================
 
-let container;//html容器
+// let container;//html容器
 
-let scene, renderer, camera;//three 三组件
+// let scene, renderer, camera;//three 三组件
 
-let controls;//控制器
+// let controls;//控制器
 
-let primitives;//几何集合
+// let primitives;//几何集合
 
-let material = new THREE.MeshPhongMaterial({ color: 0xff00ff });//统一材质
+// let material = new THREE.MeshPhongMaterial({ color: 0xff00ff });//统一材质
 
-function render() {
-    renderer.render(scene, camera);
-};
+// function render() {
+//     renderer.render(scene, camera);
+// };
 
-function animate() {
-    requestAnimationFrame(animate);
-    render();
-};
+// function animate() {
+//     requestAnimationFrame(animate);
+//     render();
+// };
 
-function init() {
+// function init() {
 
-    container = document.getElementById('container');
+//     container = document.getElementById('container');
 
-    // renderer
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(renderer.domElement);
+//     // renderer
+//     renderer = new THREE.WebGLRenderer({ antialias: true });
+//     renderer.setPixelRatio(window.devicePixelRatio);
+//     renderer.setSize(container.clientWidth, container.clientHeight);
+//     container.appendChild(renderer.domElement);
 
-    // scene
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
+//     // scene
+//     scene = new THREE.Scene();
+//     scene.background = new THREE.Color(0x000000);
 
-    // light
-    let light1 = new THREE.DirectionalLight(0xffffff, 0.45);
-    light1.position.set(1, 1, 1);
-    scene.add(light1);
+//     // light
+//     let light1 = new THREE.DirectionalLight(0xffffff, 0.45);
+//     light1.position.set(1, 1, 1);
+//     scene.add(light1);
 
-    let light2 = new THREE.DirectionalLight(0xffffff, 0.45);
-    light2.position.set(-1, -1, 1);
-    scene.add(light2);
+//     let light2 = new THREE.DirectionalLight(0xffffff, 0.45);
+//     light2.position.set(-1, -1, 1);
+//     scene.add(light2);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.1));
+//     scene.add(new THREE.AmbientLight(0xffffff, 0.1));
 
-    // camera
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 1000000);
-    camera.position.set(0, 0, 80);
+//     // camera
+//     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 1000000);
+//     camera.position.set(0, 0, 80);
 
-    // controls
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
+//     // controls
+//     controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-    // Object3D
-    primitives = new THREE.Group();
-    scene.add(primitives);
+//     // Object3D
+//     primitives = new THREE.Group();
+//     scene.add(primitives);
 
-    // AxesHelper
-    scene.add(new THREE.AxesHelper(5));
+//     // AxesHelper
+//     scene.add(new THREE.AxesHelper(5));
 
-    // testAddGeo(new PDMSLoader().DishGeometry(true, 18, 10, 8));
+//     // testAddGeo(new PDMSLoader().DishGeometry(true, 18, 10, 8));
 
-    new PDMSLoader().load(
-        "./js/rvm_att/rvmData2.js",
-        "",
-        function (data) {
-            console.log(data);
-            if (data.dataType == "group") scene.add(data.data);
-        },
-        function (evt) {
-            if (evt.lengthComputable) {
-                let percentComplete = evt.loaded / evt.total;
-                console.log(Math.round(percentComplete * 100) + "%");
-            };
-        }
-    );
+//     new PDMSLoader().load(
+//         // "./js/rvm_att/pyrout.js",
+//         "./js/rvm_att/rvmData2.js",
+//         "",
+//         function (data) {
+//             console.log(data);
+//             if (data.dataType == "group") scene.add(data.data);
+//         },
+//         function (evt) {
+//             if (evt.lengthComputable) {
+//                 let percentComplete = evt.loaded / evt.total;
+//                 console.log(Math.round(percentComplete * 100) + "%");
+//             };
+//         }
+//     );
 
-    window.addEventListener('resize', onWindowResize, false);
+//     window.addEventListener('resize', onWindowResize, false);
 
-};
+// };
 
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-};
+// function onWindowResize() {
+//     camera.aspect = window.innerWidth / window.innerHeight;
+//     camera.updateProjectionMatrix();
+//     renderer.setSize(container.clientWidth, container.clientHeight);
+// };
 
-init();
-animate();
-// 添加几何体
-// testAddGeo();
+// init();
+// animate();
+// // 添加几何体
+// // testAddGeo();
 
-/** 几何添加测试
- * @param {*} geo 任意几何体
- */
-function testAddGeo(geo) {
-    let mlt = new THREE.MeshLambertMaterial({ color: 0x0f0f0 });
-    let mesh = new THREE.Mesh(geo, mlt);
-    primitives.add(mesh);
-    console.log(primitives);
-};
+// /** 几何添加测试
+//  * @param {*} geo 任意几何体
+//  */
+// function testAddGeo(geo) {
+//     let mlt = new THREE.MeshLambertMaterial({ color: 0x0f0f0 });
+//     let mesh = new THREE.Mesh(geo, mlt);
+//     primitives.add(mesh);
+//     console.log(primitives);
+// };
 
 
