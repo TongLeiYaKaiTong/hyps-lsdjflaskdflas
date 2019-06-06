@@ -1,4 +1,17 @@
 // ============================ dom事件绑定 ============================
+// 取消默认右键功能
+document.oncontextmenu = function (event) {
+	event.preventDefault();
+}
+// 没点到导航按键时，删除导航按键
+$('body').mousedown(function(event) {
+	const target = event.target
+	if ($(target).hasClass('walk_to_target')) {
+		console.log('导航');
+	} else {
+		$('.walk_to_target').remove();
+	}
+})
 // 下拉菜单鼠标移入触发
 $(".menu-box").mouseover(function () {
 	$(this).addClass('open');
@@ -546,6 +559,26 @@ function mulushu(list) {
 		},
 		callback: {
 			onClick: nodeClick,
+			onRightClick: function(event, treeId, treeNode) {
+				if (treeNode) {
+					console.log('event', event);
+					console.log('treeId', treeId);
+					console.log('treeNode', treeNode);
+
+					const guide_dom = document.createElement('span');
+					$(guide_dom).addClass('walk_to_target').text('导航到目标').css({
+						'position': 'fixed',
+						'top': event.pageY + 'px',
+						'left': event.pageX + 'px',
+						'background-color': '#5bc0de',
+						'padding': '5px 8px',
+						'color': '#fff',
+						'border-radius': '5px',
+						'cursor': 'pointer',
+					})
+					$('body').append(guide_dom);
+				}
+			},
 			onExpand: function (event, treeId, treeNode) {
 				//console.log(treeNode);
 				addSubNode(treeNode);
