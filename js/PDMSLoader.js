@@ -4,6 +4,8 @@ function PDMSLoader() {
 
     let PDMSGroup = new THREE.Group();
 
+    let maxX, maxY, maxZ, minX, minY, minZ;
+
     // ==================================================颜色数组表区域==================================================
     const colorArray = [
         new THREE.Color('#F0F0F0'),
@@ -280,18 +282,18 @@ function PDMSLoader() {
         // let R = (R_out + R_in) / 2;
         // let sectionR = (R_out - R_in) / 2;
 
-        var geometry = new THREE.TorusGeometry(R_out, R_in, 16, 16, radian);
-        // geometry.rotateX(-0.5 * Math.PI);
+        let geometry = new THREE.TorusGeometry(R_out, R_in, 8, 6, radian);
+        geometry.rotateX(-0.5 * Math.PI);
 
-        // //平移再旋转
-        // var geometry1 = new THREE.CircleGeometry(sectionR, 8).applyMatrix(new THREE.Matrix4().makeTranslation(R, 0, 0));
+        //平移再旋转
+        // let geometry1 = new THREE.CircleGeometry(R_in, 8).applyMatrix(new THREE.Matrix4().makeTranslation(R_out, 0, 0));
 
         // //旋转再平移
-        // var geometry2 = new THREE.CircleGeometry(sectionR, 8).applyMatrix(new THREE.Matrix4().makeRotationY(Math.PI));
+        // let geometry2 = new THREE.CircleGeometry(R_in, 8).applyMatrix(new THREE.Matrix4().makeRotationY(Math.PI));
 
-        // // console.log(radian * Math.PI / 180);
+        // // // console.log(radian * Math.PI / 180);
         // geometry.merge(geometry1, new THREE.Matrix4().makeRotationY(-radian));
-        // geometry.merge(geometry2, new THREE.Matrix4().makeTranslation(R, 0, 0));
+        // geometry.merge(geometry2, new THREE.Matrix4().makeTranslation(R_out, 0, 0));
         return geometry;
     };
 
@@ -408,6 +410,8 @@ function PDMSLoader() {
                     original: data,
                     PDMSObject: PDMSGroup,
                     rvmTree: formatRVMData(data),
+                    boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
+                    center: getCenter(),
                 });
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
@@ -505,8 +509,13 @@ function PDMSLoader() {
     // 设置PDMS的每一个部位的构建
     function setPDMSMember(PRIM, color) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
+
         if (geo) {
-            let mlt = new THREE.MeshLambertMaterial({ color: 0x008fff, wireframe: false });
+
+            geo.computeBoundingBox();
+            reviseBoundingBox(geo.boundingBox);
+
+            let mlt = new THREE.MeshLambertMaterial({ color: color, wireframe: false });
             let mesh = new THREE.Mesh(geo, mlt);
             let mtx = PRIM.Direction;//12位矩阵
 
@@ -524,6 +533,7 @@ function PDMSLoader() {
             let record = mesh.rotation.z;
             mesh.rotation.z = -mesh.rotation.y;
             mesh.rotation.y = record;
+            mesh.rotation.order = 'XZY';
             // console.log(P,Q,S)
 
             // mesh.applyMatrix(Matrix4);
@@ -533,12 +543,35 @@ function PDMSLoader() {
 
     };
 
+    // 修正场景包围盒
+    function reviseBoundingBox(box3) {
+        // console.log(box3.max, box3.min);
+
+        if (!maxX || (maxX && maxX < box3.max.x)) maxX = box3.max.x;
+        if (!maxY || (maxY && maxY < box3.max.y)) maxY = box3.max.y;
+        if (!maxZ || (maxZ && maxZ < box3.max.z)) maxZ = box3.max.z;
+
+        if (!minX || (minX && minX > box3.min.x)) minX = box3.min.x;
+        if (!minY || (minY && minY > box3.min.y)) minY = box3.min.y;
+        if (!minZ || (minZ && minZ > box3.min.z)) minZ = box3.min.z;
+    };
+
+    function getCenter() {
+        //计算中心点
+        return [
+            (maxX + minX) / 2000,
+            (maxY + minY) / 2000,
+            (maxZ + minZ) / 2000
+        ];
+
+    };
 
     function getGeometryByGeotype(type, arr) {
 
         let geo;//几何
 
-        // if (type != 4 && type != 8 ) return geo;
+        // if (type != 4 && type != 8) return geo;
+        // if (type != 4) return geo;
 
         switch (type) {
             case 1:   //Pyramid 
@@ -592,105 +625,131 @@ function PDMSLoader() {
 
 //=============================测试场景==========================================
 
-// let container;//html容器
+let container;//html容器
 
-// let scene, renderer, camera;//three 三组件
+let scene, renderer, camera;//three 三组件
 
-// let controls;//控制器
+let controls;//控制器
 
-// let primitives;//几何集合
+let primitives;//几何集合
 
-// let material = new THREE.MeshPhongMaterial({ color: 0xff00ff });//统一材质
+let material = new THREE.MeshPhongMaterial({ color: 0xff00ff });//统一材质
 
-// function render() {
-//     renderer.render(scene, camera);
-// };
+function render() {
+    renderer.render(scene, camera);
+};
 
-// function animate() {
-//     requestAnimationFrame(animate);
-//     render();
-// };
+function animate() {
+    requestAnimationFrame(animate);
+    render();
+};
 
-// function init() {
+function init() {
 
-//     container = document.getElementById('container');
+    container = document.getElementById('container');
 
-//     // renderer
-//     renderer = new THREE.WebGLRenderer({ antialias: true });
-//     renderer.setPixelRatio(window.devicePixelRatio);
-//     renderer.setSize(container.clientWidth, container.clientHeight);
-//     container.appendChild(renderer.domElement);
+    // renderer
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
 
-//     // scene
-//     scene = new THREE.Scene();
-//     scene.background = new THREE.Color(0x000000);
+    // scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
 
-//     // light
-//     let light1 = new THREE.DirectionalLight(0xffffff, 0.45);
-//     light1.position.set(1, 1, 1);
-//     scene.add(light1);
+    // light
+    let light1 = new THREE.DirectionalLight(0xffffff, 0.45);
+    light1.position.set(1, 1, 1);
+    scene.add(light1);
 
-//     let light2 = new THREE.DirectionalLight(0xffffff, 0.45);
-//     light2.position.set(-1, -1, 1);
-//     scene.add(light2);
+    let light2 = new THREE.DirectionalLight(0xffffff, 0.45);
+    light2.position.set(-1, -1, 1);
+    scene.add(light2);
 
-//     scene.add(new THREE.AmbientLight(0xffffff, 0.1));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.1));
 
-//     // camera
-//     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 1000000);
-//     camera.position.set(0, 0, 80);
+    // camera
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 1000000);
+    camera.position.set(8.7, 17.97, -9.8);
 
-//     // controls
-//     controls = new THREE.OrbitControls(camera, renderer.domElement);
+    // controls
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.target.set(8.6, -5.05, -10);
+    controls.update();
 
-//     // Object3D
-//     primitives = new THREE.Group();
-//     scene.add(primitives);
+    // Object3D
+    primitives = new THREE.Group();
+    scene.add(primitives);
 
-//     // AxesHelper
-//     scene.add(new THREE.AxesHelper(5));
+    // AxesHelper
+    scene.add(new THREE.AxesHelper(5));
 
-//     // testAddGeo(new PDMSLoader().DishGeometry(true, 18, 10, 8));
+    new PDMSLoader().load(
+        // "./js/rvm_att/pyrout.js",
+        "./js/rvm_att/rvmData3.js",
+        "",
+        function (data) {
+            console.log(data);
+            if (data.PDMSObject) scene.add(data.PDMSObject);
 
-//     new PDMSLoader().load(
-//         // "./js/rvm_att/pyrout.js",
-//         "./js/rvm_att/rvmData2.js",
-//         "",
-//         function (data) {
-//             console.log(data);
-//             if (data.dataType == "group") scene.add(data.data);
-//         },
-//         function (evt) {
-//             if (evt.lengthComputable) {
-//                 let percentComplete = evt.loaded / evt.total;
-//                 console.log(Math.round(percentComplete * 100) + "%");
-//             };
-//         }
-//     );
+            if (data.center && data.boundingBox && false) {
 
-//     window.addEventListener('resize', onWindowResize, false);
+                let box = data.boundingBox;
+                // console.log(box);
+                
+                let center = data.center;
 
-// };
+                // let boxH = new THREE.Box3();
+                // boxH.setFromCenterAndSize(new THREE.Vector3(box[0] * 1000, box[1]* 1000, box[2]* 1000), new THREE.Vector3(box[3]* 1000, box[4]* 1000, box[5]* 1000));
+                // let helper = new THREE.Box3Helper(boxH, 0xffff00);
+                // scene.add(helper);
 
-// function onWindowResize() {
-//     camera.aspect = window.innerWidth / window.innerHeight;
-//     camera.updateProjectionMatrix();
-//     renderer.setSize(container.clientWidth, container.clientHeight);
-// };
+                let diagonal = Math.sqrt(
+                    Math.pow(box[0] - box[3], 2) +
+                    Math.pow(box[1] - box[4], 2) +
+                    Math.pow(box[2] - box[5], 2));
 
-// init();
-// animate();
-// // 添加几何体
-// // testAddGeo();
+                camera.position.set(center[0] - diagonal, center[1] + diagonal, center[2] + diagonal);
 
-// /** 几何添加测试
-//  * @param {*} geo 任意几何体
-//  */
-// function testAddGeo(geo) {
-//     let mlt = new THREE.MeshLambertMaterial({ color: 0x0f0f0 });
-//     let mesh = new THREE.Mesh(geo, mlt);
-//     primitives.add(mesh);
-//     console.log(primitives);
-// };
+                controls.target.set(center[0], center[1], center[2]);
+
+                controls.update();
+
+            };
+
+        },
+        function (evt) {
+            if (evt.lengthComputable) {
+                let percentComplete = evt.loaded / evt.total;
+                console.log(Math.round(percentComplete * 100) + "%");
+            };
+        }
+    );
+
+    window.addEventListener('resize', onWindowResize, false);
+
+};
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+};
+
+init();
+animate();
+// 添加几何体
+// testAddGeo();
+
+/** 几何添加测试
+ * @param {*} geo 任意几何体
+ */
+function testAddGeo(geo) {
+    let mlt = new THREE.MeshLambertMaterial({ color: 0x0f0f0 });
+    let mesh = new THREE.Mesh(geo, mlt);
+    primitives.add(mesh);
+    console.log(primitives);
+};
 
 
