@@ -406,7 +406,7 @@ function PDMSLoader() {
 
                 if (onLoad) onLoad({
                     original: data,
-                    group: PDMSGroup,
+                    PDMSObject: PDMSGroup,
                     rvmTree: formatRVMData(data),
                 });
             },
