@@ -4,6 +4,8 @@ function PDMSLoader() {
 
     let PDMSGroup = new THREE.Group();
 
+    let PDMSMesh = new THREE.Mesh();
+
     let maxX, maxY, maxZ, minX, minY, minZ;
 
     // ==================================================颜色数组表区域==================================================
@@ -219,7 +221,7 @@ function PDMSLoader() {
      * @param {*} height 四棱台高
      */
     function PyramidGeometry(x_bottom, y_bottom, x_top, y_top, y_offset, x_offset, height) {
-        console.log(x_top, y_top, x_bottom, y_bottom, x_offset, y_offset, height)
+        // console.log(x_top, y_top, x_bottom, y_bottom, x_offset, y_offset, height)
         let half_x_b = x_bottom / 2;
         let half_y_b = y_bottom / 2;
         let half_x_t = x_top / 2;
@@ -298,19 +300,20 @@ function PDMSLoader() {
     };
 
     /** 矩形环（半圆环）
-     * @param {*} height 矩形高度
      * @param {*} R_in 内圆半径
      * @param {*} R_out 外圆半径
-     * @param {*} angle 角度 (0°~360°)
+     * @param {*} height 矩形高度
+     * @param {*} angle_r 弧度 
      */
-    function RectangularTorusGeometry(height, R_in, R_out, angle) {
+    function RectangularTorusGeometry(R_in, R_out, height, angle_r) {
         const R = (R_out + R_in) / 2;
         const sectionR = (R_out - R_in) / 2;
-        const segment = parseInt(angle / 20);//除数越大性能越好
-        const angle_r = angle * Math.PI / 180;
+        const segment = parseInt(angle_r * 180 / Math.PI / 20);//除数越大性能越好
+        // const angle_r = angle * Math.PI / 180;
+        // angle_r * 180 / Math.PI / 20
 
         //顶面
-        let geometry = new THREE.RingGeometry(R_in, R_out, segment, 1, 0, angle_r);
+        let geometry = new THREE.RingGeometry(R_in, R_out, 8, 1, 0, angle_r);
 
         geometry.rotateX(0.5 * Math.PI);
         geometry.translate(0, -height / 2, 0);
@@ -570,17 +573,17 @@ function PDMSLoader() {
 
         let geo;//几何
 
-        // if (type != 4 && type != 8) return geo;
-        // if (type != 4) return geo;
+        // if (type != 2 && type != 4 && type != 8) return geo;
+        if (type != 8) return geo;
+        // console.log(arr);
+
 
         switch (type) {
             case 1:   //Pyramid 
-                // console.log(arr);
-                // geo = PyramidGeometry(arr[0], arr[2], arr[1], arr[4], arr[3], arr[6], arr[5]);
                 // geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
                 break;
             case 2:   //Box
-                geo = new THREE.BoxGeometry(arr[0], arr[2], arr[1]);
+                geo = new THREE.BoxBufferGeometry(arr[0], arr[2], arr[1]);
                 break;
             case 3:   //RectangularTorus
                 geo = RectangularTorusGeometry(arr[0], arr[1], arr[2], arr[3]);
@@ -602,12 +605,12 @@ function PDMSLoader() {
                 geo = new THREE.CylinderBufferGeometry(arr[0], arr[0], arr[1], 8);
                 break;
             case 9:  //Sphere
-                geo = new THREE.SphereGeometry(arr[0], 8, 8);
+                geo = new THREE.SphereBufferGeometry(arr[0], 8, 8);
                 break;
             case 10:  //Line 
                 break;
             case 11:  //FaceGroup
-                geo = FaceGroupGeometry(arr);
+                // geo = FaceGroupGeometry(arr);
                 break;
         };
 
@@ -687,17 +690,22 @@ function init() {
 
     new PDMSLoader().load(
         // "./js/rvm_att/pyrout.js",
-        "./js/rvm_att/rvmData3.js",
+        "./js/rvm_att/rvmData2.js",
         "",
         function (data) {
             console.log(data);
             if (data.PDMSObject) scene.add(data.PDMSObject);
 
+            // let boxH = new THREE.Box3();
+            // boxH.setFromCenterAndSize(new THREE.Vector3(800, 300, 300), new THREE.Vector3(-300, -300, -800));
+            // let helper = new THREE.Box3Helper(boxH, 0xffff00);
+            // scene.add(helper);
+
             if (data.center && data.boundingBox && false) {
 
                 let box = data.boundingBox;
                 // console.log(box);
-                
+
                 let center = data.center;
 
                 // let boxH = new THREE.Box3();
