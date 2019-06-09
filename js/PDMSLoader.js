@@ -575,9 +575,7 @@ function PDMSLoader() {
 
         switch (type) {
             case 1:   //Pyramid 
-                // console.log(arr);
-                // geo = PyramidGeometry(arr[0], arr[2], arr[1], arr[4], arr[3], arr[6], arr[5]);
-                // geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
+                geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
                 break;
             case 2:   //Box
                 geo = new THREE.BoxGeometry(arr[0], arr[2], arr[1]);
@@ -687,7 +685,7 @@ function init() {
 
     new PDMSLoader().load(
         // "./js/rvm_att/pyrout.js",
-        "./js/rvm_att/rvmData3.js",
+        "./js/rvm_att/rvmData2.js",
         "",
         function (data) {
             console.log(data);

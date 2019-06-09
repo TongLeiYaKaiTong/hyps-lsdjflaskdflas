@@ -190,9 +190,9 @@ THREE.BufferGeometryUtils = {
 	 * @return {THREE.BufferGeometry}
 	 */
 	mergeBufferGeometries: function ( geometries, useGroups ) {
-
+		// console.log(geometries[ 0 ].index)
 		var isIndexed = geometries[ 0 ].index !== null;
-
+		// console.log(isIndexed)
 		var attributesUsed = new Set( Object.keys( geometries[ 0 ].attributes ) );
 		var morphAttributesUsed = new Set( Object.keys( geometries[ 0 ].morphAttributes ) );
 
@@ -204,19 +204,25 @@ THREE.BufferGeometryUtils = {
 		var offset = 0;
 
 		for ( var i = 0; i < geometries.length; ++ i ) {
-
 			var geometry = geometries[ i ];
+				// console.log(geometry)
 
 			// ensure that all geometries are indexed, or none
 
-			if ( isIndexed !== ( geometry.index !== null ) ) return null;
-
+			// if ( isIndexed !== ( geometry.index !== null ) ) {
+				// console.log(i)
+				// console.log(geometry)
+				// console.warn(isIndexed)
+				// return null;
+			// }
 			// gather attributes, exit early if they're different
 
 			for ( var name in geometry.attributes ) {
 
-				if ( ! attributesUsed.has( name ) ) return null;
-
+				if ( ! attributesUsed.has( name ) ) {
+					console.warn('! attributesUsed.has( name ) ')	
+					return null;
+				}
 				if ( attributes[ name ] === undefined ) attributes[ name ] = [];
 
 				attributes[ name ].push( geometry.attributes[ name ] );
@@ -276,7 +282,12 @@ THREE.BufferGeometryUtils = {
 			for ( var i = 0; i < geometries.length; ++ i ) {
 
 				var index = geometries[ i ].index;
-
+				console.log(index.count)
+				if(!geometries[ i ].index){
+					console.log(i)
+					console.error('这个buffergeometry没有index',geometries[ i ])
+				}
+				
 				for ( var j = 0; j < index.count; ++ j ) {
 
 					mergedIndex.push( index.getX( j ) + indexOffset );
@@ -353,17 +364,26 @@ THREE.BufferGeometryUtils = {
 
 			var attribute = attributes[ i ];
 
-			if ( attribute.isInterleavedBufferAttribute ) return null;
-
+			if ( attribute.isInterleavedBufferAttribute ) {
+				console.error('isInterleavedBufferAttribute错误')
+			
+				return null;
+			}
 			if ( TypedArray === undefined ) TypedArray = attribute.array.constructor;
-			if ( TypedArray !== attribute.array.constructor ) return null;
-
+			if ( TypedArray !== attribute.array.constructor ) {
+				console.error('constructor错误')
+				return null;
+			}
 			if ( itemSize === undefined ) itemSize = attribute.itemSize;
-			if ( itemSize !== attribute.itemSize ) return null;
-
+			if ( itemSize !== attribute.itemSize ) {
+				console.error('itemSize错误')
+				return null;
+			}
 			if ( normalized === undefined ) normalized = attribute.normalized;
-			if ( normalized !== attribute.normalized ) return null;
-
+			if ( normalized !== attribute.normalized ) {
+				console.error('法线错误')
+				return null;
+			}
 			arrayLength += attribute.array.length;
 
 		}

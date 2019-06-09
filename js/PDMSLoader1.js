@@ -148,7 +148,7 @@ function PDMSLoader() {
         let vertices_array = [];
 
         let geo = new THREE.BufferGeometry();
-
+		var index = [];
         for (let i = 0, len = arr.length; i < len; i++) {
             let num = arr[i];
             // console.log(num)
@@ -203,7 +203,12 @@ function PDMSLoader() {
         let vertices = new Float32Array(vertices_array);
         // var normals = new Float32Array( [] );
         geo.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
-        // geo.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
+		
+		for(var i=0;i<vertices_array.length/3;i++){
+			index.push(i)
+		}
+        geo.setIndex(index);
+		index.count = index.length
 
         geo.computeVertexNormals();
 
@@ -221,7 +226,7 @@ function PDMSLoader() {
      * @param {*} height 四棱台高
      */
     function PyramidGeometry(x_bottom, y_bottom, x_top, y_top, y_offset, x_offset, height) {
-        // console.log(x_top, y_top, x_bottom, y_bottom, x_offset, y_offset, height)
+        console.warn(x_top, y_top, x_bottom, y_bottom, x_offset, y_offset, height)
         let half_x_b = x_bottom / 2;
         let half_y_b = y_bottom / 2;
         let half_x_t = x_top / 2;
@@ -523,30 +528,50 @@ function PDMSLoader() {
             // let mlt = new THREE.MeshLambertMaterial({ color: color, wireframe: false });
             // let mesh = new THREE.Mesh(geo, mlt);
             let mtx = PRIM.Direction;//12位矩阵
-
-            let Matrix4 = new THREE.Matrix4();
+			
+			let Matrix4 = new THREE.Matrix4();
             Matrix4.elements = [
                 mtx[0], mtx[1], mtx[2], 0,
                 mtx[3], mtx[4], mtx[5], 0,
                 mtx[6], mtx[7], mtx[8], 0,
                 mtx[9], mtx[11], -mtx[10], 1];// Y Z轴颠倒
 
-            // let Q = new THREE.Quaternion();
-            // Matrix4.decompose(mesh.position, Q, mesh.scale);
-            // mesh.rotation.setFromQuaternion(Q, 'XYZ');
+			let P = new THREE.Vector3();
+			let Q = new THREE.Quaternion();
+			let S = new THREE.Vector3();
+			let R = new THREE.Euler();
+            Matrix4.decompose(P, Q, S);
+            R.setFromQuaternion(Q, 'XYZ');
 
-            // let record = mesh.rotation.z;
-            // mesh.rotation.z = -mesh.rotation.y;
-            // mesh.rotation.y = record;
-            // mesh.rotation.order = 'XZY';
-
-            // console.log(mesh.position,mesh.scale,geo);
-            
-            // console.log(P,Q,S)
-
-            geo.applyMatrix(Matrix4);
-            // PDMSGroup.add(mesh);
-            // mgeo.mergeBufferGeometries(geo);
+			var record = R.z;
+            R.z = -R.y;
+            R.y = record;
+            R.order = 'XZY';
+			
+			var R_matrix = new THREE.Matrix4().makeRotationFromEuler(R)
+			
+			
+            geo.applyMatrix(R_matrix);
+            geo.scale(S.x,S.y,S.z);
+			
+			console.log(P)
+			geo.translate(P.x,P.y,P.z)
+			
+			if(geo.isGeometry){
+				console.log(geo)
+				let b_geo = new THREE.BufferGeometry().fromGeometry(geo)
+				delete(b_geo.attributes.color)
+				var index = []
+				for(var i=0;i<geo.faces.length;i++){
+					index.push(geo.faces[i].a)
+					index.push(geo.faces[i].b)
+					index.push(geo.faces[i].c)
+				}
+				b_geo.setIndex( index );
+				index.count = index.length
+				geo = b_geo;
+			}
+			console.log(geo)
             geometries.push(geo);
 
         };
@@ -559,7 +584,7 @@ function PDMSLoader() {
         
 
         let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
-
+		console.log(mgeo)
         let mlt = new THREE.MeshLambertMaterial({ color: 0xffff00 });
         let mesh = new THREE.Mesh(mgeo, mlt);
 
@@ -594,14 +619,14 @@ function PDMSLoader() {
 
         let geo;//几何
 
-        if (type != 2 && type != 4 && type != 8) return geo;
+        // if (type != 2 && type != 4 && type != 8) return geo;
         // if (type != 8) return geo;
         // console.log(arr);
 
 
         switch (type) {
             case 1:   //Pyramid 
-                // geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
+                geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
                 break;
             case 2:   //Box
                 geo = new THREE.BoxBufferGeometry(arr[0], arr[2], arr[1]);
@@ -632,7 +657,7 @@ function PDMSLoader() {
             case 10:  //Line 
                 break;
             case 11:  //FaceGroup
-                // geo = FaceGroupGeometry(arr);
+                geo = FaceGroupGeometry(arr);
                 break;
         };
 
