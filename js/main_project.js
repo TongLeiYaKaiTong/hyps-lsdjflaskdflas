@@ -392,6 +392,7 @@ function init(name, list) {
 
 	new PDMSLoader().load(
 		"./js/rvm_att/rvmData2.js",
+		// "./js/rvm_att/cssout.js",
 		"",
 		function (data) {
 			console.log(data);
