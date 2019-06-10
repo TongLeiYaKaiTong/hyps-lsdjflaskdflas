@@ -7,8 +7,10 @@ html,body{
 #chooseFile{
 	position: absolute;
 	background-color: #ffffff;
-	top: 303px;
-	left: 610px;
+	/* top: 303px;
+	left: 610px; */
+	top: 28%;
+	left: 32%; 
 	width: 710px;
 	height: 495px;
 	border-radius: 5px ;
@@ -117,6 +119,7 @@ html,body{
     display: flex;
     flex-direction: column;
 	overflow-y: auto;
+	padding-bottom: 30px;
 }
 #chooseFile>.content>div>.fileList>span{
 	height: 28px;
@@ -206,8 +209,10 @@ html,body{
 	position: absolute;
 	width: 296px;
 	height: 158px;
-	top: 515px;
-	left: 923px;
+	/* top: 515px;
+	left: 923px; */
+	top: 49%;
+	left: 42%;
 	background-color: #fff;
 	border-radius: 3px;
 	box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.06);
@@ -287,8 +292,10 @@ html,body{
 }
 #uploadFileDiv{
 	position: absolute;
-	top: 284px;
-	left: 708px;
+	/* top: 284px;
+	left: 708px; */
+	top: 34%;
+	left: 37%;
 	width: 296px;
 	height: 131px;
 	background-color: #ffffff;
@@ -384,8 +391,10 @@ html,body{
 	box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.06);
 	border-radius: 3px;
 	/* z-index: 5; */
-	top: 473px;
-	left: 956px;
+	/* top: 473px;
+	left: 956px; */
+	top: 43%;
+	left: 44%;
 }
 #uploadLoading .icon{
 	width: 15px;
@@ -413,8 +422,10 @@ html,body{
 	box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.06);
 	border-radius: 3px;
 	/* z-index: 5; */
-	top: 473px;
-	left: 956px;
+	/* top: 473px;
+	left: 956px; */
+	top: 43%;
+	left: 44%;
 	display: flex;
 	flex-direction: column;
 	align-items: center;

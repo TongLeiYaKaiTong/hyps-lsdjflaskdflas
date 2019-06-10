@@ -76,7 +76,7 @@ function PDMSLoader() {
      */
     function DishGeometry(cover, radius, height, widthSegments, heightSegments) {
 
-        widthSegments = widthSegments || 32;
+        widthSegments = widthSegments || 16;
         heightSegments = heightSegments || 4;
 
         let r = Math.floor(((height * height) + (radius * radius)) / (2 * height)); //半径 
@@ -641,22 +641,33 @@ function PDMSLoader() {
 
             // console.log(P)
             geo.translate(P.x, P.y, P.z);
-
-            // if (geo.isGeometry) {
-            //     // console.log(geo)
-            //     let b_geo = new THREE.BufferGeometry().fromGeometry(geo);
-            //     delete (b_geo.attributes.color);
-            //     var index = [];
-            //     for (var i = 0; i < geo.faces.length; i++) {
-            //         index.push(geo.faces[i].a);
-            //         index.push(geo.faces[i].b);
-            //         index.push(geo.faces[i].c);
-            //     };
-            //     b_geo.setIndex(index);
-            //     index.count = index.length;
-            //     geo = b_geo;
-            // };
+			
+			
+			
+            if (geo.isGeometry) {
+            // if (false) {
+                // console.log(geo)
+                let b_geo = new THREE.BufferGeometry().fromGeometry(geo);
+                var index = [];
+                for (var i = 0; i < 3*geo.faces.length; i++) {
+                    index.push(i);
+                };
+                b_geo.setIndex(index);
+                // b_geo.index.count = index.length;
+                geo = b_geo;
+            };
             // console.log(geo)
+			if(geo.attributes.hasOwnProperty('color'))
+				delete (geo.attributes.color);
+			
+			if(geo.attributes.hasOwnProperty('uv'))
+				delete (geo.attributes.uv);
+			
+			
+			// let mesh = new THREE.Mesh(geo,new THREE.MeshLambertMaterial())
+			// scene.add(mesh)
+			// return
+			
             geometries.push(geo);
 
             //=================color=========================
@@ -689,9 +700,7 @@ function PDMSLoader() {
     };
 
     function mergeBufferGeometries() {
-
         // console.log(geometries);
-
 
         let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
         let colorAtt = new THREE.BufferAttribute(
@@ -699,7 +708,9 @@ function PDMSLoader() {
         );
         colorAtt.set(colors, 0);
         mgeo.addAttribute('color', colorAtt);
-        console.log(mgeo);
+        console.log('合并后的',mgeo);
+		// mgeo.computeFaceNormals();
+		// mgeo.computeVertexNormals();
         let mlt = new THREE.MeshLambertMaterial({ vertexColors: true });
         let mesh = new THREE.Mesh(mgeo, mlt);
 
@@ -736,23 +747,6 @@ function PDMSLoader() {
 
         // if (type == 11) return geo;
 
-        // if (type != 1 
-        //     && type != 2
-        //     && type != 3
-        //     && type != 4 
-        //     && type != 5 
-        //     && type != 6 
-        //     && type != 7
-        //     && type != 8
-        //     && type != 9) return geo;
-
-        // if (type != 11
-        //     && type != 4) return geo;
-        // console.log(arr);
-
-        // if (type != 5 && type != 6) return geo;
-        // if(type != 7) return geo;
-        // console.log(arr);
         
 
 
@@ -771,24 +765,24 @@ function PDMSLoader() {
                 geo = CircularTorusGeometry(arr[0], arr[1], arr[2]);
                 break;
             case 5:   //EllipticalDish Dish有遮挡
-                geo = DishGeometry(true, arr[0], arr[1], 8);
+                geo = DishGeometry(true, arr[0], arr[1]);
                 break;
             case 6:   //SphericalDish Dish无遮挡  
-                geo = DishGeometry(false, arr[0], arr[1], 8);
+                geo = DishGeometry(false, arr[0], arr[1]);
                 break;
             case 7:   //Snout        
-                if (arr.length == 9 && arr[3] == 0 && arr[4] == 0 && (arr[5] != 0 || arr[6] != 0 || arr[7] != 0 || arr[8] != 0)) {
-                    console.log('SlopedCylinder', arr);
-                    geo = new THREE.SlopedCylinderGeometry(arr[0], arr[2], arr[5], arr[6], arr[7], arr[8]);
-                } else {
-                    if (arr[3] == 0 && arr[4] == 0 && arr[5] == 0 && arr[6] == 0 && arr[7] == 0 && arr[8] == 0) {
-                        // console.log('Cone', arr);
-                        geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
-                    } else {
-                        // console.log('Snout', arr);
-                        geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
-                    }
-                }
+                // if (arr.length == 9 && arr[3] == 0 && arr[4] == 0 && (arr[5] != 0 || arr[6] != 0 || arr[7] != 0 || arr[8] != 0)) {
+                //     console.log('SlopedCylinder', arr);
+                //     geo = new THREE.SlopedCylinderGeometry(arr[0], arr[2], arr[5], arr[6], arr[7], arr[8]);
+                // } else {
+                //     if (arr[3] == 0 && arr[4] == 0 && arr[5] == 0 && arr[6] == 0 && arr[7] == 0 && arr[8] == 0) {
+                //         // console.log('Cone', arr);
+                //         geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
+                //     } else {
+                //         // console.log('Snout', arr);
+                //         geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
+                //     }
+                // }
                 break;
             case 8:  //Cylinder 
                 geo = new THREE.CylinderBufferGeometry(arr[0], arr[0], arr[1], 8);
@@ -807,7 +801,7 @@ function PDMSLoader() {
         // if (!geo) console.error("不存在几何类型");
 
         // 偏心圆台存在问题
-        if (geo.isGeometry) geo = new THREE.BufferGeometry().fromGeometry(geo);
+        // if (geo.isGeometry) geo = new THREE.BufferGeometry().fromGeometry(geo);
 
         return geo;
     };
