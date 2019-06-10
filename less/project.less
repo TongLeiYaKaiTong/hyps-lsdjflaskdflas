@@ -386,6 +386,32 @@ a:focus {
                 color: #347cb6;
             }
         }
+
+        >.water {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+
+            &.on {
+                >.icon {
+                    background-image: url(../img/icon/btn_on.png);
+                }
+            }
+
+            >.label-w {
+                font-size: 14px;
+            }
+
+            >.icon {
+                display: flex;
+                width: 45px;
+                height: 28px;
+                cursor: pointer;
+                background-image: url(../img/icon/btn_off.png);
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+        }
     }
 
     >.user-area {

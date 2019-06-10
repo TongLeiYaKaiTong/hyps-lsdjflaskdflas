@@ -1,11 +1,3 @@
-$(function () {
-
-})
-
-$(function () {
-
-})
-
 // ============================ dom事件绑定 ============================
 // 下拉菜单鼠标移入触发
 $(".menu-box").mouseover(function () {
@@ -148,6 +140,72 @@ function downloadModel(blob, filename) {
 	link.click();
 }
 
+/**
+ * @name loading界面对象
+ * @param {string} text 初始化文本
+ */
+function LoadingBox(text) {
+	// 界面外框
+	const element = document.createElement('div');
+	$('body').append(element);
+	$(element).css({
+		'width': '100%',
+		'height': '100%',
+		'position': 'fixed',
+		'top': 0,
+		'left': 0,
+		'display': 'flex',
+		'flex-direction': 'column',
+		'justify-content': 'center',
+		'align-items': 'center',
+		'background-color': 'rgba(0, 0, 0, 0.6)',
+	});
+
+	// 图片
+	const img = document.createElement('img');
+	$(element).append(img);
+	$(img).attr('src', "./img/loading.gif").css({
+		width: '8%',
+	});
+
+	// 文字
+	const text_dom = document.createElement('p');
+	$(element).append(text_dom);
+	$(text_dom).text(text).css({
+		'font-size': '20px',
+		'font-weight': 'bold',
+		'margin-top': '20px',
+	})
+
+	// 进度条外框
+	const progress = document.createElement('div');
+	$(element).append(progress);
+	$(progress).addClass('progress').css({
+		'margin-top': '20px',
+		'width': '50%',
+	})
+
+	// 进度条进度区
+	const progress_bar = '<div class="progress-bar" role="progressbar" style="width: 0%;">0%</div>';
+	$(progress).append(progress_bar);
+	
+
+	// 更新显示文本
+	this.updateText = function(text) {
+		$(text_dom).text(text);
+	}
+
+	// 更新进度条
+	this.updateRange = function(range) {
+		$(progress).find('>.progress-bar').text(range).css('width', range);
+	}
+
+	// 移除进度界面
+	this.remove = function() {
+		$(element).remove();
+	}
+}
+
 
 var model;//模型本身
 
@@ -164,54 +222,54 @@ if (getData.indexOf("?") != -1) {
 }
 // console.log(projectname);
 var list = [];
-$('#loading').hide();
-// window.onload = function (event) {
 
-// 	// init2(name,list);
-// 	$('#loading').hide();
+// window.onload = function (event) {
+// 	console.log(123);
+	
+
+
 // 	// showarea.style.display = "block";
 // 	// var lastDate = new Date();//获取系统当前时间
 // 	// console.log("页面加载完成：" +  lastDate.toLocaleString());
 // }
+
+$(function() {
+	
+	init(name, list);
+	$('#loading').hide();
+})
 
 // var back = document.getElementById("back");
 // back.onclick = function() {
 // 	window.location.href= "index.html";
 // }
 
-// let water
-// let renderer
-// let camera
-// let out_camera;
-// let out_controls;
-// let view_controller; //视角球控制
-// let view_controller_renderer; //视角球控制
-function init2(name, list) {
+let water
+let renderer
+let camera
+let out_camera;
+let out_controls;
+let view_controller; //视角球控制
+let view_controller_renderer; //视角球控制
+function init(name, list) {
 	console.log('进入threejs场景init')
-	// showarea.style.display = "block";
-	// var biaoti = document.getElementById("biaoti");
-	//console.log(name);
-	// biaoti.innerHTML = name;
 	var container = document.getElementById("container");
 
-	// var left0 = window.innerHeight * 0.2;
-	// var width0 = window.innerWidth * 0.8;
-	// var top0 = 44;
-	// var height0 = window.innerHeight - 44;
 	const width = $('#container').width();
 	const height = $('#container').height();
 
 	camera = new THREE.PerspectiveCamera(45, width / height, 1, 200000000);
-	camera.position.set(100, 200, 300);
+	// camera.position.set(100, 200, 300);
+	camera.position.set(0, 0, 100);
 	out_camera = camera
 
 	controls = new THREE.OrbitControls(camera, container, update_view_controller);
-	controls.target.set(0, 100, 0);
+	controls.target.set(0, 0, 0);
 	controls.update();
 	out_controls = controls
 
 	scene = new THREE.Scene();
-	scene.background = new THREE.Color(0xa0a0a0);
+	scene.background = new THREE.Color(0xf0f0f0);
 	//scene.fog = new THREE.Fog(0xa0a0a0, 200, 2000);
 
 	renderer = new THREE.WebGLRenderer({
@@ -239,8 +297,6 @@ function init2(name, list) {
 	scene.add(light);
 
 	// Water
-
-	// var waterGeometry = new THREE.PlaneBufferGeometry( 10000, 10000 );
 	var waterGeometry = new THREE.CircleBufferGeometry(100000, 16);
 
 	water = new THREE.Water(
@@ -264,11 +320,10 @@ function init2(name, list) {
 	);
 
 	water.rotation.x = - Math.PI / 2;
-	// console.log('water', water);
+	water.visible = false;
 	scene.add(water);
 
 	// Skybox
-
 	var sky = new THREE.Sky();
 
 	var uniforms = sky.material.uniforms;
@@ -289,7 +344,6 @@ function init2(name, list) {
 	cubeCamera.renderTarget.texture.generateMipmaps = true;
 	cubeCamera.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
 
-	scene.background = cubeCamera.renderTarget;
 
 	function updateSun() {
 
@@ -309,20 +363,48 @@ function init2(name, list) {
 
 	updateSun();
 
+	// 海水开关按钮
+	$('#nav>.menu-area>.water>.icon').click(function () {
+		$(this).parent().toggleClass('on');
+
+		if ($(this).parent().hasClass('on')) {
+			scene.background = cubeCamera.renderTarget;
+			water.visible = true;
+		} else {
+			scene.background = new THREE.Color(0xf0f0f0);
+			water.visible = false;
+		}
+	})
 
 	// ground
-	var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), new THREE.MeshPhongMaterial({
-		color: 0x999999,
-		depthWrite: false
-	}));
-	mesh.rotation.x = -Math.PI / 2;
-	mesh.receiveShadow = true;
+	// var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), new THREE.MeshPhongMaterial({
+	// 	color: 0x999999,
+	// 	depthWrite: false
+	// }));
+	// mesh.rotation.x = -Math.PI / 2;
+	// mesh.receiveShadow = true;
 	// scene.add(mesh);
 
-	var grid = new THREE.GridHelper(2000, 20, 0x000000, 0x000000);
-	grid.material.opacity = 0.2;
-	grid.material.transparent = true;
+	// var grid = new THREE.GridHelper(2000, 20, 0x000000, 0x000000);
+	// grid.material.opacity = 0.2;
+	// grid.material.transparent = true;
 	// scene.add(grid);
+
+	new PDMSLoader().load(
+		"./js/rvm_att/rvmData2.js",
+		"",
+		function (data) {
+			console.log(data);
+			// if (data.dataType == "group") scene.add(data.data);
+			if (data.PDMSObject) scene.add(data.PDMSObject);
+		},
+		function (evt) {
+			if (evt.lengthComputable) {
+				let percentComplete = evt.loaded / evt.total;
+				console.log(Math.round(percentComplete * 100) + "%");
+			};
+		}
+	);
 
 
 	window.addEventListener('resize', onWindowResize, false);
@@ -331,10 +413,6 @@ function init2(name, list) {
 	var data;
 
 	function onWindowResize() {
-		// var left0 = window.innerHeight * 0.2;
-		// var width0 = window.innerWidth * 0.8;
-		// var top0 = 44;
-		// var height0 = window.innerHeight - 44;
 		const width = $('#container').width();
 		const height = $('#container').height();
 		camera.aspect = width / height;
@@ -406,8 +484,9 @@ function init2(name, list) {
 function animate2() {
 	requestAnimationFrame(animate2);
 
-	if (water)
+	if (water && $('#nav>.menu-area>.water').hasClass('on')) {
 		water.material.uniforms['time'].value += 5.0 / 60.0;
+	}
 
 	if (renderer) {
 		renderer.render(scene, camera);
