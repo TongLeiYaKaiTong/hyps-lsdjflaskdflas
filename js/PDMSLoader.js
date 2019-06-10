@@ -4,11 +4,6 @@ function PDMSLoader() {
 
     let PDMSGroup = new THREE.Group();
 
-<<<<<<< HEAD
-=======
-    let PDMSMesh = new THREE.Mesh();
-
->>>>>>> 15cd982160d60bf6d81acbb467ef89a22bdcb9a3
     let maxX, maxY, maxZ, minX, minY, minZ;
 
     // ==================================================颜色数组表区域==================================================
@@ -288,10 +283,6 @@ function PDMSLoader() {
         // let sectionR = (R_out - R_in) / 2;
 
         let geometry = new THREE.TorusGeometry(R_out, R_in, 8, 6, radian);
-<<<<<<< HEAD
-        // geometry.rotateZ(0.5 * Math.PI);
-=======
->>>>>>> 15cd982160d60bf6d81acbb467ef89a22bdcb9a3
         geometry.rotateX(-0.5 * Math.PI);
 
         //平移再旋转
@@ -538,7 +529,6 @@ function PDMSLoader() {
 
             let Q = new THREE.Quaternion();
             Matrix4.decompose(mesh.position, Q, mesh.scale);
-<<<<<<< HEAD
             
 			mesh.rotation.setFromQuaternion(Q, 'XYZ');
 			
@@ -554,15 +544,6 @@ function PDMSLoader() {
             mesh.rotation.y = record;
 			mesh.rotation.order = 'XZY'
             // console.log(Q,S)
-=======
-            mesh.rotation.setFromQuaternion(Q, 'XYZ');
-
-            let record = mesh.rotation.z;
-            mesh.rotation.z = -mesh.rotation.y;
-            mesh.rotation.y = record;
-            mesh.rotation.order = 'XZY';
-            // console.log(P,Q,S)
->>>>>>> 15cd982160d60bf6d81acbb467ef89a22bdcb9a3
 
             // mesh.applyMatrix(Matrix4);
             PDMSGroup.add(mesh);
@@ -598,15 +579,10 @@ function PDMSLoader() {
 
         let geo;//几何
 
-<<<<<<< HEAD
-        // if (type != 4 && type != 8) return geo;
-        // if (type != 4) return geo;
-=======
         // if (type != 2 && type != 4 && type != 8) return geo;
         if (type != 8) return geo;
         // console.log(arr);
 
->>>>>>> 15cd982160d60bf6d81acbb467ef89a22bdcb9a3
 
         switch (type) {
             case 1:   //Pyramid 
@@ -704,19 +680,12 @@ function init() {
 
     // camera
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 1000000);
-<<<<<<< HEAD
-    camera.position.set(0, 0, 50);
-
-    // controls
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
-=======
     camera.position.set(8.7, 17.97, -9.8);
 
     // controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.target.set(8.6, -5.05, -10);
     controls.update();
->>>>>>> 15cd982160d60bf6d81acbb467ef89a22bdcb9a3
 
     // Object3D
     primitives = new THREE.Group();
@@ -725,64 +694,6 @@ function init() {
     // AxesHelper
     scene.add(new THREE.AxesHelper(5));
 
-<<<<<<< HEAD
-    // scene.add(new THREE.Mesh(new THREE.TorusGeometry(10, 3, 8, 6, Math.PI)));
-
-    new PDMSLoader().load(
-        // "./js/rvm_att/pyrout.js",
-        "./js/rvm_att/rvmData2.js",
-        "",
-        function (data) {
-            console.log(data);
-            if (data.PDMSObject) scene.add(data.PDMSObject);
-            console.log();
-            
-
-            // if (data.center && data.boundingBox) {
-
-                // let box = data.boundingBox;
-                // console.log(box);
-                
-                // let center = data.center;
-
-                // let boxH = new THREE.Box3();
-                // boxH.setFromCenterAndSize(new THREE.Vector3(box[0] * 1000, box[1]* 1000, box[2]* 1000), new THREE.Vector3(box[3]* 1000, box[4]* 1000, box[5]* 1000));
-                // let helper = new THREE.Box3Helper(boxH, 0xffff00);
-                // scene.add(helper);
-
-                // let diagonal = Math.sqrt(
-                    // Math.pow(box[0] - box[3], 2) +
-                    // Math.pow(box[1] - box[4], 2) +
-                    // Math.pow(box[2] - box[5], 2));
-
-                // camera.position.set(center[0] - diagonal, center[1] + diagonal, center[2] + diagonal);
-
-                // controls.target.set(center[0], center[1], center[2]);
-
-                // controls.update();
-
-            // };
-
-        },
-        function (evt) {
-            if (evt.lengthComputable) {
-                let percentComplete = evt.loaded / evt.total;
-                console.log(Math.round(percentComplete * 100) + "%");
-            };
-        }
-    );
-
-    window.addEventListener('resize', onWindowResize, false);
-
-};
-
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-};
-
-=======
     new PDMSLoader().load(
         // "./js/rvm_att/pyrout.js",
         "./js/rvm_att/rvmData2.js",
@@ -840,7 +751,6 @@ function onWindowResize() {
     renderer.setSize(container.clientWidth, container.clientHeight);
 };
 
->>>>>>> 15cd982160d60bf6d81acbb467ef89a22bdcb9a3
 init();
 animate();
 // 添加几何体

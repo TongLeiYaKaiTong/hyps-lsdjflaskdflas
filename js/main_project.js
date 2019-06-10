@@ -395,7 +395,8 @@ function init(name, list) {
 		"",
 		function (data) {
 			console.log(data);
-			if (data.dataType == "group") scene.add(data.data);
+			// if (data.dataType == "group") scene.add(data.data);
+			if (data.PDMSObject) scene.add(data.PDMSObject);
 		},
 		function (evt) {
 			if (evt.lengthComputable) {
