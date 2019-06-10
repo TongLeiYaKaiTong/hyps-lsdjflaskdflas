@@ -294,9 +294,10 @@ function init(name, list) {
 	renderer.domElement.addEventListener('mousemove', mousemove, false);
 	renderer.domElement.addEventListener('mouseup', mouseup, false);
 
-	light = new THREE.HemisphereLight(0xffffff, 0x444444);
-	light.position.set(0, 200, 0);
-	scene.add(light);
+	
+	light = new THREE.PointLight( 0xffffff, 1, 230 );
+	camera.add(light)
+	scene.add(camera)
 
 	light = new THREE.DirectionalLight(0xffffff);
 	light.position.set(0, 200, 100);
@@ -402,7 +403,7 @@ function init(name, list) {
 	// scene.add(grid);
 
 	new PDMSLoader().load(
-		"./js/rvm_att/rvmData2.js",
+		"./js/rvm_att/rvmData1.js",
 		"",
 		function (data) {
 			console.log(data);
@@ -1092,9 +1093,6 @@ function create_view_controller() {
 		camera = new THREE.PerspectiveCamera(60, 1, 1, 2000);
 		camera.position.set(0, 100, 0);
 
-		// light = new THREE.PointLight( 0xffffff, 3, 230 );
-		// camera.add(light)
-		// scene.add(camera)
 
 		raycaster = new THREE.Raycaster();
 		mouse = new THREE.Vector2();

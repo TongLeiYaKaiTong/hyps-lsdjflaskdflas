@@ -142,6 +142,45 @@ function PDMSLoader() {
     THREE.SnoutGeometry.prototype = Object.create(THREE.CylinderGeometry.prototype);
     THREE.SnoutGeometry.prototype.constructor = THREE.SnoutGeometry;
 
+    /** 
+     * @name SlopedCylinder几何
+     * @param {*} diameter 直径
+     * @param {*} height 高
+     * @param {*} x_offset x偏移量
+     * @param {*} z_offset z偏移量
+     */
+    THREE.SlopedCylinderGeometry = function SlopedCylinderGeometry(diameter, height, top_x_shear, top_y_shear, bottom_x_shear, bottom_y_shear) {
+        top_x_shear = top_x_shear || 0;
+        top_y_shear = top_y_shear || 0;
+        bottom_x_shear = bottom_x_shear || 0;
+        bottom_y_shear = bottom_y_shear || 0;
+
+        THREE.CylinderGeometry.call(this, diameter, diameter, height, 32);
+
+        this.type = 'SlopedCylinderGeometry';
+
+        const vertices = this.vertices;
+        const length = vertices.length;
+
+        // 全部向上偏移高度
+        // for (let i = 0; i < length; i++) {
+        //     const vector = vertices[i];
+        //     vector.y += height;
+        // };
+
+        // 获取顶部点
+        const top_vertices = vertices.slice(0, length / 2 - 1);
+        top_vertices.push(vertices[length - 2]);
+
+
+        // 获取底部顶点
+        const bottom_vertices = vertices.slice(length / 2 - 1, length - 2);
+        bottom_vertices.push(vertices[length - 1]);
+
+
+    };
+    THREE.SlopedCylinderGeometry.prototype = Object.create(THREE.CylinderGeometry.prototype);
+    THREE.SlopedCylinderGeometry.prototype.constructor = THREE.SlopedCylinderGeometry;
 
     /** FaceGroup几何
      * @param {*} arr 定点组
@@ -559,22 +598,33 @@ function PDMSLoader() {
 
             // console.log(P)
             geo.translate(P.x, P.y, P.z);
-
-            // if (geo.isGeometry) {
-            //     // console.log(geo)
-            //     let b_geo = new THREE.BufferGeometry().fromGeometry(geo);
-            //     delete (b_geo.attributes.color);
-            //     var index = [];
-            //     for (var i = 0; i < geo.faces.length; i++) {
-            //         index.push(geo.faces[i].a);
-            //         index.push(geo.faces[i].b);
-            //         index.push(geo.faces[i].c);
-            //     };
-            //     b_geo.setIndex(index);
-            //     index.count = index.length;
-            //     geo = b_geo;
-            // };
+			
+			
+			
+            if (geo.isGeometry) {
+            // if (false) {
+                // console.log(geo)
+                let b_geo = new THREE.BufferGeometry().fromGeometry(geo);
+                var index = [];
+                for (var i = 0; i < 3*geo.faces.length; i++) {
+                    index.push(i);
+                };
+                b_geo.setIndex(index);
+                // b_geo.index.count = index.length;
+                geo = b_geo;
+            };
             // console.log(geo)
+			if(geo.attributes.hasOwnProperty('color'))
+				delete (geo.attributes.color);
+			
+			if(geo.attributes.hasOwnProperty('uv'))
+				delete (geo.attributes.uv);
+			
+			
+			// let mesh = new THREE.Mesh(geo,new THREE.MeshLambertMaterial())
+			// scene.add(mesh)
+			// return
+			
             geometries.push(geo);
 
             //=================color=========================
@@ -607,9 +657,7 @@ function PDMSLoader() {
     };
 
     function mergeBufferGeometries() {
-
         // console.log(geometries);
-
 
         let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
         let colorAtt = new THREE.BufferAttribute(
@@ -617,7 +665,9 @@ function PDMSLoader() {
         );
         colorAtt.set(colors, 0);
         mgeo.addAttribute('color', colorAtt);
-        console.log(mgeo);
+        console.log('合并后的',mgeo);
+		// mgeo.computeFaceNormals();
+		// mgeo.computeVertexNormals();
         let mlt = new THREE.MeshLambertMaterial({ vertexColors: true });
         let mesh = new THREE.Mesh(mgeo, mlt);
 
@@ -654,23 +704,6 @@ function PDMSLoader() {
 
         // if (type == 11) return geo;
 
-        // if (type != 1 
-        //     && type != 2
-        //     && type != 3
-        //     && type != 4 
-        //     && type != 5 
-        //     && type != 6 
-        //     && type != 7
-        //     && type != 8
-        //     && type != 9) return geo;
-
-        // if (type != 11
-        //     && type != 4) return geo;
-        // console.log(arr);
-
-        // if (type != 5 && type != 6) return geo;
-        // if(type != 7) return geo;
-        // console.log(arr);
         
 
 
@@ -695,7 +728,7 @@ function PDMSLoader() {
                 geo = DishGeometry(false, arr[0], arr[1], 8);
                 break;
             case 7:   //Snout
-                geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
+                // geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
                 break;
             case 8:  //Cylinder 
                 geo = new THREE.CylinderBufferGeometry(arr[0], arr[0], arr[1], 8);
@@ -714,7 +747,7 @@ function PDMSLoader() {
         // if (!geo) console.error("不存在几何类型");
 
         // 偏心圆台存在问题
-        if (geo.isGeometry) geo = new THREE.BufferGeometry().fromGeometry(geo);
+        // if (geo.isGeometry) geo = new THREE.BufferGeometry().fromGeometry(geo);
 
         return geo;
     };

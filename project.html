@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<!-- <title>中海油海上石油平台管理系统</title> -->
+	<title>RVM ATT</title>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+	<!-- bootstrapStyle -->
+	<link rel="stylesheet" href="./css/bootstrap.min.css">
+
+	<!-- zTreeStyle -->
+	<link rel="stylesheet" href="./css/zTreeStyle/zTreeStyle.css">
+
+	<!-- mainStyle -->
+	<link rel="stylesheet" href="./css/project.css">
+	
+	<!--open file -->
+	<link rel="stylesheet" href="./css/main_m.css">
+	
+	<!-- Build -->
+	<script type="text/javascript" src="./js/build/jquery.min.js" defer></script>
+	<script type="text/javascript" src="./js/build/bootstrap.min.js" defer></script>
+	<script type="text/javascript" src="./js/build/three.js" defer></script>
+
+	<!-- ztree.all.js = core + excheck + exedit ( 不包括 exhide ) -->
+	<script type="text/javascript" src="./js/zTree/jquery.ztree.all.min.js" defer></script>
+
+	<!-- Object -->
+	<script type="text/javascript" src="./js/objects/Water.js" defer></script>
+	<script type="text/javascript" src="./js/objects/Sky.js" defer></script>
+
+	<script type="text/javascript" src="./js/BufferGeometryUtils.js" defer></script>
+
+	<!-- Controls -->
+	<script type="text/javascript" src="./js/controls/OrbitControls.js" defer></script>
+
+	<!-- PDMSLoader -->
+	<script type="text/javascript" src="./js/PDMSLoader.js" defer></script>
+
+	<!-- main -->
+	<script type="text/javascript" src="./js/main_project.js" defer></script>
+	
+	<!-- openFile -->
+	<script type="text/javascript" src="./js/main_m.js" defer></script>
+	
+</head>
+
+<body>
+	<nav id="nav">
+		<div class="logo-area">
+			<!-- <img src="./img/icon/logo.png" alt="">
+			<p>海上石油平台</p> -->
+		</div>
+		<div class="menu-area">
+			<div class="menu-box file-box">
+				<span class="dropdown-btn" data-toggle="dropdown">文件</span>
+				<ul class="dropdown-menu">
+					<li><a class="open" data-key="open" href="#">打开</a></li>
+					<li><a class="save" data-key="save" href="#">保存</a></li>
+					<li class="dropdown-submenu export">
+						<a href="#">导出</a>
+						<ul class="dropdown-menu">
+							<li><a class="collada" data-key="collada" href="#">collada</a></li>
+							<li><a class="gltf" data-key="gltf" href="#">gltf</a></li>
+							<li><a class="obj" data-key="obj" href="#">obj</a></li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+			<div class="btn dossier">关联文件</div>
+			<!-- <div class="menu-box relation-box">
+					<span class="dropdown-btn" data-toggle="dropdown">关联文件</span>
+					<ul class="dropdown-menu">
+						<li><a class="system" href="#">系统图</a></li>
+						<li><a class="plan" href="#">平面图</a></li>
+						<li><a class="document" href="#">文档</a></li>
+					</ul>
+				</div> -->
+			<div class="menu-box view-box">
+				<span class="dropdown-btn" data-toggle="dropdown" data-key="third">第三人称</span>
+				<ul class="dropdown-menu">
+					<li><a class="open" data-key="first" href="#">第一人称</a></li>
+				</ul>
+			</div>
+			<div class="water">
+				<span class="label-w">海水</span>
+				<span class="icon"></span>
+			</div>
+			<div class="btn operate">运维记录</div>
+			<div class="btn help">帮助</div>
+		</div>
+		<div class="user-area">
+			<div class="btn_id">
+				<img src="./img/icon/btn_id.png" alt="">
+			</div>
+		</div>
+	</nav>
+	<div id="left-area">
+		<div class="search-area">
+			<div class="search-box">
+				<input type="text" placeholder="搜索">
+				<span class="search-btn"></span>
+			</div>
+		</div>
+		<div id="treebg" class="tree-area ztree"></div>
+	</div>
+	<div id="container"></div>
+
+
+	<!-- <div id="loading" class="active">
+		<img src="./img/loading.gif" alt="">
+		<p class="text">加载中...</p>
+		<div class="progress load">
+			<div class="progress-bar" role="progressbar" style="width: 0%;">0%</div>
+		</div>
+	</div> -->
+
+	<div id="mask"></div>
+	<div class="mask-box dossier-box">
+		<div class="top">
+			<span class="back"></span>
+			<span class="title">相关文件</span>
+			<span class="close"></span>
+		</div>
+		<div class="content ztree"></div>
+	</div>
+	<div class="mask-box operate-box">
+		<div class="top">
+			<span class="back"></span>
+			<span class="title">运维记录</span>
+			<span class="close"></span>
+		</div>
+		<div class="content"></div>
+	</div>
+
+	<div class="mask-box help-box">
+		<div class="top">
+			<span class="title">帮助</span>
+			<span class="close"></span>
+		</div>
+		<div class="content"></div>
+	</div>
+
+	<div class="mask-box info-box">
+		<div class="top">
+			<span class="title">元素信息</span>
+			<span class="close"></span>
+		</div>
+		<div class="content">
+			<div class="line line-name">
+				<span class="label-w">名称：</span>
+				<span class="value">000</span>
+			</div>
+			<div class="line line-info-1">
+				<span class="label-w">位置：</span>
+				<span class="value">111</span>
+			</div>
+			<!-- <div class="line line-info-2">
+					<span class="label-w">信息2：</span>
+					<span class="value">222</span>
+				</div> -->
+			<div class="btn btn-info seleced-record-button">详细信息</div>
+		</div>
+	</div>
+
+	<div class="mask-img">
+		<div class="top">
+			<span class="back"></span>
+			<span class="title"></span>
+			<span class="close"></span>
+		</div>
+		<div class="img img-type1"></div>
+	</div>
+
+	<div id="inquery_texture" class="mask-box texture-box">
+		<div class="top">
+			<span class="title">替换材质</span>
+			<span class="close"></span>
+		</div>
+		<div class="content">
+			<div class="img-area">
+				<img src="img/silver.jpg">
+				<img src="img/stardust.jpg">
+				<img src="img/wood.jpg">
+				<img src="img/green.jpg">
+			</div>
+			<!-- <div class="btn btn-info recover-color-button">恢复</div> -->
+		</div>
+	</div>
+
+	<!-- 选中元素并且点了右下角的记录 -->
+	<div class="mask-box select-record">
+		<div class="top">
+			<span class="title">详细信息</span>
+			<span class="close"></span>
+		</div>
+		<div class="content"></div>
+	</div>
+	<!-- <div id="showarea">
+			<div id="left">
+				<div id="top3">
+					<div id="stitle">中海油海上石油平台管理系统</div>
+				</div>
+				<div id="treebg" class="ztree" style="z-index: 9;">
+				</div>
+			</div>
+			<div id="right">
+				<div id="biaotiarea">
+					<div id="biaoti"></div>
+					<div id="back"></div>
+				</div>
+				
+			</div>
+		</div> -->
+	<button class='explode btn btn-info' type="button"
+		style="left:290px;position: absolute; bottom: 10px;width:70px;height:30px;padding:0px 12px;">分解</button>
+
+	<!-- 选择文件 -->
+	<div id="chooseFile">
+		<div class="title">
+			<!-- <div class="back"></div> -->
+			<div class="text">选择文件</div>
+			<div class="delete"></div>
+		</div>
+		<div class="content">
+			<div class="rvm">
+				<div class="head">
+					<span class="subTitle">RVM (必选)</span>
+					<span class="uploadFile">
+						<span class="icon"></span>
+						<span class="text">上传文件</span>
+					</span>
+					<!-- <input type="file" id="rvmInputFile"> -->
+				</div>
+				<div class="noFile">
+					<div class="info">
+						<!-- <input type="file"> -->
+						<span class="icon"></span>
+						<span class="text">暂无文件，请点击右上角上传文件</span>
+					</div>
+				</div>
+				<div class="fileList"></div>
+			</div>
+			<div class="att">
+				<div class="head">
+					<span class="subTitle">ATT</span>
+					<span class="uploadFile">
+						<span class="icon"></span>
+						<span class="text">上传文件</span>
+					</span>
+					<!-- <input type="file" id="attInputFile"> -->
+				</div>
+				<div class="noFile">
+					<div class="info">
+						<span class="icon"></span>
+						<span class="text">暂无文件，请点击右上角上传文件</span>
+					</div>
+				</div>
+				<div class="fileList"></div>
+			</div>
+		</div>
+		<div class="submissionArea">
+			<div class="checkBox">
+				<span class="icon unselect" id="checkboxIcon"></span>
+				<label class="text" id="checkboxText">强制重新解析</label>
+			</div>
+			<div class="buttonPane">
+				<button id="yes" disabled="disabled" class="yesDisabled">确定</button>
+				<button id="no">取消</button>
+			</div>
+		</div>
+	</div>
+	<!-- 未选择rvm文件 错误 -->
+	<div id="notChooseRvm">
+		<div class="icon"></div>
+		<div class="text">未选择rvm文件，请选选择rvm文件</div>
+		<div  class="errorButton">
+			<button id="errorYes">确定</button>
+		</div>
+	</div>
+	<!-- 上传文件 -->
+	<!-- 背景 -->
+	<div id="uploadFileBg">
+		<!-- 页面 -->
+		<div id="uploadFileDiv">
+			<div class="head">
+				<div class="text">上传文件</div>
+				<span class="close"></span>
+			</div>
+			<div class="content">
+				<span class="filePathString"></span>
+				<span class="link">选择文件</span>
+			</div>
+			<form enctype="multipart/form-data" id="fileuploadForm">
+				<input type="file" id="fileUploadInput" name="file">
+			</form>
+			<div class="footer">
+				<button>确定</button>
+			</div>
+		</div>
+	</div>
+	<!-- 加载页面 -->
+	<!-- 背景 -->
+	<div id = "loadingBG">
+		<div id="uploadLoading">
+			<img class="icon" src="img/openFile/giphy.gif"></img>
+		</div>
+	</div>
+	<!-- 成功页面 -->
+	<div id = "successBG">
+		<div id = "success">
+			<span>上传成功</span>
+		</div>
+	</div>
+	
+	
+</body>
+
+</html>
