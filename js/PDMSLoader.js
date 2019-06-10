@@ -76,7 +76,7 @@ function PDMSLoader() {
      */
     function DishGeometry(cover, radius, height, widthSegments, heightSegments) {
 
-        widthSegments = widthSegments || 32;
+        widthSegments = widthSegments || 16;
         heightSegments = heightSegments || 4;
 
         let r = Math.floor(((height * height) + (radius * radius)) / (2 * height)); //半径 
@@ -722,10 +722,10 @@ function PDMSLoader() {
                 geo = CircularTorusGeometry(arr[0], arr[1], arr[2]);
                 break;
             case 5:   //EllipticalDish Dish有遮挡
-                geo = DishGeometry(true, arr[0], arr[1], 8);
+                geo = DishGeometry(true, arr[0], arr[1]);
                 break;
             case 6:   //SphericalDish Dish无遮挡  
-                geo = DishGeometry(false, arr[0], arr[1], 8);
+                geo = DishGeometry(false, arr[0], arr[1]);
                 break;
             case 7:   //Snout
                 // geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
