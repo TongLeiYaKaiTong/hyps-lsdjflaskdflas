@@ -210,9 +210,9 @@ img {
     padding: 0;
     color: #484848;
 
-    &::selection {
-        background: none;
-    }
+    // &::selection {
+    //     background: none;
+    // }
 }
 
 ul,
@@ -716,8 +716,6 @@ a:focus {
         }
         // background-size:100% 100% !important;
     }
-
-    
 }
 
 
@@ -740,4 +738,134 @@ a:focus {
     /*滚动条里面轨道*/
     border-radius: 5px;
     background: rgba(0, 0, 0, 0.1);
+}
+
+//控制器工具条
+#controller-tool-bar{
+
+    width:500px;
+    height:32px;
+    line-height: 32px;
+    position: absolute;
+
+    top: 100px;
+    left: 300px;
+    display: flex;
+
+    .box{
+        box-shadow: 0px 0px 5px 0px 
+		rgba(0, 0, 0, 0.19);
+    }
+
+    .view-switch-btn {
+        width: 183px;
+        height: 32px;
+        display: flex;
+        cursor: pointer;
+
+        .view-btn {
+            width: 92px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+
+            background-color: #fff;
+            color:#000;
+
+            &.left{
+                border-top-left-radius: 3px;
+                border-bottom-left-radius: 3px;
+            }
+
+            &.right{
+                border-top-right-radius: 3px;
+                border-bottom-right-radius: 3px;
+            }
+
+            &.on{
+                background-color: #347cb6;
+                color:#fff;
+                box-shadow: 0px 0px 5px 0px 
+                rgba(0, 0, 0, 0.19);
+            }
+        }
+    }
+
+    .water{
+        margin-left: 32px;
+        width: 106px;
+        height: 32px;
+        background-color: #ffffff;
+        border-radius: 3px;
+        display: flex;
+
+        .label-w{
+            margin-left: 15px;
+        }
+
+        .icon{
+            margin: 5px 6px;
+            width: 54px;
+            height: 22px;
+            cursor: pointer;
+            background-image: url(../img/icon/btn_off.png);
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        &.on {
+            >.icon {
+                background-image: url(../img/icon/btn_on.png);
+            }
+        }
+    }
+
+}
+
+// 右边信息面板
+#right-info-panel {
+    position: absolute;
+    right: 10px;
+    top: 90px;
+    width: 250px;
+    height:830px;
+    background-color: #ffffff;
+	box-shadow: 0px 0px 13px 0px 
+		rgba(0, 31, 52, 0.1);
+	border-radius: 5px;
+
+    .title{
+        width:100%;
+        height: 40px;
+        line-height: 40px;
+        font-size: 16px;
+        text-align: center;
+    }
+
+    .info-panel{
+        margin-left: 11px; 
+        overflow: auto;
+        height:780px;
+
+        li{
+            display: flex;
+            font-size: 14px;
+            margin-top:10px;
+
+            div{
+                width: 90px;
+                word-wrap:break-word;
+                &:after{
+                    content:":";
+                }
+            }
+
+            span {
+                width: 140px;
+                word-wrap:break-word;
+            }
+            
+        }
+    }
+
 }
