@@ -218,7 +218,8 @@ THREE.BufferGeometryUtils = {
 			// gather attributes, exit early if they're different
 
 			for ( var name in geometry.attributes ) {
-
+				// console.log(geometry)
+				// console.log(name)
 				if ( ! attributesUsed.has( name ) ) {
 					console.warn('! attributesUsed.has( name ) ')	
 					return null;
