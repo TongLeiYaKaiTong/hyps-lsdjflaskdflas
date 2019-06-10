@@ -5,22 +5,7 @@ window.onload = function(){
 	$("#nav>.menu-area .open").click(function(){
 		$("#chooseFile").show();
 		//获取服务器文件
-		$.ajax({
-			type:"POST",
-			url:"http://www.toolkip.com/haiyouservice/seervmWebService1.asmx/allFiles",
-			ansyc:true,
-			data:{},
-			success:function(data){
-				console.log(data);
-				var allFiles = eval(data);
-				console.log(allFiles);
-				arrayMnplton(allFiles);
-				/* allFiles = null; */
-			},
-			error:function(e){
-				console.log(e.responseText);
-			}
-		});
+		getAllFiles();
 	});
 	//#删除 ,#取消 
 	$("#chooseFile>.title>.delete,.submissionArea>.buttonPane>#no").click(function(){
@@ -31,17 +16,24 @@ window.onload = function(){
 		}
 		//清空文件
 		$("#chooseFile>.content .fileList").empty();
+		//确定按钮禁用
+		if(!($("#yes").attr("disabled") == "disabled")){
+			$("#yes").attr("disabled",true);
+			$("#yes").removeAttr("style");
+			$("#yes").css({
+				"cursor":"not-allowed"
+			});
+			$("#yes").addClass("yesDisabled");
+			
+		}
 		//隐藏页面
 		$("#chooseFile").hide();
 	});
-	//#取消
-	/* $(".submissionArea>.buttonPane>#no").click(function(){
-		$("#chooseFile").hide();
-	}) */
 	
 	$("#checkboxText").click(function(){
 		$("#chooseFile>.submissionArea .icon").click();
 	});
+	
 	//#复选框
 	$("#chooseFile>.submissionArea .icon").click(function(){
 		if($(this).hasClass("unselect")){
@@ -64,51 +56,11 @@ window.onload = function(){
 			$("#notChooseRvm").css("display","flex");
 		}
 		else{
-			//解析文件路径
-			var rvmPath = $("#chooseFile>.content>.rvm>.fileList>span.active").text();
-			var attPath = "";
-			//强制转换flag
-			var transformationFlag = 0;
-			
+			//有att文件
 			if($("#chooseFile>.content>.att>.fileList>span").hasClass("active")){
-				attPath = $("#chooseFile>.content>.att>.fileList>span.active").text();
+				postATT();
 			}
-			
-			//是否强制转换
-			if($("#chooseFile>.submissionArea .icon").hasClass("unselect")){
-				transformationFlag = 0;
-			}
-			else{
-				transformationFlag = 1;
-			}
-			
-			console.log(rvmPath);
-			console.log(attPath);
-			console.log(transformationFlag);
-			
-			//提交文件给后台
-			$.ajax({
-				type:"POST",
-				url:"http://www.toolkip.com/haiyouservice/seervmWebService1.asmx/getfiles",
-				ansyc:true,
-				data:{
-					rvm:rvmPath,
-					att:attPath,
-					flag:transformationFlag
-				},
-				success:function(data){
-					console.log(data);
-					/* var allFiles = eval(data);
-					console.log(allFiles);
-					arrayMnplton(allFiles); */
-					/* allFiles = null; */
-				},
-				error:function(e){
-					console.log(e.responseText);
-				}
-				
-			})
-			
+			postRVM();
 		}
 	});
 	
@@ -126,9 +78,8 @@ window.onload = function(){
 				"background-color":"#347cb6",
 				"cursor":"pointer"
 			});
-			
 		}
-		//if($("#yes").attr("disabled") = "disabled")
+		
 	});
 	$("#chooseFile>.content>div.att>.fileList").on("click",">span",function(e){
 		$("#chooseFile>.content>div.att>.fileList>span").removeClass("active");
@@ -143,15 +94,47 @@ window.onload = function(){
 	});
 	
 	//#上传文件
-	//##rvm
-	$("#chooseFile>.content>.rvm .uploadFile").click(function(){
-		console.log("click");
-		$("#rvmInputFile").click();
+	//##rvm&& att
+	$("#chooseFile>.content>.rvm .uploadFile,#chooseFile>.content>.att .uploadFile").click(function(e){
+		$("#uploadFileBg").show();
 	});
-	//##att
-	$("#chooseFile>.content>.att .uploadFile").click(function(){
-		console.log("click");
-		$("#attInputFile").click();
+	//点击上传文件触发
+	$("#uploadFileDiv>.content>.link").click(function(){
+		$("#fileUploadInput").click();
+	});
+	//上传文件路径显示
+	$("#fileUploadInput").change(function(){
+		var filename = $("#fileUploadInput").val();
+		$(".filePathString").text(filename); 
+	});
+	//文件提交
+	$("#uploadFileDiv>.footer>button").click(function(){
+		var currentFileType = $("#uploadFileBg").attr("fileType");
+		
+		var uploadFileName = $('#fileUploadInput').get(0).files[0].name;
+		var nameArray = uploadFileName.split(".");
+
+		if($('#fileUploadInput').get(0).files[0] == null){
+			alert("请选择文件");
+		}
+		else if(!(nameArray[1]=="ATT"||nameArray[1]=="RVM")){
+			alert('只能上传att和rvm的文件');
+		}
+		else{
+			var ufile =$('#fileUploadInput').get(0).files[0];//两者皆可
+			//var uploadFiless = document.getElementById("fileUploadInput").files[0];
+			var formdata = new FormData();
+			formdata.append("file",ufile);
+			$("#uploadFileBg").hide();
+			$("#loadingBG").show();
+			uploadFiles(formdata);
+		}
+	});
+	//关闭上传文件
+	$("#uploadFileDiv .close").click(function(){
+		$("#uploadFileDiv .filePathString").text("");
+		$("#fileUploadInput").val("");
+		$("#uploadFileBg").hide();
 	});
 }
 
@@ -162,7 +145,6 @@ function arrayMnplton(fileArray){
 	for(var i=0;i<fileArray.length;i++){
 		if(fileArray[i].ATT){
 			attFiles.push(fileArray[i].ATT);
-			
 		}
 		if(fileArray[i].RVM){
 			rvmFiles.push(fileArray[i].RVM);
@@ -194,18 +176,123 @@ function nofileOrNot(sig,files){
 				$("#chooseFile>.content>.rvm>.fileList").hide();
 			}
 			break;
-			
 	}
 }
 
+//在页面上显示文件名
 function showFileName(id,files){
 	var parentNode = "#chooseFile>.content>.";
-	/*$(parentNode+id).empty(); */
 	for(var i=0;i<files.length;i++){
 		var currentSpan = "<span>" + files[i] + "</span>";
 		$(parentNode+id).append(currentSpan); 
 	}
 }
 
+function uploadFiles(formData){
+	$.ajax({
+		url: "http://121.40.174.117/seervmWebService1.asmx/SaveFile",
+		type: "POST",
+		cache: false,
+		processData: false,
+		contentType : false,
+		data: formData,
+		async: true,
+		success: function (data) {
+			//console.log(data);
+			$("#loadingBG").hide();
+			$("#successBG").css("display","flex");
+			setTimeout(function(){ 
+				$("#uploadFileDiv .filePathString").text("");
+				$("#fileUploadInput").val("");
+				$("#successBG").hide();
+			}, 3000);
+			//清空所有文件
+			$("#chooseFile>.content .fileList").empty();
+			getAllFiles();
+			
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+			console.log("error");
+            // 状态码
+			console.log(XMLHttpRequest.status);
+			// 状态
+			console.log(XMLHttpRequest.readyState);
+			// 错误信息   
+			console.log(textStatus);
+		}
+	});
+}
 
+//上传att文件
+function postATT(){
+	var attPath = $("#chooseFile>.content>.att>.fileList>span.active").text();
+	var attPathRequest = "{'ATT':'"+attPath+"'}";
+	//请求att
+	$.ajax({
+		type:"POST",
+		url:"http://www.toolkip.com/haiyouservice/seervmWebService1.asmx/getAttcontent",
+		ansyc:true,
+		data:{
+			ATTfile:attPathRequest
+		},
+		success:function(data){
+			console.log("att");
+			console.log(eval(data));
+		},
+		error:function(e){
+			console.log(e.responseText);
+		},
+	});
+}
 
+//上传rvm文件
+function postRVM(){
+	var rvmPath = $("#chooseFile>.content>.rvm>.fileList>span.active").text();
+	//强制转换flag
+	var transformationFlag;
+	
+	//是否强制转换
+	if($("#chooseFile>.submissionArea .icon").hasClass("unselect")){
+		transformationFlag = 0;
+	}
+	else{
+		transformationFlag = 1;
+	}
+	
+	var requestString = "{'RVM':'"+rvmPath+"','flag':"+transformationFlag+"}";
+	
+	
+	//提交文件给后台
+	$.ajax({
+		type:"POST",
+		url:"http://121.40.174.117/seervmWebService1.asmx/getRVMcontent",
+		ansyc:true,
+		data:{
+			file:requestString
+		},
+		success:function(data){
+			console.log("rvm");
+			console.log(eval(data));
+		},
+		error:function(e){
+			console.log(e.responseText);
+		}
+	});
+}
+
+//获取所有文件
+function getAllFiles(){
+	$.ajax({
+		type:"POST",
+		url:"http://121.40.174.117/seervmWebService1.asmx/allFiles",
+		ansyc:true,
+		data:{},
+		success:function(data){
+			var allFiles = eval(data);
+			arrayMnplton(allFiles);
+		},
+		error:function(e){
+			console.log(e.responseText);
+		}
+	});
+}

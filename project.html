@@ -230,7 +230,7 @@
 						<span class="icon"></span>
 						<span class="text">上传文件</span>
 					</span>
-					<input type="file" id="rvmInputFile">
+					<!-- <input type="file" id="rvmInputFile"> -->
 				</div>
 				<div class="noFile">
 					<div class="info">
@@ -248,7 +248,7 @@
 						<span class="icon"></span>
 						<span class="text">上传文件</span>
 					</span>
-					<input type="file" id="attInputFile">
+					<!-- <input type="file" id="attInputFile"> -->
 				</div>
 				<div class="noFile">
 					<div class="info">
@@ -278,6 +278,41 @@
 			<button id="errorYes">确定</button>
 		</div>
 	</div>
+	<!-- 上传文件 -->
+	<!-- 背景 -->
+	<div id="uploadFileBg">
+		<!-- 页面 -->
+		<div id="uploadFileDiv">
+			<div class="head">
+				<div class="text">上传文件</div>
+				<span class="close"></span>
+			</div>
+			<div class="content">
+				<span class="filePathString"></span>
+				<span class="link">选择文件</span>
+			</div>
+			<form enctype="multipart/form-data" id="fileuploadForm">
+				<input type="file" id="fileUploadInput" name="file">
+			</form>
+			<div class="footer">
+				<button>确定</button>
+			</div>
+		</div>
+	</div>
+	<!-- 加载页面 -->
+	<!-- 背景 -->
+	<div id = "loadingBG">
+		<div id="uploadLoading">
+			<img class="icon" src="img/openFile/giphy.gif"></img>
+		</div>
+	</div>
+	<!-- 成功页面 -->
+	<div id = "successBG">
+		<div id = "success">
+			<span>上传成功</span>
+		</div>
+	</div>
+	
 	
 </body>
 
