@@ -71,7 +71,7 @@ window.onload = function(){
 	$("#chooseFile>.content>div.rvm>.fileList").on("click",">span",function(e){
 		$("#chooseFile>.content>div.rvm>.fileList>span").removeClass("active");
 		$(this).addClass("active");
-		//console.log();
+		console.log(e);
 		if($("#yes").attr("disabled") == "disabled"){
 			$("#yes").attr("disabled",false);
 			$("#yes").css({
@@ -81,15 +81,21 @@ window.onload = function(){
 		}
 		
 	});
-	$("#chooseFile>.content>div.att>.fileList").on("click",">span",function(e){
+	
+	$("#chooseFile>.content>div.att>.fileList").on("click",function(e){
 		$("#chooseFile>.content>div.att>.fileList>span").removeClass("active");
-		$(this).addClass("active");
-		if($("#yes").attr("disabled") == "disabled"){
-			$("#yes").attr("disabled",false);
-			$("#yes").css({
-				"background-color":"#347cb6",
-				"cursor":"pointer"
-			});
+		
+		if(e.target.localName == "span"){
+			
+			$(e.target).addClass("active");
+			
+			if($("#yes").attr("disabled") == "disabled"){
+				$("#yes").attr("disabled",false);
+				$("#yes").css({
+					"background-color":"#347cb6",
+					"cursor":"pointer"
+				});
+			} 
 		}
 	});
 	
@@ -190,7 +196,8 @@ function showFileName(id,files){
 
 function uploadFiles(formData){
 	$.ajax({
-		url: "http://121.40.174.117/seervmWebService1.asmx/SaveFile",
+		//url: "http://121.40.174.117/seervmWebService1.asmx/SaveFile",
+		url: "http://192.168.0.110/seervmWebService1.asmx/SaveFile",
 		type: "POST",
 		cache: false,
 		processData: false,
@@ -227,10 +234,12 @@ function uploadFiles(formData){
 function postATT(){
 	var attPath = $("#chooseFile>.content>.att>.fileList>span.active").text();
 	var attPathRequest = "{'ATT':'"+attPath+"'}";
+	console.log(attPathRequest);
 	//请求att
 	$.ajax({
 		type:"POST",
-		url:"http://www.toolkip.com/haiyouservice/seervmWebService1.asmx/getAttcontent",
+		//url:"http://www.toolkip.com/haiyouservice/seervmWebService1.asmx/getAttcontent",
+		url:"http://192.168.0.110/seervmWebService1.asmx/getAttcontent",
 		ansyc:true,
 		data:{
 			ATTfile:attPathRequest
@@ -263,12 +272,13 @@ function postRVM(){
 	}
 	
 	var requestString = "{'RVM':'"+rvmPath+"','flag':"+transformationFlag+"}";
-	
+	console.log(requestString);
 	
 	//提交文件给后台
 	$.ajax({
 		type:"POST",
-		url:"http://121.40.174.117/seervmWebService1.asmx/getRVMcontent",
+		//url:"http://121.40.174.117/seervmWebService1.asmx/getRVMcontent",
+		url:"http://192.168.0.110/seervmWebService1.asmx/getRVMcontent",
 		ansyc:true,
 		data:{
 			file:requestString
@@ -290,7 +300,8 @@ function postRVM(){
 function getAllFiles(){
 	$.ajax({
 		type:"POST",
-		url:"http://121.40.174.117/seervmWebService1.asmx/allFiles",
+		//url:"http://121.40.174.117/seervmWebService1.asmx/allFiles",
+		url:"http://192.168.0.110/seervmWebService1.asmx/allFiles",
 		ansyc:true,
 		data:{},
 		success:function(data){
