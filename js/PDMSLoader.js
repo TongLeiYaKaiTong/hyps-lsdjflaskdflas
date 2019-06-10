@@ -144,6 +144,45 @@ function PDMSLoader() {
     THREE.SnoutGeometry.prototype = Object.create(THREE.CylinderGeometry.prototype);
     THREE.SnoutGeometry.prototype.constructor = THREE.SnoutGeometry;
 
+    /** 
+     * @name SlopedCylinder几何
+     * @param {*} diameter 直径
+     * @param {*} height 高
+     * @param {*} x_offset x偏移量
+     * @param {*} z_offset z偏移量
+     */
+    THREE.SlopedCylinderGeometry = function SlopedCylinderGeometry(diameter, height, top_x_shear, top_y_shear, bottom_x_shear, bottom_y_shear) {
+        top_x_shear = top_x_shear || 0;
+        top_y_shear = top_y_shear || 0;
+        bottom_x_shear = bottom_x_shear || 0;
+        bottom_y_shear = bottom_y_shear || 0;
+
+        THREE.CylinderGeometry.call(this, diameter, diameter, height, 32);
+
+        this.type = 'SlopedCylinderGeometry';
+
+        const vertices = this.vertices;
+        const length = vertices.length;
+
+        // 全部向上偏移高度
+        // for (let i = 0; i < length; i++) {
+        //     const vector = vertices[i];
+        //     vector.y += height;
+        // };
+
+        // 获取顶部点
+        const top_vertices = vertices.slice(0, length / 2 - 1);
+        top_vertices.push(vertices[length - 2]);
+
+
+        // 获取底部顶点
+        const bottom_vertices = vertices.slice(length / 2 - 1, length - 2);
+        bottom_vertices.push(vertices[length - 1]);
+
+
+    };
+    THREE.SlopedCylinderGeometry.prototype = Object.create(THREE.CylinderGeometry.prototype);
+    THREE.SlopedCylinderGeometry.prototype.constructor = THREE.SlopedCylinderGeometry;
 
     /** FaceGroup几何
      * @param {*} arr 定点组
