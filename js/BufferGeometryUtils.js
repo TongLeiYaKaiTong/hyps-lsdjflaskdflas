@@ -282,11 +282,11 @@ THREE.BufferGeometryUtils = {
 			for ( var i = 0; i < geometries.length; ++ i ) {
 
 				var index = geometries[ i ].index;
-				console.log(index.count)
-				if(!geometries[ i ].index){
-					console.log(i)
-					console.error('这个buffergeometry没有index',geometries[ i ])
-				}
+				// console.log(index.count)
+				// if(!geometries[ i ].index){
+				// 	console.log(i)
+				// 	console.error('这个buffergeometry没有index',geometries[ i ])
+				// }
 				
 				for ( var j = 0; j < index.count; ++ j ) {
 
