@@ -175,10 +175,11 @@ function PDMSLoader() {
         const center_top = vertices[length - 2];
         top_vertices.push(center_top);
 
-        top_x_shear = Math.PI / 2 - top_x_shear;
-        top_y_shear = Math.PI / 2 - top_y_shear;
-        const side_a = Math.cos(top_x_shear);
-        const side_b = Math.cos(top_y_shear);
+
+        const radian_a_true = Math.atan(Math.tan(top_y_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(top_x_shear), 2))));
+        const radian_b_true = Math.atan(Math.tan(top_x_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(top_y_shear), 2))));
+        const side_a = Math.cos(radian_a_true);
+        const side_b = Math.cos(radian_b_true);
         console.log('side_a', side_a);
         console.log('side_b', side_b);
         
