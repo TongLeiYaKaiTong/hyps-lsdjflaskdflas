@@ -238,6 +238,9 @@ function postATT(){
 		success:function(data){
 			console.log("att");
 			console.log(eval(data));
+			var responseAttURl = eval(data);
+			//here ...
+			
 		},
 		error:function(e){
 			console.log(e.responseText);
@@ -273,6 +276,9 @@ function postRVM(){
 		success:function(data){
 			console.log("rvm");
 			console.log(eval(data));
+			var responseRVMUrl = eval(data);
+			//here ...
+			
 		},
 		error:function(e){
 			console.log(e.responseText);
