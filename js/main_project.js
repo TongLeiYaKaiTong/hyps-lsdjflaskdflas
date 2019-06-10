@@ -1433,8 +1433,9 @@ let testJson = {
 
     let str = "";
     for (let i = 0; i < len; i++) {
-        let e = array[i];
-        str += "<li><div>"+e+"</div>";
+		let e = array[i];
+		let newElement  = (e[0]!=":") ? e : e.substr(1);//删除数据键值上第一位是冒号的符号
+        str += "<li><div>"+newElement+"</div>";
         str += "<span>"+json[e]+"</span></li>"; 
     };
 
