@@ -6,7 +6,10 @@ function PDMSLoader() {
 
     let geometries = [];
 
-    let colors = [];
+    let startIndex = 0, endIndex = -1;
+
+    let num = 0;
+    let objectAA = {};
 
     let maxX, maxY, maxZ, minX, minY, minZ;
 
@@ -182,7 +185,7 @@ function PDMSLoader() {
         const side_b = Math.cos(radian_b_true);
         console.log('side_a', side_a);
         console.log('side_b', side_b);
-        
+
         const radian_a = Math.atan(side_b / side_a);
         const radian_b = Math.atan(side_a / side_b);
         console.log('radian_a', radian_a);
@@ -212,7 +215,7 @@ function PDMSLoader() {
             const vector = top_vertices[i];
             vector.y = (A * (center_top.x - vector.x) + C * (center_top.z - vector.z)) / B + center_top.y
         }
-        
+
         // 获取底部顶点
         const bottom_vertices = vertices.slice(length / 2 - 1, length - 2);
         const center_bottom = vertices[length - 1]
@@ -509,6 +512,13 @@ function PDMSLoader() {
                     boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
                     center: getCenter(),
                 });
+
+                console.log(num);
+                console.log(Object.keys(objectAA));
+
+                for (const obj of Object.keys(objectAA)) {
+                    if(objectAA[obj].length > 1) console.log(obj,objectAA[obj]);
+                };
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
@@ -595,7 +605,7 @@ function PDMSLoader() {
 
             for (let j = 0; j < PRIMSNum; j++) {
 
-                setPDMSMember(element.PRIMS[j], colorArray[element.C]);
+                setPDMSMember(element.PRIMS[j], colorArray[element.C], element);
 
             };
 
@@ -603,7 +613,7 @@ function PDMSLoader() {
     };
 
     // 设置PDMS的每一个部位的构建
-    function setPDMSMember(PRIM, color) {
+    function setPDMSMember(PRIM, color, element) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
 
         if (geo) {
@@ -642,15 +652,15 @@ function PDMSLoader() {
 
             // console.log(P)
             geo.translate(P.x, P.y, P.z);
-			
-			
-			
+
+
+
             if (geo.isGeometry) {
-            // if (false) {
+                // if (false) {
                 // console.log(geo)
                 let b_geo = new THREE.BufferGeometry().fromGeometry(geo);
                 var index = [];
-                for (var i = 0; i < 3*geo.faces.length; i++) {
+                for (var i = 0; i < 3 * geo.faces.length; i++) {
                     index.push(i);
                 };
                 b_geo.setIndex(index);
@@ -658,43 +668,48 @@ function PDMSLoader() {
                 geo = b_geo;
             };
             // console.log(geo)
-			if(geo.attributes.hasOwnProperty('color'))
-				delete (geo.attributes.color);
-			
-			if(geo.attributes.hasOwnProperty('uv'))
-				delete (geo.attributes.uv);
-			
-			
-			// let mesh = new THREE.Mesh(geo,new THREE.MeshLambertMaterial())
-			// scene.add(mesh)
-			// return
-			
+            if (geo.attributes.hasOwnProperty('color'))
+                delete (geo.attributes.color);
+
+            if (geo.attributes.hasOwnProperty('uv'))
+                delete (geo.attributes.uv);
+
+
+            // let mesh = new THREE.Mesh(geo,new THREE.MeshLambertMaterial())
+            // scene.add(mesh)
+            // return
+
             geometries.push(geo);
 
             //=================color=========================
-            // console.log(geo);
-            // console.log(color);
-            // console.log(colorFloat32Array);
-
             let count = geo.attributes.position.count;
 
+            let colorAtt = new THREE.BufferAttribute(
+                new Float32Array(count * 3), 3
+            );
+
             for (let i = 0; i < count; i++) {
-                // const element = array[i];
-                // switch (geo.type) {
-                //     case "CylinderBufferGeometry":
-
-                //         colors.push(0, 0, 1);
-                //         break;
-                //     default:
-                //         colors.push(color.r, color.g, color.b);
-                //         break;
-                // };
-                colors.push(color.r, color.g, color.b);
-
-
+                colorAtt.setXYZ(i, color.r, color.g, color.b);
             };
 
+            geo.addAttribute('color', colorAtt);
 
+            //============记录顶点索引对应的geo======================
+
+            startIndex = endIndex + 1;
+            endIndex = startIndex + count * 3 - 1;
+
+            // console.log(startIndex, endIndex);
+
+            // console.log(element.id);
+
+            num++;
+            if (objectAA[element.ID]) {
+                objectAA[element.ID].push(startIndex+"-"+endIndex);
+            } else {
+                objectAA[element.ID] = [];
+                objectAA[element.ID].push(startIndex+"-"+endIndex);
+            };
 
         };
 
@@ -704,14 +719,14 @@ function PDMSLoader() {
         // console.log(geometries);
 
         let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
-        let colorAtt = new THREE.BufferAttribute(
-            new Float32Array(colors.length), 3
-        );
-        colorAtt.set(colors, 0);
-        mgeo.addAttribute('color', colorAtt);
-        console.log('合并后的',mgeo);
-		// mgeo.computeFaceNormals();
-		// mgeo.computeVertexNormals();
+        // let colorAtt = new THREE.BufferAttribute(
+        //     new Float32Array(colors.length), 3
+        // );
+        // colorAtt.set(colors, 0);
+        // mgeo.addAttribute('color', colorAtt);
+        console.log('合并后的', mgeo);
+        // mgeo.computeFaceNormals();
+        // mgeo.computeVertexNormals();
         let mlt = new THREE.MeshLambertMaterial({ vertexColors: true });
         let mesh = new THREE.Mesh(mgeo, mlt);
 
@@ -748,7 +763,7 @@ function PDMSLoader() {
 
         // if (type == 11) return geo;
 
-        
+
 
 
         switch (type) {
