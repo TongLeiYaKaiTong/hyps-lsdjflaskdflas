@@ -77,6 +77,17 @@ $('#nav>.menu-area>.view-box>.dropdown-menu>li>a').click(function () {
 	}
 })
 
+// 第一人称和第三人称视角切换
+$("#controller-tool-bar > .view-switch-btn > .view-btn").on('click', function () {
+	$("#controller-tool-bar > .view-switch-btn > .view-btn").removeClass('on');
+	$(this).addClass('on');
+
+	if ($(this).attr('data-key') == "first") {//第一人称
+	} else {//第三人称
+	};
+
+});
+
 
 // 下载gltf格式模型
 function downloadGLTF(model, fileName) {
@@ -364,7 +375,7 @@ function init(name, list) {
 	updateSun();
 
 	// 海水开关按钮
-	$('#nav>.menu-area>.water>.icon').click(function () {
+	$('#controller-tool-bar>.water>.icon').click(function () {
 		$(this).parent().toggleClass('on');
 
 		if ($(this).parent().hasClass('on')) {
