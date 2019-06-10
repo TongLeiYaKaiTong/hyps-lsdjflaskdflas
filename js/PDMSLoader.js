@@ -101,8 +101,6 @@ function PDMSLoader() {
             geometry.merge(bottomPlane);
         };
 
-        // console.log(new THREE.BufferGeometry().fromGeometry(geometry));
-
         return geometry;
     };
 
@@ -601,20 +599,20 @@ function PDMSLoader() {
             // console.log(P)
             geo.translate(P.x, P.y, P.z);
 
-            if (geo.isGeometry) {
-                // console.log(geo)
-                let b_geo = new THREE.BufferGeometry().fromGeometry(geo);
-                delete (b_geo.attributes.color);
-                var index = [];
-                for (var i = 0; i < geo.faces.length; i++) {
-                    index.push(geo.faces[i].a);
-                    index.push(geo.faces[i].b);
-                    index.push(geo.faces[i].c);
-                };
-                b_geo.setIndex(index);
-                index.count = index.length;
-                geo = b_geo;
-            };
+            // if (geo.isGeometry) {
+            //     // console.log(geo)
+            //     let b_geo = new THREE.BufferGeometry().fromGeometry(geo);
+            //     delete (b_geo.attributes.color);
+            //     var index = [];
+            //     for (var i = 0; i < geo.faces.length; i++) {
+            //         index.push(geo.faces[i].a);
+            //         index.push(geo.faces[i].b);
+            //         index.push(geo.faces[i].c);
+            //     };
+            //     b_geo.setIndex(index);
+            //     index.count = index.length;
+            //     geo = b_geo;
+            // };
             // console.log(geo)
             geometries.push(geo);
 
@@ -755,10 +753,7 @@ function PDMSLoader() {
         // if (!geo) console.error("不存在几何类型");
 
         // 偏心圆台存在问题
-        if(type == 7 && geo.faces.length == 0) {
-            console.log(arr);
-            return null
-        };
+        if (geo.isGeometry) geo = new THREE.BufferGeometry().fromGeometry(geo);
 
         return geo;
     };
@@ -834,7 +829,7 @@ function PDMSLoader() {
 
 //     new PDMSLoader().load(
 //         // "./js/rvm_att/pyrout.js",
-//         "./js/rvm_att/rvmData2.js",
+//         "./js/rvm_att/rvmData1.js",
 //         "",
 //         function (data) {
 //             console.log(data);
