@@ -269,6 +269,8 @@ let out_camera;
 let out_controls;
 let view_controller; //视角球控制
 let view_controller_renderer; //视角球控制
+var pixelBuffer = new Uint8Array( 4 );
+let pickingRenderTarget
 function init(name, list) {
 	console.log('进入threejs场景init')
 	var container = document.getElementById("container");
@@ -315,7 +317,13 @@ function init(name, list) {
 	light.shadow.camera.left = -120;
 	light.shadow.camera.right = 120;
 	scene.add(light);
-
+	
+	pickingRenderTarget = new THREE.WebGLRenderTarget(
+		window.innerWidth, window.innerHeight
+	);
+	pickingRenderTarget.texture.generateMipmaps = false;
+	pickingRenderTarget.texture.minFilter = THREE.NearestFilter;
+			
 	// Water
 	var waterGeometry = new THREE.CircleBufferGeometry(100000, 16);
 
@@ -429,7 +437,7 @@ function init(name, list) {
 		}
 	);
 
-
+	onWindowResize()
 	window.addEventListener('resize', onWindowResize, false);
 
 	animate2();
@@ -441,6 +449,7 @@ function init(name, list) {
 		camera.aspect = width / height;
 		camera.updateProjectionMatrix();
 		renderer.setSize(width, height);
+		pickingRenderTarget.setSize( width, height );
 	}
 	function mousedown() {
 		mousedown = true;
@@ -449,24 +458,53 @@ function init(name, list) {
 		if (mousedown)
 			mousemove = true;
 	}
-	function mouseup() {
+	function mouseup(e) {
 		mousedown = false
 		if (mousemove) {
 			mousemove = false;
 		} else {//是一次纯点击事件，触发clik
 			console.log('是一次纯点击事件，触发clik')
-			let raycaster = new THREE.Raycaster(); //射线
+			// let raycaster = new THREE.Raycaster(); //射线
 			let mouse = new THREE.Vector2(); //鼠标位置
-			let domElement = renderer.domElement;
-			mouse.x = (event.offsetX / domElement.clientWidth) * 2 - 1;
-			mouse.y = -(event.offsetY / domElement.clientHeight) * 2 + 1;
-			return
+			mouse.x = e.offsetX;
+			mouse.y = e.offsetY;
 
 			//左侧目录树关联的变回去
 			for (let i = 0; i < last_emissive_array.length; i++) {
 				last_emissive_array[i].material.emissive.r = 0;
 			}
 
+
+			
+			let record = scene.children[scene.children.length-1].children[0].material;
+			scene.children[scene.children.length-1].children[0].material = pickingMaterial
+			
+			renderer.setRenderTarget(pickingRenderTarget);
+			renderer.render( scene, camera);
+			renderer.setRenderTarget();
+			scene.children[scene.children.length-1].children[0].material = record;
+			
+			console.log(pickingRenderTarget)
+			renderer.readRenderTargetPixels(
+				pickingRenderTarget,
+				mouse.x,
+				pickingRenderTarget.height - mouse.y,
+				1,
+				1,
+				pixelBuffer
+			);
+			console.log(mouse)
+			console.log(pixelBuffer)
+			var id =
+				( pixelBuffer[ 0 ] << 16 ) |
+				( pixelBuffer[ 1 ] << 8 ) |
+				( pixelBuffer[ 2 ] );
+				
+			console.log('你点击的ID是',id)
+			
+			
+			return
+			
 			if (selected_mesh)
 				selected_mesh.material.emissive.r = 0;
 			let intersect = raycaster.intersectObject(model, true);

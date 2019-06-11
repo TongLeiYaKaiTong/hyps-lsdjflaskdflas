@@ -524,10 +524,8 @@ function PDMSLoader() {
                     center: getCenter(),
                 });
 
-
                 console.log(geoIdArray,geoCountArray);
                 
-
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
@@ -705,7 +703,24 @@ function PDMSLoader() {
             };
 
             geo.addAttribute('color', colorAtt);
+			
+            //=================pick color=========================
+            let pick_colorAtt = new THREE.BufferAttribute(
+                new Float32Array(count * 3), 3
+            );
+			
+			var col = new THREE.Color;
+			col.setHex(geometries.length)
+            for (let i = 0; i < count; i++) {
+                pick_colorAtt.setXYZ(i, col.r, col.g, col.b);
+            };
 
+            geo.addAttribute('pickingColor', pick_colorAtt);
+
+			pickingMaterial = new THREE.ShaderMaterial( {
+				vertexShader: THREE.pickShader.vertexShader,
+				fragmentShader: THREE.pickShader.fragmentShader
+			} );
             //============记录顶点索引对应的geo======================
 
             geoCount = geoCount + count * 3;
@@ -762,10 +777,6 @@ function PDMSLoader() {
         let geo;//几何
 
         // if (type == 11) return geo;
-
-
-
-
         switch (type) {
             case 1:   //Pyramid 
                 geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
