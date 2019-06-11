@@ -114,7 +114,19 @@ window.onload = function(){
 	
 	//#上传文件
 	//##rvm&& att
-	$("#chooseFile>.content>.rvm .uploadFile,#chooseFile>.content>.att .uploadFile").click(function(e){
+	/* $("#chooseFile>.content>.rvm .uploadFile,#chooseFile>.content>.att .uploadFile").click(function(e){
+		$("#uploadFileBg").show();
+	}); */
+	//上传rvm文件
+	$("#chooseFile>.content>.rvm .uploadFile").click(function(e){
+		console.log("点击rvm upload");
+		$("#uploadFileBg").attr("clickZone","rvm");
+		$("#uploadFileBg").show();
+	});
+	//上传att文件
+	$("#chooseFile>.content>.att .uploadFile").click(function(e){
+		console.log("点击att upload");
+		$("#uploadFileBg").attr("clickZone","att");
 		$("#uploadFileBg").show();
 	});
 	//点击上传文件触发
@@ -138,15 +150,18 @@ window.onload = function(){
 			//转换
 			var fileTrueName = nameArray[1];
 			var fileLowerCase = fileTrueName.toLowerCase();
-			console.log(fileLowerCase);
-			if(!(fileLowerCase=="att"||fileLowerCase=="rvm")){
-				alert('只能上传ATT和rvm的文件');
+			//允许上传的文件
+			var allowUploadType = $("#uploadFileBg").attr("clickZone");
+			console.log(allowUploadType);
+			if(allowUploadType!=fileLowerCase){
+				alert("只能上传"+allowUploadType+"类型文件");
 			}
 			else{
 				var ufile =$('#fileUploadInput').get(0).files[0];//两者皆可
 				//var uploadFiless = document.getElementById("fileUploadInput").files[0];
 				var formdata = new FormData();
 				formdata.append("file",ufile);
+				$("#uploadFileBg").attr("clickZone","");
 				$("#uploadFileBg").hide();
 				$("#loadingBG").show();
 				uploadFiles(formdata);
@@ -157,6 +172,7 @@ window.onload = function(){
 	$("#uploadFileDiv .close").click(function(){
 		$("#uploadFileDiv .filePathString").text("");
 		$("#fileUploadInput").val("");
+		$("#uploadFileBg").attr("clickZone","");
 		$("#uploadFileBg").hide();
 	});
 }
@@ -165,15 +181,18 @@ window.onload = function(){
 function arrayMnplton(fileArray){
 	var attFiles = [];
 	var rvmFiles = [];
-	for(var i=0;i<fileArray.length;i++){
-		if(fileArray[i].ATT){
-			attFiles.push(fileArray[i].ATT);
-		}
-		if(fileArray[i].RVM){
-			rvmFiles.push(fileArray[i].RVM);
+	if(!(fileArray.length==1&&fileArray[0]==undefined)){
+		for(var i=0;i<fileArray.length;i++){
+			if(fileArray[i].ATT){
+				attFiles.push(fileArray[i].ATT);
+			}
+			if(fileArray[i].RVM){
+				rvmFiles.push(fileArray[i].RVM);
+			}
 		}
 	}
 	console.log(rvmFiles);
+	console.log(attFiles);
 	nofileOrNot(0,rvmFiles);
 	nofileOrNot(1,attFiles);
 }
@@ -183,28 +202,35 @@ function nofileOrNot(sig,files){
 		//rvm
 		case 0:
 			if(files.length!=0){
-				$("#chooseFile>.content>.rvm>.noFile").hide();
-
+				/* $("#chooseFile>.content>.rvm>.noFile").hide();
 				$("#chooseFile>.content>.rvm>.fileList").css({
 					"display":"flex !important"
 				});
+				showFileName("rvm>.fileList",files); */
+				
+				$("#chooseFile>.content>.rvm>.noFile").hide();
+				$("#chooseFile>.content>.rvm>.fileList").css("display","flex");
 				showFileName("rvm>.fileList",files);
+				
 			}
 			else{
+				$("#chooseFile>.content>.rvm>.noFile").css("display","flex");
+				$("#chooseFile>.content>.rvm>.fileList").empty();
 				$("#chooseFile>.content>.rvm>.fileList").hide();
+				/* $("#chooseFile>.content>.rvm>.fileList").hide(); */
 			}
 			break;
 		//att
 		case 1:
 			if(files.length!=0){
 				$("#chooseFile>.content>.att>.noFile").hide();
-				$("#chooseFile>.content>.rvm>.fileList").css({
-					"display":"flex"
-				});
+				$("#chooseFile>.content>.att>.fileList").css("display","flex");
 				showFileName("att>.fileList",files);
 			}
 			else{
-				$("#chooseFile>.content>.rvm>.fileList").hide();
+				$("#chooseFile>.content>.att>.noFile").css("display","flex");
+				$("#chooseFile>.content>.att>.fileList").empty();
+				$("#chooseFile>.content>.att>.fileList").hide();
 			}
 			break;
 	}
@@ -229,7 +255,7 @@ function uploadFiles(formData){
 		data: formData,
 		async: true,
 		success: function (data) {
-			//console.log(data);
+			console.log(data);
 			$("#loadingBG").hide();
 			$("#successBG").css("display","flex");
 			setTimeout(function(){ 
@@ -344,9 +370,11 @@ function getAllFiles(){
 		ansyc:true,
 		data:{},
 		success:function(data){
-			//console.log(data);
+			console.log("获取文件");
+			console.log(data);
 			var allFiles = eval(data);
 			console.log(allFiles);
+			
 			arrayMnplton(allFiles);
 		},
 		error:function(e){
