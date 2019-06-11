@@ -57,11 +57,23 @@ window.onload = function(){
 			$("#notChooseRvm").css("display","flex");
 		}
 		else{
-			//有att文件
-			if($("#chooseFile>.content>.att>.fileList>span").hasClass("active")){
-				postATT();
-			}
-			postRVM();
+			// 加载页面
+			const loadingBox = new LoadingBox('请求文件', { hasProgress : false});
+
+			// 获取RVM路径
+			postRVM(function(responseRVMUrl){
+				//有att文件
+				if($("#chooseFile>.content>.att>.fileList>span").hasClass("active")){
+					// 获取ATT路径
+					postATT(function(responseATTUrl){
+						loadingPDMS(responseRVMUrl,responseATTUrl)
+					});
+				} else {
+					loadingPDMS(responseRVMUrl,"")
+				};
+				$("#chooseFile>.title>.delete,.submissionArea>.buttonPane>#no").click();
+				loadingBox.remove();
+			});
 		}
 	});
 	
@@ -161,6 +173,7 @@ function arrayMnplton(fileArray){
 			rvmFiles.push(fileArray[i].RVM);
 		}
 	}
+	console.log(rvmFiles);
 	nofileOrNot(0,rvmFiles);
 	nofileOrNot(1,attFiles);
 }
@@ -171,6 +184,10 @@ function nofileOrNot(sig,files){
 		case 0:
 			if(files.length!=0){
 				$("#chooseFile>.content>.rvm>.noFile").hide();
+
+				$("#chooseFile>.content>.rvm>.fileList").css({
+					"display":"flex !important"
+				});
 				showFileName("rvm>.fileList",files);
 			}
 			else{
@@ -181,6 +198,9 @@ function nofileOrNot(sig,files){
 		case 1:
 			if(files.length!=0){
 				$("#chooseFile>.content>.att>.noFile").hide();
+				$("#chooseFile>.content>.rvm>.fileList").css({
+					"display":"flex"
+				});
 				showFileName("att>.fileList",files);
 			}
 			else{
@@ -235,7 +255,7 @@ function uploadFiles(formData){
 }
 
 //上传att文件
-function postATT(){
+function postATT(callback){
 	var attPath = $("#chooseFile>.content>.att>.fileList>span.active").text();
 	var attPathRequest = "{'ATT':'"+attPath+"'}";
 	console.log(attPathRequest);
@@ -253,6 +273,7 @@ function postATT(){
 			var responseAttURl = eval(data);
 			//here ...
 			console.log(responseAttURl);
+			callback(responseAttURl);
 			
 		},
 		error:function(e){
@@ -262,7 +283,7 @@ function postATT(){
 }
 
 //上传rvm文件
-function postRVM(){
+function postRVM(callback){
 	var rvmPath = $("#chooseFile>.content>.rvm>.fileList>span.active").text();
 	//强制转换flag
 	var transformationFlag;
@@ -305,6 +326,7 @@ function postRVM(){
 			//var responseRVMUrl = eval(data);
 			//here ...
 			console.log(responseRVMUrl);
+			callback(responseRVMUrl);
 			
 		},
 		error:function(e){

@@ -21291,7 +21291,9 @@
 		}
 
 		function updateRenderTargetMipmap( renderTarget ) {
-
+			if(!renderTarget)
+					return
+			
 			var texture = renderTarget.texture;
 			var supportsMips = isPowerOfTwo( renderTarget ) || capabilities.isWebGL2;
 
@@ -21309,7 +21311,9 @@
 		}
 
 		function updateMultisampleRenderTarget( renderTarget ) {
-
+			if(!renderTarget)
+					return
+				
 			if ( renderTarget.isWebGLMultisampleRenderTarget ) {
 
 				if ( capabilities.isWebGL2 ) {
