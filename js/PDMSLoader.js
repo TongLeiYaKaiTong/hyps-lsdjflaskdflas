@@ -202,7 +202,11 @@ function PDMSLoader() {
             const A = side_c_result * Math.cos(radian_a);
             const C = -side_c_result * Math.sin(radian_a);
 
-            return {A, B, C}
+            return {
+                A: A,
+                B: B,
+                C: C
+            }
         }
 
         /**
@@ -522,9 +526,11 @@ function PDMSLoader() {
                     rvmTree: formatRVMData(data),
                     boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
                     center: getCenter(),
+                    geoIdArray: geoIdArray, //几何id数组
+                    geoCountArray: geoCountArray//几何点索引数组
                 });
 
-                console.log(geoIdArray,geoCountArray);
+                // console.log(geoIdArray,geoCountArray);
                 
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
@@ -623,8 +629,10 @@ function PDMSLoader() {
     };
 
     // 设置PDMS的每一个部位的构建
-    function setPDMSMember(PRIM, color, element) {
+    function setPDMSMember(PRIM, color) {
+		
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
+		// if(PRIM.TYPE == 10) console.log(10);
 
         if (geo) {
 
@@ -678,6 +686,7 @@ function PDMSLoader() {
                 geo = b_geo;
             };
             // console.log(geo)
+
             if (geo.attributes.hasOwnProperty('color'))
                 delete (geo.attributes.color);
 
@@ -731,7 +740,7 @@ function PDMSLoader() {
     };
 
     function mergeBufferGeometries() {
-        // console.log(geometries);
+        console.log(geometries);
 
         let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
         // let colorAtt = new THREE.BufferAttribute(
@@ -776,7 +785,6 @@ function PDMSLoader() {
 
         let geo;//几何
 
-        // if (type == 11) return geo;
         switch (type) {
             case 1:   //Pyramid 
                 geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);

@@ -1,5 +1,6 @@
+//url
+var globalHttp = "http://192.168.0.110/seervmWebService1.asmx/";
 window.onload = function(){
-	
 	//--------------------点击事件---------------
 	//#文件>打开
 	$("#nav>.menu-area .open").click(function(){
@@ -196,8 +197,7 @@ function showFileName(id,files){
 
 function uploadFiles(formData){
 	$.ajax({
-		//url: "http://121.40.174.117/seervmWebService1.asmx/SaveFile",
-		url: "http://192.168.0.110/seervmWebService1.asmx/SaveFile",
+		url:globalHttp+"SaveFile",
 		type: "POST",
 		cache: false,
 		processData: false,
@@ -238,8 +238,7 @@ function postATT(){
 	//请求att
 	$.ajax({
 		type:"POST",
-		//url:"http://www.toolkip.com/haiyouservice/seervmWebService1.asmx/getAttcontent",
-		url:"http://192.168.0.110/seervmWebService1.asmx/getAttcontent",
+		url:globalHttp+"getAttcontent",
 		ansyc:true,
 		data:{
 			ATTfile:attPathRequest
@@ -277,8 +276,7 @@ function postRVM(){
 	//提交文件给后台
 	$.ajax({
 		type:"POST",
-		//url:"http://121.40.174.117/seervmWebService1.asmx/getRVMcontent",
-		url:"http://192.168.0.110/seervmWebService1.asmx/getRVMcontent",
+		url:globalHttp+"getRVMcontent",
 		ansyc:true,
 		data:{
 			file:requestString
@@ -298,10 +296,10 @@ function postRVM(){
 
 //获取所有文件
 function getAllFiles(){
+	/* console.log(globalHttp); */
 	$.ajax({
 		type:"POST",
-		//url:"http://121.40.174.117/seervmWebService1.asmx/allFiles",
-		url:"http://192.168.0.110/seervmWebService1.asmx/allFiles",
+		url:globalHttp+"allFiles",
 		ansyc:true,
 		data:{},
 		success:function(data){
