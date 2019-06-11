@@ -620,18 +620,15 @@ function PDMSLoader() {
 
             for (let j = 0; j < PRIMSNum; j++) {
 
-                setPDMSMember(element.PRIMS[j], colorArray[element.C], element);
+                setPDMSMember(element.PRIMS[j], colorArray[element.C], element.ID);
 
             };
-
-            geoIdArray.push(element.ID); //几何id数组
-            geoCountArray.push(geoCount);//几何点索引数组
 
         };
     };
 
     // 设置PDMS的每一个部位的构建
-    function setPDMSMember(PRIM, color) {
+    function setPDMSMember(PRIM, color, id) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
 
         if (geo) {
@@ -716,6 +713,9 @@ function PDMSLoader() {
             //============记录顶点索引对应的geo======================
 
             geoCount = geoCount + count * 3;
+
+            geoIdArray.push(id); //几何id数组
+            geoCountArray.push(geoCount);//几何点索引数组
 
 
         };
