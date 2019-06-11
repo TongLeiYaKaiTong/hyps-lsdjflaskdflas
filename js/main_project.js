@@ -162,6 +162,7 @@ function downloadModel(blob, filename) {
 /**
  * @name loading界面对象
  * @param {string} text 初始化文本
+ * @param {*} config 配置选项 hasProgress 设置是否含有进度条
  */
 function LoadingBox(text, config) {
 	// 界面外框
@@ -242,10 +243,10 @@ function LoadingBox(text, config) {
 function loadingPDMS(rvmUrl,attUrl) {
 	let loadingBox = new LoadingBox('加载');
 	new PDMSLoader().load(
-		"./js/rvm_att/项目120190611060651out.js",
-		"",
-		// rvmUrl,
-		// attUrl,
+		// "./js/rvm_att/项目120190611060651out.js",
+		// "",
+		rvmUrl,
+		attUrl,
 		function (data) {
 			console.log(data);
 			// if (data.dataType == "group") scene.add(data.data);
@@ -489,7 +490,7 @@ function init(name, list) {
 	// grid.material.transparent = true;
 	// scene.add(grid);
 
-	loadingPDMS();
+	// loadingPDMS();
 
 	onWindowResize()
 	window.addEventListener('resize', onWindowResize, false);

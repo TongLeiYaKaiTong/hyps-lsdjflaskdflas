@@ -838,7 +838,7 @@ function PDMSLoader() {
             case 10:  //Line 
                 break;
             case 11:  //FaceGroup
-                geo = FaceGroupGeometry(arr);
+                // geo = FaceGroupGeometry(arr);
                 break;
         };
 

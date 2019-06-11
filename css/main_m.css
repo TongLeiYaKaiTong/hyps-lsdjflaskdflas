@@ -112,9 +112,9 @@ html,body{
 }
 /* #chooseFile>.content>div>span:not(:first-child){ */
 #chooseFile>.content>div>.fileList{
-	 width: 100%;
-	 height: 362px;
-	 width: 100%;
+	width: 100%;
+	height: 362px;
+	width: 100%;
     height: 362px;
     display: flex !important;
     flex-direction: column;
