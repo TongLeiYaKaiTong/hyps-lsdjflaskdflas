@@ -510,14 +510,20 @@ function PDMSLoader() {
             url: rvmUrl,
             xhr: function () { //进度
                 let xhr = new window.XMLHttpRequest();
-                xhr.addEventListener("progress", onProgress, false);
+                xhr.addEventListener("progress", function (evt) {
+                    if (evt.lengthComputable) {
+                        let percentComplete = evt.loaded / evt.total;
+                        if(onProgress) onProgress(percentComplete);
+                        // console.log(Math.round(percentComplete * 100) + "%");
+                    };
+                }, false);
                 return xhr;
             },
             success: function (data) { //成功
 
                 console.log(data);
 
-                forEachRVMData(data);
+                forEachRVMData(data, onProgress);
                 analysisATT(attUrl, onProgress, onLoad, onError);
 
                 mergeBufferGeometries();
@@ -533,7 +539,7 @@ function PDMSLoader() {
                 });
 
                 // console.log(geoIdArray,geoCountArray);
-                
+
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
@@ -558,13 +564,18 @@ function PDMSLoader() {
         loader.setResponseType('text');
 
         loader.load(attUrl, function (text) {
+            // console.log(text);
+
             let arr = text.split("NEW");
 
             // 总json表
             let json = {};
 
             //记录 起源数据 的Name
-            let origin = arr[3].replace(/\s*/g, "").split("Name:=")[0];
+            let origin = arr[3].replace(/\s*/g, "").toLowerCase().split("name:=")[0];
+
+            let reg1 = RegExp(/name/i),
+                reg2 = RegExp(/Owner/i);
 
             // 遍历每个New 的对象
             for (let i = 3, len = arr.length; i < len; i++) {
@@ -578,8 +589,10 @@ function PDMSLoader() {
                 for (let j = 1, l = arr1.length - 1; j < l; j++) {
 
                     let arr2 = arr1[j].split(":=");//分割字符串为数组
-                    if (j == 1 && arr2[0] == "Name") json[arr2[1]] = json1;//存在Name属性的 创建到json表中
-                    if (j == 4 && arr2[0] == "Owner" && json[arr2[1]]) json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
+                    // if (j == 1 && arr2[0] == "Name") json[arr2[1]] = json1;//存在Name属性的 创建到json表中
+                    // if (j == 4 && arr2[0] == "Owner" && json[arr2[1]]) json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
+                    if (j == 1 && reg1.test(arr2[0])) json[arr2[1]] = json1;//存在Name属性的 创建到json表中
+                    if (j == 4 && reg2.test(arr2[0]) && json[arr2[1]]) json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
                     json1[arr2[0]] = arr2[1];//这个属性
 
                 };
@@ -588,7 +601,7 @@ function PDMSLoader() {
             let data = json[origin];//获取总的关系
             json = undefined;//清空josn数据
 
-            if (onSuccess) onSuccess(data);
+            // if (onSuccess) onSuccess(data);
             console.log(data);
         });
     };
@@ -606,39 +619,71 @@ function PDMSLoader() {
         return data[0];
     };
 
+
+
+    // function forEachRVMData(data, onProgress) {
+    //     let len = data.length;
+
+    //     function forEachRVMData1(i1, i2) {
+
+    //         for (let i = i1; i < i2; i++) {
+    //             let element = data[i];//当前元素
+    //             forEachRVMData2(element);
+    //         };
+
+    //         if (onProgress) onProgress(i2/len);
+
+    //         setTimeout(function () {
+    //             if (i2 + 500 < len) {
+    //                 forEachRVMData1(i2, i2 + 500);
+    //             } else {
+    //                 forEachRVMData1(i2, len);
+    //             };
+    //         }, 300);
+
+
+
+    //     };
+
+    //     forEachRVMData1(0, 500);
+
+
+
+    // };
+
     // 遍历RVM数据
     function forEachRVMData(data) {
         for (let i = 0, len = data.length; i < len; i++) {
 
-            let element = data[i];//当前元素
+        let element = data[i];//当前元素
 
-            let PRIMSNum = element.PRIMS.length;//prims 数量
+        let PRIMSNum = element.PRIMS.length;//prims 数量
 
-            if (PRIMSNum == 0) continue;//没有几何信息的跳过
+        if (PRIMSNum == 0) continue;//没有几何信息的跳过
 
-            if (element.C > 50) element.C = 0;
+        if (element.C > 50) element.C = 0;
 
-            let lastCount = geoCount;//记录上次的计数
+        let lastCount = geoCount;//记录上次的计数
 
-            for (let j = 0; j < PRIMSNum; j++) {
+        for (let j = 0; j < PRIMSNum; j++) {
 
-                setPDMSMember(element.PRIMS[j], colorArray[element.C], element.ID);
+            setPDMSMember(element.PRIMS[j], colorArray[element.C], element.ID);
 
-            };
+        };
 
-            if(geoCount - lastCount > 0){
-                geoIdArray.push(element.ID); //几何id数组
-				geoCountArray.push(geoCount);//几何点索引数组
-            };
+        if (geoCount - lastCount > 0) {
+            geoIdArray.push(element.ID); //几何id数组
+            geoCountArray.push(geoCount);//几何点索引数组
+        };
 
         };
     };
 
     // 设置PDMS的每一个部位的构建
-	
+
     function setPDMSMember(PRIM, color, id) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
-		// if(PRIM.TYPE == 10) console.log(10);
+        // if(PRIM.TYPE == 10) console.log(10);
 
         if (geo) {
 
@@ -718,25 +763,25 @@ function PDMSLoader() {
             };
 
             geo.addAttribute('color', colorAtt);
-			
+
             //=================pick color=========================
             let pick_colorAtt = new THREE.BufferAttribute(
                 new Float32Array(count * 3), 3
             );
-			
-			var col = new THREE.Color;
-			col.setHex(geoCountArray.length)
-			console.log(geoCountArray.length)
+
+            var col = new THREE.Color;
+            col.setHex(geoCountArray.length)
+            // console.log(geoCountArray.length)
             for (let i = 0; i < count; i++) {
                 pick_colorAtt.setXYZ(i, col.r, col.g, col.b);
             };
 
             geo.addAttribute('pickingColor', pick_colorAtt);
 
-			pickingMaterial = new THREE.ShaderMaterial( {
-				vertexShader: THREE.pickShader.vertexShader,
-				fragmentShader: THREE.pickShader.fragmentShader
-			} );
+            pickingMaterial = new THREE.ShaderMaterial({
+                vertexShader: THREE.pickShader.vertexShader,
+                fragmentShader: THREE.pickShader.fragmentShader
+            });
             //============记录顶点索引对应的geo======================
 
             geoCount = geoCount + count;
@@ -746,7 +791,7 @@ function PDMSLoader() {
     };
 
     function mergeBufferGeometries() {
-        console.log(geometries);
+        // console.log(geometries);
 
         let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
         // let colorAtt = new THREE.BufferAttribute(
@@ -990,5 +1035,3 @@ function PDMSLoader() {
 //     primitives.add(mesh);
 //     console.log(primitives);
 // };
-
-

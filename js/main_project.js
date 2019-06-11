@@ -228,6 +228,9 @@ function LoadingBox(text, config) {
 
 	// 更新进度条
 	this.updateRange = function (range) {
+		if (range % 0.05 == 0) {
+			console.log(range * 100);
+		}
 		range = Math.round(range * 100);
 		this.updateText('已' + text + range + '%');
 		if (this.hasProgress) $(progress).find('>span:nth-child(-n+' + range + ')').css('background-color', '#337ab7');
@@ -242,10 +245,13 @@ function LoadingBox(text, config) {
 function loadingPDMS(rvmUrl,attUrl) {
 	let loadingBox = new LoadingBox('加载');
 	new PDMSLoader().load(
+		"./js/rvm_att/sbytcout.js",
+		"./js/rvm_att/sbytc.ATT",
 		// "./js/rvm_att/项目120190611060651out.js",
-		// "",
-		rvmUrl,
-		attUrl,
+		// "http://192.168.0.110/files/RVM/sbytc20190611070114out.js",
+		// "http://192.168.0.110/files/ATT/sbytc20190611070126.ATT",
+		// rvmUrl,
+		// attUrl,
 		function (data) {
 			console.log(data);
 			// if (data.dataType == "group") scene.add(data.data);
@@ -280,12 +286,8 @@ function loadingPDMS(rvmUrl,attUrl) {
 			};
 			loadingBox.remove();
 		},
-		function (evt) {
-			if (evt.lengthComputable) {
-				let percentComplete = evt.loaded / evt.total;
-				console.log(Math.round(percentComplete * 100) + "%");
-				loadingBox.updateRange(percentComplete);
-			};
+		function (complete) {
+			loadingBox.updateRange(complete);
 		}
 	);
 };
@@ -489,7 +491,7 @@ function init(name, list) {
 	// grid.material.transparent = true;
 	// scene.add(grid);
 
-	// loadingPDMS();
+	loadingPDMS();
 
 	onWindowResize()
 	window.addEventListener('resize', onWindowResize, false);
@@ -1615,3 +1617,4 @@ function setInfoPanel(json) {
 	$("#right-info-panel").show();
 
 };
+
