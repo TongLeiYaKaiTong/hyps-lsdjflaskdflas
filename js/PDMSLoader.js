@@ -530,10 +530,8 @@ function PDMSLoader() {
                     geoCountArray: geoCountArray//几何点索引数组
                 });
 
-
-                console.log(geoIdArray, geoCountArray);
-
-
+                // console.log(geoIdArray,geoCountArray);
+                
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
@@ -628,8 +626,10 @@ function PDMSLoader() {
     };
 
     // 设置PDMS的每一个部位的构建
+	
     function setPDMSMember(PRIM, color, id) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
+		// if(PRIM.TYPE == 10) console.log(10);
 
         if (geo) {
 
@@ -709,21 +709,40 @@ function PDMSLoader() {
             };
 
             geo.addAttribute('color', colorAtt);
+			
+            //=================pick color=========================
+            let pick_colorAtt = new THREE.BufferAttribute(
+                new Float32Array(count * 3), 3
+            );
+			
+			var col = new THREE.Color;
+			col.setHex(geoCountArray.length+1)
+            for (let i = 0; i < count; i++) {
+                pick_colorAtt.setXYZ(i, col.r, col.g, col.b);
+            };
 
+            geo.addAttribute('pickingColor', pick_colorAtt);
+
+			pickingMaterial = new THREE.ShaderMaterial( {
+				vertexShader: THREE.pickShader.vertexShader,
+				fragmentShader: THREE.pickShader.fragmentShader
+			} );
             //============记录顶点索引对应的geo======================
 
-            geoCount = geoCount + count * 3;
+            geoCount = geoCount + count;
 
-            geoIdArray.push(id); //几何id数组
-            geoCountArray.push(geoCount);//几何点索引数组
-
-
+			// if(geoIdArray.length==0||(geoIdArray.length>0&&id!=geoIdArray[geoIdArray.length-1])){
+				geoIdArray.push(id); //几何id数组
+				geoCountArray.push(geoCount);//几何点索引数组
+			// }else{ //id相同
+				// geoCountArray[geoCountArray.length-1] = geoCount;
+			// }
         };
 
     };
 
     function mergeBufferGeometries() {
-        // console.log(geometries);
+        console.log(geometries);
 
         let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
         // let colorAtt = new THREE.BufferAttribute(
