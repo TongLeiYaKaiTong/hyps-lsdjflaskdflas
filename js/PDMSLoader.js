@@ -716,7 +716,8 @@ function PDMSLoader() {
             );
 			
 			var col = new THREE.Color;
-			col.setHex(geoCountArray.length+1)
+			col.setHex(geoCountArray.length)
+			console.log(geoCountArray.length)
             for (let i = 0; i < count; i++) {
                 pick_colorAtt.setXYZ(i, col.r, col.g, col.b);
             };
@@ -731,12 +732,12 @@ function PDMSLoader() {
 
             geoCount = geoCount + count;
 
-			// if(geoIdArray.length==0||(geoIdArray.length>0&&id!=geoIdArray[geoIdArray.length-1])){
+			if(geoIdArray.length==0||(geoIdArray.length>0&&id!=geoIdArray[geoIdArray.length-1])){
 				geoIdArray.push(id); //几何id数组
 				geoCountArray.push(geoCount);//几何点索引数组
-			// }else{ //id相同
-				// geoCountArray[geoCountArray.length-1] = geoCount;
-			// }
+			}else{ //id相同
+				geoCountArray[geoCountArray.length-1] = geoCount;
+			}
         };
 
     };
