@@ -261,6 +261,8 @@ $(function() {
 // 	window.location.href= "index.html";
 // }
 
+let rvmOriginal;
+
 let water;
 let seaActioin = false;
 let renderer;
@@ -418,6 +420,12 @@ function init(name, list) {
 			console.log(data);
 			// if (data.dataType == "group") scene.add(data.data);
 			if (data.PDMSObject) scene.add(data.PDMSObject);
+			if (data.rvmTree) {
+				const list = [];
+				rvmOriginal = data.original;
+				fill_tree_list(list, data.rvmTree);
+				mulushu(list);
+			}
 			loadingBox.remove();
 		},
 		function (evt) {
@@ -517,6 +525,31 @@ function animate2() {
 	}
 }
 
+/**
+ * @name 获取目录树列表信息
+ * @param {array} list 待填充的数组
+ * @param {*} data 待解析数据
+ */
+function fill_tree_list(list, data) {
+	const new_data = {
+		id: data.ID,
+		pId: data.PID,
+		name: data.NAME
+	}
+	if (data.children && data.children.length > 0) {
+		new_data.isParent = true;
+		const length = data.children.length
+		for (let i = 0; i < length; i++) {
+			const item = data.children[i];
+			fill_tree_list(list, item);
+		}
+	} else {
+		new_data.isParent = false;
+	}
+
+	list.push(new_data);
+};
+
 //提取信息生成目录树
 function mulushu(list) {
 	var setting = {
@@ -549,23 +582,24 @@ function mulushu(list) {
 
 	var zTree = $.fn.zTree.init($("#treebg"), setting, zNodes);
 
-	setTimeout(function () {
-		var treeObj = $.fn.zTree.getZTreeObj("treebg");
-		var nodes = treeObj.getNodes();
-		for (var i = 0; i < nodes.length; i++) { //设置节点展开
-			treeObj.expandNode(nodes[i], true, false, true);
-		}
-		addSubNode(nodes[0]);
-		console.log('自动展开')
-	}, 3000)
+	// setTimeout(function () {
+	var treeObj = $.fn.zTree.getZTreeObj("treebg");
+	var nodes = treeObj.getNodes();
+	for (var i = 0; i < nodes.length; i++) { //设置节点展开
+		treeObj.expandNode(nodes[i], true, false, true);
+	}
+	// addSubNode(nodes[0]);
+	console.log('自动展开')
+	// }, 3000)
 	function nodeClick(event, treeId, treeNode, clickFlag) {
-		//console.log(treeNode);
-		for (let i = 0; i < last_emissive_array.length; i++) {
-			last_emissive_array[i].material.emissive.r = 0;
-		}
-		lightallchildren(model.getObjectByName(treeNode.name));
-		if (selected_mesh)
-			selected_mesh.material.emissive.r = 0;
+		console.log(treeNode);
+		console.log(rvmOriginal[treeNode.id]);
+		
+		// for (let i = 0; i < last_emissive_array.length; i++) {
+		// 	last_emissive_array[i].material.emissive.r = 0;
+		// }
+		// lightallchildren(model.getObjectByName(treeNode.name));
+		// if (selected_mesh) selected_mesh.material.emissive.r = 0;
 	}
 
 	function addSubNode(treeNode) {
@@ -597,6 +631,19 @@ function mulushu(list) {
 		}
 	}
 }
+
+// function (){
+// 	function recursion(n){
+// 		if((n.children || []).length == 0) {
+// 			cfg.oids[n.id] = n.id
+// 		}
+// 		for(let i = 0; i < (n.children || []).length; ++i) {
+// 			recursion(n.children[i]);
+// 		}
+
+// 	};
+
+// }
 
 //载入模型
 function buildmodel(list) {
