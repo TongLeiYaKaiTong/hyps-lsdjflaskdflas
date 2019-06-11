@@ -194,11 +194,15 @@ function LoadingBox(text) {
 	$(progress).addClass('progress').css({
 		'margin-top': '20px',
 		'width': '50%',
+		'display': 'flex',
 	})
 
 	// 进度条进度区
-	const progress_bar = '<div class="progress-bar" role="progressbar" style="width: 0%;">0%</div>';
-	$(progress).append(progress_bar);
+	for (let i = 0; i < 100; i++) {
+		const span = document.createElement('span');
+		$(progress).append(span);
+		$(span).css('width', '100%');
+	}
 	
 
 	// 更新显示文本
@@ -208,7 +212,9 @@ function LoadingBox(text) {
 
 	// 更新进度条
 	this.updateRange = function(range) {
-		$(progress).find('>.progress-bar').text(range).css('width', range);
+		range = Math.round(range * 100);
+		this.updateText('已加载' + range + '%');
+		$(progress).find('>span:nth-child(-n+'+ range +')').css('background-color', '#337ab7');
 	}
 
 	// 移除进度界面
@@ -403,7 +409,7 @@ function init(name, list) {
 	// grid.material.opacity = 0.2;
 	// grid.material.transparent = true;
 	// scene.add(grid);
-
+	let loadingBox = new LoadingBox('加载中...');
 	new PDMSLoader().load(
 		"./js/rvm_att/rvmData1.js",
 		// "./js/rvm_att/cssout.js",
@@ -412,11 +418,13 @@ function init(name, list) {
 			console.log(data);
 			// if (data.dataType == "group") scene.add(data.data);
 			if (data.PDMSObject) scene.add(data.PDMSObject);
+			loadingBox.remove();
 		},
 		function (evt) {
 			if (evt.lengthComputable) {
 				let percentComplete = evt.loaded / evt.total;
 				console.log(Math.round(percentComplete * 100) + "%");
+				loadingBox.updateRange(percentComplete);
 			};
 		}
 	);
