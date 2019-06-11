@@ -515,10 +515,11 @@ function PDMSLoader() {
 
                 console.log(num);
                 console.log(Object.keys(objectAA));
+				console.log(objectAA);
 
-                // for (const obj of Object.keys(objectAA)) {
-                //     if(objectAA[obj].length > 1) console.log(obj,objectAA[obj]);
-                // };
+                 for (const obj of Object.keys(objectAA)) {
+                     if(objectAA[obj].length > 1) console.log(obj,objectAA[obj]);
+                 };
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
