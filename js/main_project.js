@@ -77,6 +77,17 @@ $('#nav>.menu-area>.view-box>.dropdown-menu>li>a').click(function () {
 	}
 })
 
+// 第一人称和第三人称视角切换
+$("#controller-tool-bar > .view-switch-btn > .view-btn").on('click', function () {
+	$("#controller-tool-bar > .view-switch-btn > .view-btn").removeClass('on');
+	$(this).addClass('on');
+
+	if ($(this).attr('data-key') == "first") {//第一人称
+	} else {//第三人称
+	};
+
+});
+
 
 // 下载gltf格式模型
 function downloadGLTF(model, fileName) {
@@ -183,11 +194,15 @@ function LoadingBox(text) {
 	$(progress).addClass('progress').css({
 		'margin-top': '20px',
 		'width': '50%',
+		'display': 'flex',
 	})
 
 	// 进度条进度区
-	const progress_bar = '<div class="progress-bar" role="progressbar" style="width: 0%;">0%</div>';
-	$(progress).append(progress_bar);
+	for (let i = 0; i < 100; i++) {
+		const span = document.createElement('span');
+		$(progress).append(span);
+		$(span).css('width', '100%');
+	}
 	
 
 	// 更新显示文本
@@ -197,7 +212,9 @@ function LoadingBox(text) {
 
 	// 更新进度条
 	this.updateRange = function(range) {
-		$(progress).find('>.progress-bar').text(range).css('width', range);
+		range = Math.round(range * 100);
+		this.updateText('已加载' + range + '%');
+		$(progress).find('>span:nth-child(-n+'+ range +')').css('background-color', '#337ab7');
 	}
 
 	// 移除进度界面
@@ -244,9 +261,10 @@ $(function() {
 // 	window.location.href= "index.html";
 // }
 
-let water
-let renderer
-let camera
+let water;
+let seaActioin = false;
+let renderer;
+let camera;
 let out_camera;
 let out_controls;
 let view_controller; //视角球控制
@@ -283,9 +301,11 @@ function init(name, list) {
 	renderer.domElement.addEventListener('mousemove', mousemove, false);
 	renderer.domElement.addEventListener('mouseup', mouseup, false);
 
-	light = new THREE.HemisphereLight(0xffffff, 0x444444);
-	light.position.set(0, 200, 0);
-	scene.add(light);
+	var A_light = new THREE.AmbientLight( 0x404040,2); // soft white light
+	scene.add( A_light );
+	// light = new THREE.PointLight( 0xffffff, 1, 230000 );
+	// camera.add(light)
+	// scene.add(camera)
 
 	light = new THREE.DirectionalLight(0xffffff);
 	light.position.set(0, 200, 100);
@@ -364,15 +384,15 @@ function init(name, list) {
 	updateSun();
 
 	// 海水开关按钮
-	$('#nav>.menu-area>.water>.icon').click(function () {
+	$('#controller-tool-bar>.water>.icon').click(function () {
 		$(this).parent().toggleClass('on');
 
 		if ($(this).parent().hasClass('on')) {
 			scene.background = cubeCamera.renderTarget;
-			water.visible = true;
+			seaActioin = water.visible = true;
 		} else {
 			scene.background = new THREE.Color(0xf0f0f0);
-			water.visible = false;
+			seaActioin = water.visible = false;
 		}
 	})
 
@@ -389,19 +409,22 @@ function init(name, list) {
 	// grid.material.opacity = 0.2;
 	// grid.material.transparent = true;
 	// scene.add(grid);
-
+	let loadingBox = new LoadingBox('加载中...');
 	new PDMSLoader().load(
-		"./js/rvm_att/rvmData2.js",
+		"./js/rvm_att/rvmData1.js",
+		// "./js/rvm_att/cssout.js",
 		"",
 		function (data) {
 			console.log(data);
 			// if (data.dataType == "group") scene.add(data.data);
 			if (data.PDMSObject) scene.add(data.PDMSObject);
+			loadingBox.remove();
 		},
 		function (evt) {
 			if (evt.lengthComputable) {
 				let percentComplete = evt.loaded / evt.total;
 				console.log(Math.round(percentComplete * 100) + "%");
+				loadingBox.updateRange(percentComplete);
 			};
 		}
 	);
@@ -437,7 +460,7 @@ function init(name, list) {
 			let domElement = renderer.domElement;
 			mouse.x = (event.offsetX / domElement.clientWidth) * 2 - 1;
 			mouse.y = -(event.offsetY / domElement.clientHeight) * 2 + 1;
-			raycaster.setFromCamera(mouse, controls.object);
+			return
 
 			//左侧目录树关联的变回去
 			for (let i = 0; i < last_emissive_array.length; i++) {
@@ -484,7 +507,7 @@ function init(name, list) {
 function animate2() {
 	requestAnimationFrame(animate2);
 
-	if (water && $('#nav>.menu-area>.water').hasClass('on')) {
+	if (seaActioin) {
 		water.material.uniforms['time'].value += 5.0 / 60.0;
 	}
 
@@ -1081,9 +1104,6 @@ function create_view_controller() {
 		camera = new THREE.PerspectiveCamera(60, 1, 1, 2000);
 		camera.position.set(0, 100, 0);
 
-		// light = new THREE.PointLight( 0xffffff, 3, 230 );
-		// camera.add(light)
-		// scene.add(camera)
 
 		raycaster = new THREE.Raycaster();
 		mouse = new THREE.Vector2();
@@ -1380,3 +1400,55 @@ function explode_recover() {
 	expl(scene.children[3], 0)
 
 }
+
+
+let testJson = {
+    ":REV0": "0",
+    ":REV1": "1",
+    ":REV2": "2",
+    ":REV3": "3",
+    ":REV4": "4",
+    ":REV5": "5",
+    ":REV6": "6",
+    ":REV7": "7",
+    ":REV8": "8",
+    ":REV9": "9",
+    Bore: "300",
+    Built: "false",
+    Ccentre: "0",
+    Cclass: "0",
+    Deldsg: "FALSE",
+    Erection: "0",
+    Jmaximum: "0",
+    Lissue: "false",
+    Lock: "false",
+    Name: "=16585/4944",
+    Owner: "/EDP-X-2001A/B",
+    Pmaximum: "0",
+    Pressure: "0",
+    Pspec: "/A1A",
+    Rev: "-1",
+    Rlstored: "Unset",
+    Safclass: "0",
+    Shop: "false",
+    Smaximum: "0",
+    Temperature: "-100000",
+    Type: "PIPE",
+    Wmaximum: "0"};
+
+(function setInfoPanel(json){
+
+    let array = Object.keys(json);
+    let len = array.length;
+
+    let str = "";
+    for (let i = 0; i < len; i++) {
+		let e = array[i];
+		let newElement  = (e[0]!=":") ? e : e.substr(1);//删除数据键值上第一位是冒号的符号
+        str += "<li><div>"+newElement+"</div>";
+        str += "<span>"+json[e]+"</span></li>"; 
+    };
+
+    $("#right-info-panel > .info-panel").html(str);
+
+}(testJson))
