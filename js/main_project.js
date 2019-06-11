@@ -242,10 +242,10 @@ function LoadingBox(text, config) {
 function loadingPDMS(rvmUrl,attUrl) {
 	let loadingBox = new LoadingBox('加载');
 	new PDMSLoader().load(
-		// "./js/rvm_att/rvmData1.js",
-		// "",
-		rvmUrl,
-		attUrl,
+		"./js/rvm_att/项目120190611060651out.js",
+		"",
+		// rvmUrl,
+		// attUrl,
 		function (data) {
 			console.log(data);
 			// if (data.dataType == "group") scene.add(data.data);
@@ -488,6 +488,8 @@ function init(name, list) {
 	// grid.material.opacity = 0.2;
 	// grid.material.transparent = true;
 	// scene.add(grid);
+
+	loadingPDMS();
 
 	onWindowResize()
 	window.addEventListener('resize', onWindowResize, false);
