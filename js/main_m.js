@@ -57,11 +57,23 @@ window.onload = function(){
 			$("#notChooseRvm").css("display","flex");
 		}
 		else{
-			//有att文件
-			if($("#chooseFile>.content>.att>.fileList>span").hasClass("active")){
-				postATT();
-			}
-			postRVM();
+			// 加载页面
+			const loadingBox = new LoadingBox('请求文件', { hasProgress : false});
+
+			// 获取RVM路径
+			postRVM(function(responseRVMUrl){
+				//有att文件
+				if($("#chooseFile>.content>.att>.fileList>span").hasClass("active")){
+					// 获取ATT路径
+					postATT(function(responseATTUrl){
+						loadingPDMS(responseRVMUrl,responseATTUrl)
+					});
+				} else {
+					loadingPDMS(responseRVMUrl,"")
+				};
+				$("#chooseFile>.title>.delete,.submissionArea>.buttonPane>#no").click();
+				loadingBox.remove();
+			});
 		}
 	});
 	
@@ -72,7 +84,7 @@ window.onload = function(){
 	$("#chooseFile>.content>div.rvm>.fileList").on("click",">span",function(e){
 		$("#chooseFile>.content>div.rvm>.fileList>span").removeClass("active");
 		$(this).addClass("active");
-		console.log(e);
+		//console.log(e);
 		if($("#yes").attr("disabled") == "disabled"){
 			$("#yes").attr("disabled",false);
 			$("#yes").css({
@@ -117,24 +129,28 @@ window.onload = function(){
 	//文件提交
 	$("#uploadFileDiv>.footer>button").click(function(){
 		var currentFileType = $("#uploadFileBg").attr("fileType");
-		
-		var uploadFileName = $('#fileUploadInput').get(0).files[0].name;
-		var nameArray = uploadFileName.split(".");
-
 		if($('#fileUploadInput').get(0).files[0] == null){
 			alert("请选择文件");
 		}
-		else if(!(nameArray[1]=="ATT"||nameArray[1]=="RVM")){
-			alert('只能上传att和rvm的文件');
-		}
 		else{
-			var ufile =$('#fileUploadInput').get(0).files[0];//两者皆可
-			//var uploadFiless = document.getElementById("fileUploadInput").files[0];
-			var formdata = new FormData();
-			formdata.append("file",ufile);
-			$("#uploadFileBg").hide();
-			$("#loadingBG").show();
-			uploadFiles(formdata);
+			var uploadFileName = $('#fileUploadInput').get(0).files[0].name;
+			var nameArray = uploadFileName.split(".");
+			//转换
+			var fileTrueName = nameArray[1];
+			var fileLowerCase = fileTrueName.toLowerCase();
+			console.log(fileLowerCase);
+			if(!(fileLowerCase=="att"||fileLowerCase=="rvm")){
+				alert('只能上传ATT和rvm的文件');
+			}
+			else{
+				var ufile =$('#fileUploadInput').get(0).files[0];//两者皆可
+				//var uploadFiless = document.getElementById("fileUploadInput").files[0];
+				var formdata = new FormData();
+				formdata.append("file",ufile);
+				$("#uploadFileBg").hide();
+				$("#loadingBG").show();
+				uploadFiles(formdata);
+			}
 		}
 	});
 	//关闭上传文件
@@ -157,6 +173,7 @@ function arrayMnplton(fileArray){
 			rvmFiles.push(fileArray[i].RVM);
 		}
 	}
+	console.log(rvmFiles);
 	nofileOrNot(0,rvmFiles);
 	nofileOrNot(1,attFiles);
 }
@@ -167,6 +184,10 @@ function nofileOrNot(sig,files){
 		case 0:
 			if(files.length!=0){
 				$("#chooseFile>.content>.rvm>.noFile").hide();
+
+				$("#chooseFile>.content>.rvm>.fileList").css({
+					"display":"flex !important"
+				});
 				showFileName("rvm>.fileList",files);
 			}
 			else{
@@ -177,6 +198,9 @@ function nofileOrNot(sig,files){
 		case 1:
 			if(files.length!=0){
 				$("#chooseFile>.content>.att>.noFile").hide();
+				$("#chooseFile>.content>.rvm>.fileList").css({
+					"display":"flex"
+				});
 				showFileName("att>.fileList",files);
 			}
 			else{
@@ -231,7 +255,7 @@ function uploadFiles(formData){
 }
 
 //上传att文件
-function postATT(){
+function postATT(callback){
 	var attPath = $("#chooseFile>.content>.att>.fileList>span.active").text();
 	var attPathRequest = "{'ATT':'"+attPath+"'}";
 	console.log(attPathRequest);
@@ -248,6 +272,8 @@ function postATT(){
 			console.log(eval(data));
 			var responseAttURl = eval(data);
 			//here ...
+			console.log(responseAttURl);
+			callback(responseAttURl);
 			
 		},
 		error:function(e){
@@ -257,7 +283,7 @@ function postATT(){
 }
 
 //上传rvm文件
-function postRVM(){
+function postRVM(callback){
 	var rvmPath = $("#chooseFile>.content>.rvm>.fileList>span.active").text();
 	//强制转换flag
 	var transformationFlag;
@@ -283,9 +309,24 @@ function postRVM(){
 		},
 		success:function(data){
 			console.log("rvm");
-			console.log(eval(data));
-			var responseRVMUrl = eval(data);
+			//console.log(data);
+			var responseObject = JSON.parse(data);
+			//console.log(responseObject);
+			//console.log(data.path);
+			//console.log(eval(data));
+			//var responseData = eval(data);
+			//后台解析时间(单位：毫秒)
+			var analysisTime = responseObject.time;
+			//开始时间
+			var currentDate = new Date();
+			var beginTime = currentDate.getTime();
+			console.log(beginTime);
+			//rvm路径
+			var responseRVMUrl = responseObject.path;
+			//var responseRVMUrl = eval(data);
 			//here ...
+			console.log(responseRVMUrl);
+			callback(responseRVMUrl);
 			
 		},
 		error:function(e){
@@ -303,7 +344,9 @@ function getAllFiles(){
 		ansyc:true,
 		data:{},
 		success:function(data){
+			//console.log(data);
 			var allFiles = eval(data);
+			console.log(allFiles);
 			arrayMnplton(allFiles);
 		},
 		error:function(e){

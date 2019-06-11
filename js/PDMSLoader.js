@@ -515,6 +515,8 @@ function PDMSLoader() {
             },
             success: function (data) { //成功
 
+                console.log(data);
+
                 forEachRVMData(data);
                 analysisATT(attUrl, onProgress, onLoad, onError);
 
@@ -530,10 +532,8 @@ function PDMSLoader() {
                     geoCountArray: geoCountArray//几何点索引数组
                 });
 
-
-                console.log(geoIdArray, geoCountArray);
-
-
+                // console.log(geoIdArray,geoCountArray);
+                
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
@@ -618,21 +618,27 @@ function PDMSLoader() {
 
             if (element.C > 50) element.C = 0;
 
+            let lastCount = geoCount;//记录上次的计数
+
             for (let j = 0; j < PRIMSNum; j++) {
 
-                setPDMSMember(element.PRIMS[j], colorArray[element.C], element);
+                setPDMSMember(element.PRIMS[j], colorArray[element.C], element.ID);
 
             };
 
-            geoIdArray.push(element.ID); //几何id数组
-            geoCountArray.push(geoCount);//几何点索引数组
+            if(geoCount - lastCount > 0){
+                geoIdArray.push(element.ID); //几何id数组
+				geoCountArray.push(geoCount);//几何点索引数组
+            };
 
         };
     };
 
     // 设置PDMS的每一个部位的构建
-    function setPDMSMember(PRIM, color) {
+	
+    function setPDMSMember(PRIM, color, id) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
+		// if(PRIM.TYPE == 10) console.log(10);
 
         if (geo) {
 
@@ -712,18 +718,35 @@ function PDMSLoader() {
             };
 
             geo.addAttribute('color', colorAtt);
+			
+            //=================pick color=========================
+            let pick_colorAtt = new THREE.BufferAttribute(
+                new Float32Array(count * 3), 3
+            );
+			
+			var col = new THREE.Color;
+			col.setHex(geoCountArray.length)
+			console.log(geoCountArray.length)
+            for (let i = 0; i < count; i++) {
+                pick_colorAtt.setXYZ(i, col.r, col.g, col.b);
+            };
 
+            geo.addAttribute('pickingColor', pick_colorAtt);
+
+			pickingMaterial = new THREE.ShaderMaterial( {
+				vertexShader: THREE.pickShader.vertexShader,
+				fragmentShader: THREE.pickShader.fragmentShader
+			} );
             //============记录顶点索引对应的geo======================
 
-            geoCount = geoCount + count * 3;
-
+            geoCount = geoCount + count;
 
         };
 
     };
 
     function mergeBufferGeometries() {
-        // console.log(geometries);
+        console.log(geometries);
 
         let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
         // let colorAtt = new THREE.BufferAttribute(
@@ -815,7 +838,7 @@ function PDMSLoader() {
             case 10:  //Line 
                 break;
             case 11:  //FaceGroup
-                geo = FaceGroupGeometry(arr);
+                // geo = FaceGroupGeometry(arr);
                 break;
         };
 
