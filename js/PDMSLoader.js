@@ -167,64 +167,75 @@ function PDMSLoader() {
         const vertices = this.vertices;
         const length = vertices.length;
 
-        // 全部向上偏移高度
-        // for (let i = 0; i < length; i++) {
-        //     const vector = vertices[i];
-        //     vector.y += height;
-        // };
+        /**
+         * @name 根据投影角度获取平面的法向量
+         * @param {*} x_shear 在x轴上的投影角度
+         * @param {*} y_shear 在y轴上的投影角度
+         */
+        function getNormalVector(x_shear, y_shear) {
+            // 计算实际角度
+            const radian_a_true = Math.atan(Math.tan(y_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(x_shear), 2))));
+            const radian_b_true = Math.atan(Math.tan(x_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(y_shear), 2))));
+
+            // 计算轴线在底面投影的边长
+            const side_a = Math.cos(radian_a_true);
+            const side_b = Math.cos(radian_b_true);
+
+            // 计算轴线在底面投影和坐标轴形成的角度
+            const radian_a = Math.atan(side_b / side_a);
+            // const radian_b = Math.atan(side_a / side_b);
+
+            // 计算轴线在底边投影长度
+            const side_c_pow = Math.pow(side_a, 2) + Math.pow(side_b, 2);
+            const side_c = Math.sqrt(side_c_pow);
+
+            // 计算轴线和底边的角度
+            const radian_c = Math.atan(Math.sqrt(1 - side_c_pow) / side_c);
+
+            // 计算法向量的B值
+            const B = -Math.pow(Math.cos(radian_c), 2) * Math.sin(radian_c);
+
+            // 计算法向量在底边的投影长度
+            const side_c_result = Math.cos(radian_c) * Math.pow(Math.sin(radian_c), 2);
+
+            // 计算法向量的A、C值
+            const A = side_c_result * Math.cos(radian_a);
+            const C = -side_c_result * Math.sin(radian_a);
+
+            return {A, B, C}
+        }
+
+        /**
+         * @name 根据法向量对点位进行剪切变换
+         * @param {*} vertices 目标点位组
+         * @param {*} center 中心点位
+         * @param {*} normal 法向量
+         */
+        function applyShear(vertices, center, normal) {
+            // 点法式获取顶部平面方程
+            // B(Y-y0) + A(X-x0) + C(z-z0) = 0
+            for (let i = 0; i < vertices.length; i++) {
+                const vector = vertices[i];
+                vector.y = (normal.A * (center.x - vector.x) + normal.C * (center.z - vector.z)) / normal.B + center.y
+            }
+        }
 
         // 获取顶部点
         const top_vertices = vertices.slice(0, length / 2 - 1);
         const center_top = vertices[length - 2];
         top_vertices.push(center_top);
 
+        const top_normal = getNormalVector(top_x_shear, top_y_shear);
+        applyShear(top_vertices, center_top, top_normal);
 
-        const radian_a_true = Math.atan(Math.tan(top_y_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(top_x_shear), 2))));
-        const radian_b_true = Math.atan(Math.tan(top_x_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(top_y_shear), 2))));
-        const side_a = Math.cos(radian_a_true);
-        const side_b = Math.cos(radian_b_true);
-        console.log('side_a', side_a);
-        console.log('side_b', side_b);
-
-        const radian_a = Math.atan(side_b / side_a);
-        const radian_b = Math.atan(side_a / side_b);
-        console.log('radian_a', radian_a);
-
-        const side_c_pow = Math.pow(side_a, 2) + Math.pow(side_b, 2);
-        const side_c = Math.sqrt(side_c_pow);
-        console.log('side_c_pow', side_c_pow);
-        console.log('side_c', side_c);
-
-        const radian_c = Math.atan(Math.sqrt(1 - side_c_pow) / side_c);
-        console.log('radian_c', radian_c);
-
-        const B = Math.pow(Math.cos(radian_c), 2) * Math.sin(radian_c);
-
-        const side_c_result = Math.cos(radian_c) - Math.cos(radian_c) * Math.pow(Math.sin(radian_c), 2);
-
-        const A = side_c_result * Math.cos(radian_a);
-        const C = side_c_result * Math.sin(radian_a);
-
-        console.log('A', A);
-        console.log('B', B);
-        console.log('C', C);
-        // 点法式获取顶部平面方程
-        // B(Y-y0) = -A(X-x0) - C(z-z0)
-        // Y-center_top.y = z - center_top.z + X-center_top.x;
-        for (let i = 0; i < top_vertices.length; i++) {
-            const vector = top_vertices[i];
-            vector.y = (A * (center_top.x - vector.x) + C * (center_top.z - vector.z)) / B + center_top.y
-        }
 
         // 获取底部顶点
         const bottom_vertices = vertices.slice(length / 2 - 1, length - 2);
         const center_bottom = vertices[length - 1]
         bottom_vertices.push(center_bottom);
 
-        for (let i = 0; i < bottom_vertices.length; i++) {
-            const vector = bottom_vertices[i];
-            vector.y = vector.x - center_bottom.x + vector.z - center_bottom.z + center_bottom.y
-        }
+        const bottom_normal = getNormalVector(bottom_x_shear, bottom_y_shear);
+        applyShear(bottom_vertices, center_bottom, bottom_normal);
     };
     THREE.SlopedCylinderGeometry.prototype = Object.create(THREE.CylinderGeometry.prototype);
     THREE.SlopedCylinderGeometry.prototype.constructor = THREE.SlopedCylinderGeometry;
@@ -787,18 +798,21 @@ function PDMSLoader() {
                 geo = DishGeometry(false, arr[0], arr[1]);
                 break;
             case 7:   //Snout        
-                // if (arr.length == 9 && arr[3] == 0 && arr[4] == 0 && (arr[5] != 0 || arr[6] != 0 || arr[7] != 0 || arr[8] != 0)) {
-                //     console.log('SlopedCylinder', arr);
-                //     geo = new THREE.SlopedCylinderGeometry(arr[0], arr[2], arr[5], arr[6], arr[7], arr[8]);
-                // } else {
-                //     if (arr[3] == 0 && arr[4] == 0 && arr[5] == 0 && arr[6] == 0 && arr[7] == 0 && arr[8] == 0) {
-                //         // console.log('Cone', arr);
-                //         geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
-                //     } else {
-                //         // console.log('Snout', arr);
-                //         geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
-                //     }
-                // }
+                if (arr.length == 9 && arr[3] == 0 && arr[4] == 0 && (arr[5] != 0 || arr[6] != 0 || arr[7] != 0 || arr[8] != 0)) {
+                    // console.log('SlopedCylinder', arr);
+                    geo = new THREE.SlopedCylinderGeometry(arr[0], arr[2], arr[5], arr[6], arr[7], arr[8]);
+                } else {
+                    if (arr[3] == 0 && arr[4] == 0 && arr[5] == 0 && arr[6] == 0 && arr[7] == 0 && arr[8] == 0) {
+                        // console.log('Cone', arr);
+                        geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
+                        geo.type = 'ConeGeometry'
+                    } else {
+                        // console.log('Snout', arr);
+                        geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
+                    }
+                }
+
+                if (geo.faces.length == 0) return null
                 break;
             case 8:  //Cylinder 
                 geo = new THREE.CylinderBufferGeometry(arr[0], arr[0], arr[1], 8);
