@@ -93,6 +93,8 @@ $("#controller-tool-bar > .view-switch-btn > .view-btn").on('click', function ()
 function downloadGLTF(model, fileName) {
 	const exporter = new THREE.GLTFExporter();
 
+	const loadingBox = new LoadingBox('导出', { hasProgress : false});
+
 	exporter.parse(
 		model,
 		function (result) {
@@ -102,6 +104,8 @@ function downloadGLTF(model, fileName) {
 				const text = JSON.stringify(result);
 				downloadString(text, fileName + '.gltf')
 			}
+
+			loadingBox.remove();
 		},
 		{ binary: true }
 	)
@@ -155,7 +159,7 @@ function downloadModel(blob, filename) {
  * @name loading界面对象
  * @param {string} text 初始化文本
  */
-function LoadingBox(text) {
+function LoadingBox(text, config) {
 	// 界面外框
 	const element = document.createElement('div');
 	$('body').append(element);
@@ -182,7 +186,7 @@ function LoadingBox(text) {
 	// 文字
 	const text_dom = document.createElement('p');
 	$(element).append(text_dom);
-	$(text_dom).text(text).css({
+	$(text_dom).text( text ? '正在' + text + '...' : '正在加载...').css({
 		'font-size': '20px',
 		'font-weight': 'bold',
 		'margin-top': '20px',
@@ -190,20 +194,28 @@ function LoadingBox(text) {
 
 	// 进度条外框
 	const progress = document.createElement('div');
-	$(element).append(progress);
-	$(progress).addClass('progress').css({
-		'margin-top': '20px',
-		'width': '50%',
-		'display': 'flex',
-	})
 
-	// 进度条进度区
-	for (let i = 0; i < 100; i++) {
-		const span = document.createElement('span');
-		$(progress).append(span);
-		$(span).css('width', '100%');
+	if (config && config.hasProgress == false) {
+		this.hasProgress = false;
+	} else {
+		this.hasProgress = true;
 	}
+
+	if (this.hasProgress) {
+		$(element).append(progress);
+		$(progress).addClass('progress').css({
+			'margin-top': '20px',
+			'width': '50%',
+			'display': 'flex',
+		})
 	
+		// 进度条进度区
+		for (let i = 0; i < 100; i++) {
+			const span = document.createElement('span');
+			$(progress).append(span);
+			$(span).css('width', '100%');
+		}
+	}
 
 	// 更新显示文本
 	this.updateText = function(text) {
@@ -213,8 +225,8 @@ function LoadingBox(text) {
 	// 更新进度条
 	this.updateRange = function(range) {
 		range = Math.round(range * 100);
-		this.updateText('已加载' + range + '%');
-		$(progress).find('>span:nth-child(-n+'+ range +')').css('background-color', '#337ab7');
+		this.updateText('已' + text + range + '%');
+		if (this.hasProgress) $(progress).find('>span:nth-child(-n+'+ range +')').css('background-color', '#337ab7');
 	}
 
 	// 移除进度界面
@@ -260,6 +272,8 @@ $(function() {
 // back.onclick = function() {
 // 	window.location.href= "index.html";
 // }
+
+let rvmOriginal;
 
 let water;
 let seaActioin = false;
@@ -409,7 +423,7 @@ function init(name, list) {
 	// grid.material.opacity = 0.2;
 	// grid.material.transparent = true;
 	// scene.add(grid);
-	let loadingBox = new LoadingBox('加载中...');
+	let loadingBox = new LoadingBox('加载');
 	new PDMSLoader().load(
 		"./js/rvm_att/rvmData1.js",
 		// "./js/rvm_att/cssout.js",
@@ -417,7 +431,35 @@ function init(name, list) {
 		function (data) {
 			console.log(data);
 			// if (data.dataType == "group") scene.add(data.data);
-			if (data.PDMSObject) scene.add(data.PDMSObject);
+			// if (data.PDMSObject) scene.add(data.PDMSObject);
+			if (data.rvmTree) {
+				const list = [];
+				rvmOriginal = data.original;
+				fill_tree_list(list, data.rvmTree);
+				mulushu(list);
+			}
+			if (data.PDMSObject) {
+				scene.add(data.PDMSObject);
+
+				$('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
+
+					let target = data.PDMSObject;
+					let fileName = data.PDMSObject.name == '' ? 'PDMS导出文件' : data.PDMSObject.name;
+
+					if (selected_mesh) {
+						target = selected_mesh;
+
+						let with_name_parent = selected_mesh;
+						while (with_name_parent.name == '') {
+							with_name_parent = with_name_parent.parent;
+						}
+
+						fileName = with_name_parent.name;
+					}
+
+					downloadGLTF(target, fileName);
+				});
+			};
 			loadingBox.remove();
 		},
 		function (evt) {
@@ -517,6 +559,31 @@ function animate2() {
 	}
 }
 
+/**
+ * @name 获取目录树列表信息
+ * @param {array} list 待填充的数组
+ * @param {*} data 待解析数据
+ */
+function fill_tree_list(list, data) {
+	const new_data = {
+		id: data.ID,
+		pId: data.PID,
+		name: data.NAME
+	}
+	if (data.children && data.children.length > 0) {
+		new_data.isParent = true;
+		const length = data.children.length
+		for (let i = 0; i < length; i++) {
+			const item = data.children[i];
+			fill_tree_list(list, item);
+		}
+	} else {
+		new_data.isParent = false;
+	}
+
+	list.push(new_data);
+};
+
 //提取信息生成目录树
 function mulushu(list) {
 	var setting = {
@@ -549,23 +616,24 @@ function mulushu(list) {
 
 	var zTree = $.fn.zTree.init($("#treebg"), setting, zNodes);
 
-	setTimeout(function () {
-		var treeObj = $.fn.zTree.getZTreeObj("treebg");
-		var nodes = treeObj.getNodes();
-		for (var i = 0; i < nodes.length; i++) { //设置节点展开
-			treeObj.expandNode(nodes[i], true, false, true);
-		}
-		addSubNode(nodes[0]);
-		console.log('自动展开')
-	}, 3000)
+	// setTimeout(function () {
+	var treeObj = $.fn.zTree.getZTreeObj("treebg");
+	var nodes = treeObj.getNodes();
+	for (var i = 0; i < nodes.length; i++) { //设置节点展开
+		treeObj.expandNode(nodes[i], true, false, true);
+	}
+	// addSubNode(nodes[0]);
+	console.log('自动展开')
+	// }, 3000)
 	function nodeClick(event, treeId, treeNode, clickFlag) {
-		//console.log(treeNode);
-		for (let i = 0; i < last_emissive_array.length; i++) {
-			last_emissive_array[i].material.emissive.r = 0;
-		}
-		lightallchildren(model.getObjectByName(treeNode.name));
-		if (selected_mesh)
-			selected_mesh.material.emissive.r = 0;
+		console.log(treeNode);
+		console.log(rvmOriginal[treeNode.id]);
+		
+		// for (let i = 0; i < last_emissive_array.length; i++) {
+		// 	last_emissive_array[i].material.emissive.r = 0;
+		// }
+		// lightallchildren(model.getObjectByName(treeNode.name));
+		// if (selected_mesh) selected_mesh.material.emissive.r = 0;
 	}
 
 	function addSubNode(treeNode) {
@@ -597,6 +665,19 @@ function mulushu(list) {
 		}
 	}
 }
+
+// function (){
+// 	function recursion(n){
+// 		if((n.children || []).length == 0) {
+// 			cfg.oids[n.id] = n.id
+// 		}
+// 		for(let i = 0; i < (n.children || []).length; ++i) {
+// 			recursion(n.children[i]);
+// 		}
+
+// 	};
+
+// }
 
 //载入模型
 function buildmodel(list) {

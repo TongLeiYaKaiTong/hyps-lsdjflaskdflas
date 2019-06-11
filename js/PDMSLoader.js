@@ -203,8 +203,8 @@ function PDMSLoader() {
             const C = -side_c_result * Math.sin(radian_a);
 
             return {
-                A: A, 
-                B: B, 
+                A: A,
+                B: B,
                 C: C
             }
         }
@@ -526,11 +526,13 @@ function PDMSLoader() {
                     rvmTree: formatRVMData(data),
                     boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
                     center: getCenter(),
+                    geoIdArray: geoIdArray, //几何id数组
+                    geoCountArray: geoCountArray//几何点索引数组
                 });
 
 
-                console.log(geoIdArray,geoCountArray);
-                
+                console.log(geoIdArray, geoCountArray);
+
 
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
@@ -618,18 +620,15 @@ function PDMSLoader() {
 
             for (let j = 0; j < PRIMSNum; j++) {
 
-                setPDMSMember(element.PRIMS[j], colorArray[element.C], element);
+                setPDMSMember(element.PRIMS[j], colorArray[element.C], element.ID);
 
             };
-
-            geoIdArray.push(element.ID); //几何id数组
-            geoCountArray.push(geoCount);//几何点索引数组
 
         };
     };
 
     // 设置PDMS的每一个部位的构建
-    function setPDMSMember(PRIM, color, element) {
+    function setPDMSMember(PRIM, color, id) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
 
         if (geo) {
@@ -684,6 +683,7 @@ function PDMSLoader() {
                 geo = b_geo;
             };
             // console.log(geo)
+
             if (geo.attributes.hasOwnProperty('color'))
                 delete (geo.attributes.color);
 
@@ -713,6 +713,9 @@ function PDMSLoader() {
             //============记录顶点索引对应的geo======================
 
             geoCount = geoCount + count * 3;
+
+            geoIdArray.push(id); //几何id数组
+            geoCountArray.push(geoCount);//几何点索引数组
 
 
         };
@@ -764,11 +767,6 @@ function PDMSLoader() {
     function getGeometryByGeotype(type, arr) {
 
         let geo;//几何
-
-        // if (type == 11) return geo;
-
-
-
 
         switch (type) {
             case 1:   //Pyramid 
