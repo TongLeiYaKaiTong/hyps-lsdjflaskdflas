@@ -93,6 +93,8 @@ $("#controller-tool-bar > .view-switch-btn > .view-btn").on('click', function ()
 function downloadGLTF(model, fileName) {
 	const exporter = new THREE.GLTFExporter();
 
+	const loadingBox = new LoadingBox('导出', { hasProgress : false});
+
 	exporter.parse(
 		model,
 		function (result) {
@@ -102,6 +104,8 @@ function downloadGLTF(model, fileName) {
 				const text = JSON.stringify(result);
 				downloadString(text, fileName + '.gltf')
 			}
+
+			loadingBox.remove();
 		},
 		{ binary: true }
 	)
@@ -155,7 +159,7 @@ function downloadModel(blob, filename) {
  * @name loading界面对象
  * @param {string} text 初始化文本
  */
-function LoadingBox(text) {
+function LoadingBox(text, config) {
 	// 界面外框
 	const element = document.createElement('div');
 	$('body').append(element);
@@ -182,7 +186,7 @@ function LoadingBox(text) {
 	// 文字
 	const text_dom = document.createElement('p');
 	$(element).append(text_dom);
-	$(text_dom).text(text).css({
+	$(text_dom).text( text ? '正在' + text + '...' : '正在加载...').css({
 		'font-size': '20px',
 		'font-weight': 'bold',
 		'margin-top': '20px',
@@ -190,20 +194,28 @@ function LoadingBox(text) {
 
 	// 进度条外框
 	const progress = document.createElement('div');
-	$(element).append(progress);
-	$(progress).addClass('progress').css({
-		'margin-top': '20px',
-		'width': '50%',
-		'display': 'flex',
-	})
 
-	// 进度条进度区
-	for (let i = 0; i < 100; i++) {
-		const span = document.createElement('span');
-		$(progress).append(span);
-		$(span).css('width', '100%');
+	if (config && config.hasProgress == false) {
+		this.hasProgress = false;
+	} else {
+		this.hasProgress = true;
 	}
+
+	if (this.hasProgress) {
+		$(element).append(progress);
+		$(progress).addClass('progress').css({
+			'margin-top': '20px',
+			'width': '50%',
+			'display': 'flex',
+		})
 	
+		// 进度条进度区
+		for (let i = 0; i < 100; i++) {
+			const span = document.createElement('span');
+			$(progress).append(span);
+			$(span).css('width', '100%');
+		}
+	}
 
 	// 更新显示文本
 	this.updateText = function(text) {
@@ -213,8 +225,8 @@ function LoadingBox(text) {
 	// 更新进度条
 	this.updateRange = function(range) {
 		range = Math.round(range * 100);
-		this.updateText('已加载' + range + '%');
-		$(progress).find('>span:nth-child(-n+'+ range +')').css('background-color', '#337ab7');
+		this.updateText('已' + text + range + '%');
+		if (this.hasProgress) $(progress).find('>span:nth-child(-n+'+ range +')').css('background-color', '#337ab7');
 	}
 
 	// 移除进度界面
@@ -409,7 +421,7 @@ function init(name, list) {
 	// grid.material.opacity = 0.2;
 	// grid.material.transparent = true;
 	// scene.add(grid);
-	let loadingBox = new LoadingBox('加载中...');
+	let loadingBox = new LoadingBox('加载');
 	new PDMSLoader().load(
 		"./js/rvm_att/rvmData1.js",
 		// "./js/rvm_att/cssout.js",
@@ -417,7 +429,35 @@ function init(name, list) {
 		function (data) {
 			console.log(data);
 			// if (data.dataType == "group") scene.add(data.data);
-			if (data.PDMSObject) scene.add(data.PDMSObject);
+			if (data.PDMSObject) {
+				scene.add(data.PDMSObject);
+
+				$('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
+					// const this_key = $(this).attr('data-key');
+			
+					let target = data.PDMSObject;
+					let fileName = data.PDMSObject.name == ''? 'PDMS导出文件': data.PDMSObject.name;
+			
+					if (selected_mesh) {
+						target = selected_mesh;
+			
+						let with_name_parent = selected_mesh;
+						while (with_name_parent.name == '') {
+							with_name_parent = with_name_parent.parent;
+						}
+			
+						fileName = with_name_parent.name;
+					}
+			
+					// if (this_key == 'obj') {
+					// 	downloadOBJ(target, fileName);
+					// } else if (this_key == 'gltf') {
+						downloadGLTF(target, fileName);
+					// } else if (this_key == 'collada') {
+					// 	exportCollada(target, fileName)
+					// }
+				})
+			};
 			loadingBox.remove();
 		},
 		function (evt) {
