@@ -6,7 +6,10 @@ function PDMSLoader() {
 
     let geometries = [];
 
-    let colors = [];
+    let startIndex = 0, endIndex = -1;
+
+    let num = 0;
+    let objectAA = {};
 
     let maxX, maxY, maxZ, minX, minY, minZ;
 
@@ -76,7 +79,7 @@ function PDMSLoader() {
      */
     function DishGeometry(cover, radius, height, widthSegments, heightSegments) {
 
-        widthSegments = widthSegments || 32;
+        widthSegments = widthSegments || 16;
         heightSegments = heightSegments || 4;
 
         let r = Math.floor(((height * height) + (radius * radius)) / (2 * height)); //半径 
@@ -144,18 +147,20 @@ function PDMSLoader() {
 
     /** 
      * @name SlopedCylinder几何
-     * @param {*} diameter 直径
+     * @param {*} radius 半径
      * @param {*} height 高
-     * @param {*} x_offset x偏移量
-     * @param {*} z_offset z偏移量
+     * @param {*} top_x_shear 顶面长半径和 x 轴夹角
+     * @param {*} top_y_shear 顶面长半径和 y 轴夹角
+     * @param {*} bottom_x_shear 底面长半径和 x 轴夹角
+     * @param {*} bottom_y_shear 底面长半径和 y 轴夹角
      */
-    THREE.SlopedCylinderGeometry = function SlopedCylinderGeometry(diameter, height, top_x_shear, top_y_shear, bottom_x_shear, bottom_y_shear) {
+    THREE.SlopedCylinderGeometry = function SlopedCylinderGeometry(radius, height, top_x_shear, top_y_shear, bottom_x_shear, bottom_y_shear) {
         top_x_shear = top_x_shear || 0;
         top_y_shear = top_y_shear || 0;
         bottom_x_shear = bottom_x_shear || 0;
         bottom_y_shear = bottom_y_shear || 0;
 
-        THREE.CylinderGeometry.call(this, diameter, diameter, height, 32);
+        THREE.CylinderGeometry.call(this, radius, radius, height, 32);
 
         this.type = 'SlopedCylinderGeometry';
 
@@ -170,14 +175,56 @@ function PDMSLoader() {
 
         // 获取顶部点
         const top_vertices = vertices.slice(0, length / 2 - 1);
-        top_vertices.push(vertices[length - 2]);
+        const center_top = vertices[length - 2];
+        top_vertices.push(center_top);
 
+
+        const radian_a_true = Math.atan(Math.tan(top_y_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(top_x_shear), 2))));
+        const radian_b_true = Math.atan(Math.tan(top_x_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(top_y_shear), 2))));
+        const side_a = Math.cos(radian_a_true);
+        const side_b = Math.cos(radian_b_true);
+        console.log('side_a', side_a);
+        console.log('side_b', side_b);
+
+        const radian_a = Math.atan(side_b / side_a);
+        const radian_b = Math.atan(side_a / side_b);
+        console.log('radian_a', radian_a);
+
+        const side_c_pow = Math.pow(side_a, 2) + Math.pow(side_b, 2);
+        const side_c = Math.sqrt(side_c_pow);
+        console.log('side_c_pow', side_c_pow);
+        console.log('side_c', side_c);
+
+        const radian_c = Math.atan(Math.sqrt(1 - side_c_pow) / side_c);
+        console.log('radian_c', radian_c);
+
+        const B = Math.pow(Math.cos(radian_c), 2) * Math.sin(radian_c);
+
+        const side_c_result = Math.cos(radian_c) - Math.cos(radian_c) * Math.pow(Math.sin(radian_c), 2);
+
+        const A = side_c_result * Math.cos(radian_a);
+        const C = side_c_result * Math.sin(radian_a);
+
+        console.log('A', A);
+        console.log('B', B);
+        console.log('C', C);
+        // 点法式获取顶部平面方程
+        // B(Y-y0) = -A(X-x0) - C(z-z0)
+        // Y-center_top.y = z - center_top.z + X-center_top.x;
+        for (let i = 0; i < top_vertices.length; i++) {
+            const vector = top_vertices[i];
+            vector.y = (A * (center_top.x - vector.x) + C * (center_top.z - vector.z)) / B + center_top.y
+        }
 
         // 获取底部顶点
         const bottom_vertices = vertices.slice(length / 2 - 1, length - 2);
-        bottom_vertices.push(vertices[length - 1]);
+        const center_bottom = vertices[length - 1]
+        bottom_vertices.push(center_bottom);
 
-
+        for (let i = 0; i < bottom_vertices.length; i++) {
+            const vector = bottom_vertices[i];
+            vector.y = vector.x - center_bottom.x + vector.z - center_bottom.z + center_bottom.y
+        }
     };
     THREE.SlopedCylinderGeometry.prototype = Object.create(THREE.CylinderGeometry.prototype);
     THREE.SlopedCylinderGeometry.prototype.constructor = THREE.SlopedCylinderGeometry;
@@ -465,6 +512,13 @@ function PDMSLoader() {
                     boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
                     center: getCenter(),
                 });
+
+                console.log(num);
+                console.log(Object.keys(objectAA));
+
+                // for (const obj of Object.keys(objectAA)) {
+                //     if(objectAA[obj].length > 1) console.log(obj,objectAA[obj]);
+                // };
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
@@ -551,7 +605,7 @@ function PDMSLoader() {
 
             for (let j = 0; j < PRIMSNum; j++) {
 
-                setPDMSMember(element.PRIMS[j], colorArray[element.C]);
+                setPDMSMember(element.PRIMS[j], colorArray[element.C], element);
 
             };
 
@@ -559,7 +613,7 @@ function PDMSLoader() {
     };
 
     // 设置PDMS的每一个部位的构建
-    function setPDMSMember(PRIM, color) {
+    function setPDMSMember(PRIM, color, element) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
 
         if (geo) {
@@ -598,15 +652,15 @@ function PDMSLoader() {
 
             // console.log(P)
             geo.translate(P.x, P.y, P.z);
-			
-			
-			
+
+
+
             if (geo.isGeometry) {
-            // if (false) {
+                // if (false) {
                 // console.log(geo)
                 let b_geo = new THREE.BufferGeometry().fromGeometry(geo);
                 var index = [];
-                for (var i = 0; i < 3*geo.faces.length; i++) {
+                for (var i = 0; i < 3 * geo.faces.length; i++) {
                     index.push(i);
                 };
                 b_geo.setIndex(index);
@@ -614,43 +668,48 @@ function PDMSLoader() {
                 geo = b_geo;
             };
             // console.log(geo)
-			if(geo.attributes.hasOwnProperty('color'))
-				delete (geo.attributes.color);
-			
-			if(geo.attributes.hasOwnProperty('uv'))
-				delete (geo.attributes.uv);
-			
-			
-			// let mesh = new THREE.Mesh(geo,new THREE.MeshLambertMaterial())
-			// scene.add(mesh)
-			// return
-			
+            if (geo.attributes.hasOwnProperty('color'))
+                delete (geo.attributes.color);
+
+            if (geo.attributes.hasOwnProperty('uv'))
+                delete (geo.attributes.uv);
+
+
+            // let mesh = new THREE.Mesh(geo,new THREE.MeshLambertMaterial())
+            // scene.add(mesh)
+            // return
+
             geometries.push(geo);
 
             //=================color=========================
-            // console.log(geo);
-            // console.log(color);
-            // console.log(colorFloat32Array);
-
             let count = geo.attributes.position.count;
 
+            let colorAtt = new THREE.BufferAttribute(
+                new Float32Array(count * 3), 3
+            );
+
             for (let i = 0; i < count; i++) {
-                // const element = array[i];
-                // switch (geo.type) {
-                //     case "CylinderBufferGeometry":
-
-                //         colors.push(0, 0, 1);
-                //         break;
-                //     default:
-                //         colors.push(color.r, color.g, color.b);
-                //         break;
-                // };
-                colors.push(color.r, color.g, color.b);
-
-
+                colorAtt.setXYZ(i, color.r, color.g, color.b);
             };
 
+            geo.addAttribute('color', colorAtt);
 
+            //============记录顶点索引对应的geo======================
+
+            startIndex = endIndex + 1;
+            endIndex = startIndex + count * 3 - 1;
+
+            // console.log(startIndex, endIndex);
+
+            // console.log(element.id);
+
+            num++;
+            if (objectAA[element.ID]) {
+                objectAA[element.ID].push(startIndex+"-"+endIndex);
+            } else {
+                objectAA[element.ID] = [];
+                objectAA[element.ID].push(startIndex+"-"+endIndex);
+            };
 
         };
 
@@ -703,7 +762,6 @@ function PDMSLoader() {
 
         let geo;//几何
 
-        // if (type != 10) return geo;
         switch (type) {
             case 1:   //Pyramid 
                 geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
@@ -719,13 +777,24 @@ function PDMSLoader() {
                 geo = CircularTorusGeometry(arr[0], arr[1], arr[2]);
                 break;
             case 5:   //EllipticalDish Dish有遮挡
-                geo = DishGeometry(true, arr[0], arr[1], 16);
+                geo = DishGeometry(true, arr[0], arr[1]);
                 break;
             case 6:   //SphericalDish Dish无遮挡  
-                geo = DishGeometry(false, arr[0], arr[1], 16);
+                geo = DishGeometry(false, arr[0], arr[1]);
                 break;
-            case 7:   //Snout
-                // geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
+            case 7:   //Snout        
+                // if (arr.length == 9 && arr[3] == 0 && arr[4] == 0 && (arr[5] != 0 || arr[6] != 0 || arr[7] != 0 || arr[8] != 0)) {
+                //     console.log('SlopedCylinder', arr);
+                //     geo = new THREE.SlopedCylinderGeometry(arr[0], arr[2], arr[5], arr[6], arr[7], arr[8]);
+                // } else {
+                //     if (arr[3] == 0 && arr[4] == 0 && arr[5] == 0 && arr[6] == 0 && arr[7] == 0 && arr[8] == 0) {
+                //         // console.log('Cone', arr);
+                //         geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
+                //     } else {
+                //         // console.log('Snout', arr);
+                //         geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
+                //     }
+                // }
                 break;
             case 8:  //Cylinder 
                 geo = new THREE.CylinderBufferGeometry(arr[0], arr[0], arr[1], 8);

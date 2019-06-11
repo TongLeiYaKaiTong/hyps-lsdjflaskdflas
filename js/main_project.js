@@ -77,6 +77,17 @@ $('#nav>.menu-area>.view-box>.dropdown-menu>li>a').click(function () {
 	}
 })
 
+// 第一人称和第三人称视角切换
+$("#controller-tool-bar > .view-switch-btn > .view-btn").on('click', function () {
+	$("#controller-tool-bar > .view-switch-btn > .view-btn").removeClass('on');
+	$(this).addClass('on');
+
+	if ($(this).attr('data-key') == "first") {//第一人称
+	} else {//第三人称
+	};
+
+});
+
 
 // 下载gltf格式模型
 function downloadGLTF(model, fileName) {
@@ -244,9 +255,10 @@ $(function() {
 // 	window.location.href= "index.html";
 // }
 
-let water
-let renderer
-let camera
+let water;
+let seaActioin = false;
+let renderer;
+let camera;
 let out_camera;
 let out_controls;
 let view_controller; //视角球控制
@@ -366,15 +378,15 @@ function init(name, list) {
 	updateSun();
 
 	// 海水开关按钮
-	$('#nav>.menu-area>.water>.icon').click(function () {
+	$('#controller-tool-bar>.water>.icon').click(function () {
 		$(this).parent().toggleClass('on');
 
 		if ($(this).parent().hasClass('on')) {
 			scene.background = cubeCamera.renderTarget;
-			water.visible = true;
+			seaActioin = water.visible = true;
 		} else {
 			scene.background = new THREE.Color(0xf0f0f0);
-			water.visible = false;
+			seaActioin = water.visible = false;
 		}
 	})
 
@@ -394,6 +406,7 @@ function init(name, list) {
 
 	new PDMSLoader().load(
 		"./js/rvm_att/rvmData1.js",
+		// "./js/rvm_att/cssout.js",
 		"",
 		function (data) {
 			console.log(data);
@@ -486,7 +499,7 @@ function init(name, list) {
 function animate2() {
 	requestAnimationFrame(animate2);
 
-	if (water && $('#nav>.menu-area>.water').hasClass('on')) {
+	if (seaActioin) {
 		water.material.uniforms['time'].value += 5.0 / 60.0;
 	}
 
@@ -1379,3 +1392,55 @@ function explode_recover() {
 	expl(scene.children[3], 0)
 
 }
+
+
+let testJson = {
+    ":REV0": "0",
+    ":REV1": "1",
+    ":REV2": "2",
+    ":REV3": "3",
+    ":REV4": "4",
+    ":REV5": "5",
+    ":REV6": "6",
+    ":REV7": "7",
+    ":REV8": "8",
+    ":REV9": "9",
+    Bore: "300",
+    Built: "false",
+    Ccentre: "0",
+    Cclass: "0",
+    Deldsg: "FALSE",
+    Erection: "0",
+    Jmaximum: "0",
+    Lissue: "false",
+    Lock: "false",
+    Name: "=16585/4944",
+    Owner: "/EDP-X-2001A/B",
+    Pmaximum: "0",
+    Pressure: "0",
+    Pspec: "/A1A",
+    Rev: "-1",
+    Rlstored: "Unset",
+    Safclass: "0",
+    Shop: "false",
+    Smaximum: "0",
+    Temperature: "-100000",
+    Type: "PIPE",
+    Wmaximum: "0"};
+
+(function setInfoPanel(json){
+
+    let array = Object.keys(json);
+    let len = array.length;
+
+    let str = "";
+    for (let i = 0; i < len; i++) {
+		let e = array[i];
+		let newElement  = (e[0]!=":") ? e : e.substr(1);//删除数据键值上第一位是冒号的符号
+        str += "<li><div>"+newElement+"</div>";
+        str += "<span>"+json[e]+"</span></li>"; 
+    };
+
+    $("#right-info-panel > .info-panel").html(str);
+
+}(testJson))
