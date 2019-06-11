@@ -725,7 +725,8 @@ function PDMSLoader() {
             );
 			
 			var col = new THREE.Color;
-			col.setHex(geoCountArray.length+1)
+			col.setHex(geoCountArray.length)
+			console.log(geoCountArray.length)
             for (let i = 0; i < count; i++) {
                 pick_colorAtt.setXYZ(i, col.r, col.g, col.b);
             };

@@ -555,7 +555,6 @@ function init(name, list) {
 				( pixelBuffer[ 1 ] << 8 ) |
 				( pixelBuffer[ 2 ] );
 				
-			index--;
 			console.log('你点击的构件index是',index)
 			
 			
@@ -585,7 +584,7 @@ function init(name, list) {
 			if(index == 0)
 				start = 0;
 			else 
-				start = geoCountArray[index-1]
+				start = geoCountArray[index-1]+1
 			
 			let end = geoCountArray[index]
 			
