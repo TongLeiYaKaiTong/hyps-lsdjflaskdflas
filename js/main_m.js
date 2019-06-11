@@ -117,24 +117,28 @@ window.onload = function(){
 	//文件提交
 	$("#uploadFileDiv>.footer>button").click(function(){
 		var currentFileType = $("#uploadFileBg").attr("fileType");
-		
-		var uploadFileName = $('#fileUploadInput').get(0).files[0].name;
-		var nameArray = uploadFileName.split(".");
-
 		if($('#fileUploadInput').get(0).files[0] == null){
 			alert("请选择文件");
 		}
-		else if(!(nameArray[1]=="ATT"||nameArray[1]=="RVM")){
-			alert('只能上传att和rvm的文件');
-		}
 		else{
-			var ufile =$('#fileUploadInput').get(0).files[0];//两者皆可
-			//var uploadFiless = document.getElementById("fileUploadInput").files[0];
-			var formdata = new FormData();
-			formdata.append("file",ufile);
-			$("#uploadFileBg").hide();
-			$("#loadingBG").show();
-			uploadFiles(formdata);
+			var uploadFileName = $('#fileUploadInput').get(0).files[0].name;
+			var nameArray = uploadFileName.split(".");
+			//转换
+			var fileTrueName = nameArray[1];
+			var fileLowerCase = fileTrueName.toLowerCase();
+			console.log(fileLowerCase);
+			if(!(fileLowerCase=="att"||fileLowerCase=="rvm")){
+				alert('只能上传ATT和rvm的文件');
+			}
+			else{
+				var ufile =$('#fileUploadInput').get(0).files[0];//两者皆可
+				//var uploadFiless = document.getElementById("fileUploadInput").files[0];
+				var formdata = new FormData();
+				formdata.append("file",ufile);
+				$("#uploadFileBg").hide();
+				$("#loadingBG").show();
+				uploadFiles(formdata);
+			}
 		}
 	});
 	//关闭上传文件
@@ -284,19 +288,19 @@ function postRVM(){
 		},
 		success:function(data){
 			console.log("rvm");
-			console.log(data);
-			var responseObject  =  JSON.parse(data);
-			console.log(responseObject);
+			//console.log(data);
+			var responseObject = JSON.parse(data);
+			//console.log(responseObject);
 			//console.log(data.path);
-			
 			//console.log(eval(data));
 			//var responseData = eval(data);
-			//后台解析时间
+			//后台解析时间(单位：毫秒)
 			var analysisTime = responseObject.time;
 			//开始时间
 			var currentDate = new Date();
 			var beginTime = currentDate.getTime();
 			console.log(beginTime);
+			//rvm路径
 			var responseRVMUrl = responseObject.path;
 			//var responseRVMUrl = eval(data);
 			//here ...
@@ -320,7 +324,7 @@ function getAllFiles(){
 		success:function(data){
 			//console.log(data);
 			var allFiles = eval(data);
-			//console.log(allFiles);
+			console.log(allFiles);
 			arrayMnplton(allFiles);
 		},
 		error:function(e){
