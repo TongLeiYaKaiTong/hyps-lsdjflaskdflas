@@ -202,7 +202,11 @@ function PDMSLoader() {
             const A = side_c_result * Math.cos(radian_a);
             const C = -side_c_result * Math.sin(radian_a);
 
-            return {A, B, C}
+            return {
+                A: A, 
+                B: B, 
+                C: C
+            }
         }
 
         /**
