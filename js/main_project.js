@@ -460,7 +460,7 @@ function init(name, list) {
 			let domElement = renderer.domElement;
 			mouse.x = (event.offsetX / domElement.clientWidth) * 2 - 1;
 			mouse.y = -(event.offsetY / domElement.clientHeight) * 2 + 1;
-			raycaster.setFromCamera(mouse, controls.object);
+			return
 
 			//左侧目录树关联的变回去
 			for (let i = 0; i < last_emissive_array.length; i++) {

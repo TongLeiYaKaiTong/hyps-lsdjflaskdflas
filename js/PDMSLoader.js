@@ -202,7 +202,11 @@ function PDMSLoader() {
             const A = side_c_result * Math.cos(radian_a);
             const C = -side_c_result * Math.sin(radian_a);
 
-            return {A, B, C}
+            return {
+                A: A, 
+                B: B, 
+                C: C
+            }
         }
 
         /**
@@ -523,6 +527,7 @@ function PDMSLoader() {
                     boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
                     center: getCenter(),
                 });
+
 
                 console.log(geoIdArray,geoCountArray);
                 
