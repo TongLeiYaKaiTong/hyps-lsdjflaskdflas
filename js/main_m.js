@@ -1,4 +1,6 @@
 window.onload = function(){
+	//url
+	var globalHttp = "http://192.168.0.110/seervmWebService1.asmx/";
 	
 	//--------------------点击事件---------------
 	//#文件>打开
@@ -197,7 +199,8 @@ function showFileName(id,files){
 function uploadFiles(formData){
 	$.ajax({
 		//url: "http://121.40.174.117/seervmWebService1.asmx/SaveFile",
-		url: "http://192.168.0.110/seervmWebService1.asmx/SaveFile",
+		url:globalHttp+"SaveFile",
+		/* url: "http://192.168.0.110/seervmWebService1.asmx/", */
 		type: "POST",
 		cache: false,
 		processData: false,
@@ -239,7 +242,8 @@ function postATT(){
 	$.ajax({
 		type:"POST",
 		//url:"http://www.toolkip.com/haiyouservice/seervmWebService1.asmx/getAttcontent",
-		url:"http://192.168.0.110/seervmWebService1.asmx/getAttcontent",
+		/* url:"http://192.168.0.110/seervmWebService1.asmx/", */
+		url:globalHttp+"getAttcontent",
 		ansyc:true,
 		data:{
 			ATTfile:attPathRequest
@@ -278,7 +282,8 @@ function postRVM(){
 	$.ajax({
 		type:"POST",
 		//url:"http://121.40.174.117/seervmWebService1.asmx/getRVMcontent",
-		url:"http://192.168.0.110/seervmWebService1.asmx/getRVMcontent",
+		/* url:"http://192.168.0.110/seervmWebService1.asmx/getRVMcontent", */
+		url:globalHttp+"getRVMcontent",
 		ansyc:true,
 		data:{
 			file:requestString
@@ -301,7 +306,7 @@ function getAllFiles(){
 	$.ajax({
 		type:"POST",
 		//url:"http://121.40.174.117/seervmWebService1.asmx/allFiles",
-		url:"http://192.168.0.110/seervmWebService1.asmx/allFiles",
+		url:"allFiles",
 		ansyc:true,
 		data:{},
 		success:function(data){
