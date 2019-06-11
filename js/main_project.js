@@ -35,6 +35,10 @@ $('.mask-box>.top>.close, .mask-box>.top>.back').on('click', function () {
 $('.mask-img>.top>.close, .mask-img>.top>.back').on('click', function () {
 	$(this).parents('.mask-img').hide();
 })
+// 右边信息面板关闭按钮绑定
+$('#right-info-panel>.close-btn').on('click', function () {
+	$(this).parents('#right-info-panel').hide();
+});
 
 // 视角切换菜单事件绑定
 $('#nav>.menu-area>.view-box>.dropdown-menu>li>a').click(function () {
@@ -93,7 +97,7 @@ $("#controller-tool-bar > .view-switch-btn > .view-btn").on('click', function ()
 function downloadGLTF(model, fileName) {
 	const exporter = new THREE.GLTFExporter();
 
-	const loadingBox = new LoadingBox('导出', { hasProgress : false});
+	const loadingBox = new LoadingBox('导出', { hasProgress: false });
 
 	exporter.parse(
 		model,
@@ -186,7 +190,7 @@ function LoadingBox(text, config) {
 	// 文字
 	const text_dom = document.createElement('p');
 	$(element).append(text_dom);
-	$(text_dom).text( text ? '正在' + text + '...' : '正在加载...').css({
+	$(text_dom).text(text ? '正在' + text + '...' : '正在加载...').css({
 		'font-size': '20px',
 		'font-weight': 'bold',
 		'margin-top': '20px',
@@ -208,7 +212,7 @@ function LoadingBox(text, config) {
 			'width': '50%',
 			'display': 'flex',
 		})
-	
+
 		// 进度条进度区
 		for (let i = 0; i < 100; i++) {
 			const span = document.createElement('span');
@@ -218,22 +222,73 @@ function LoadingBox(text, config) {
 	}
 
 	// 更新显示文本
-	this.updateText = function(text) {
+	this.updateText = function (text) {
 		$(text_dom).text(text);
 	}
 
 	// 更新进度条
-	this.updateRange = function(range) {
+	this.updateRange = function (range) {
 		range = Math.round(range * 100);
 		this.updateText('已' + text + range + '%');
-		if (this.hasProgress) $(progress).find('>span:nth-child(-n+'+ range +')').css('background-color', '#337ab7');
+		if (this.hasProgress) $(progress).find('>span:nth-child(-n+' + range + ')').css('background-color', '#337ab7');
 	}
 
 	// 移除进度界面
-	this.remove = function() {
+	this.remove = function () {
 		$(element).remove();
 	}
-}
+};
+
+function loadingPDMS(rvmUrl,attUrl) {
+	let loadingBox = new LoadingBox('加载');
+	new PDMSLoader().load(
+		"./js/rvm_att/项目120190611060651out.js",
+		"",
+		// rvmUrl,
+		// attUrl,
+		function (data) {
+			console.log(data);
+			// if (data.dataType == "group") scene.add(data.data);
+			// if (data.PDMSObject) scene.add(data.PDMSObject);
+			if (data.rvmTree) {
+				const list = [];
+				rvmOriginal = data.original;
+				fill_tree_list(list, data.rvmTree);
+				mulushu(list);
+			}
+			if (data.PDMSObject) {
+				scene.add(data.PDMSObject);
+
+				$('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
+
+					let target = data.PDMSObject;
+					let fileName = data.PDMSObject.name == '' ? 'PDMS导出文件' : data.PDMSObject.name;
+
+					if (selected_mesh) {
+						target = selected_mesh;
+
+						let with_name_parent = selected_mesh;
+						while (with_name_parent.name == '') {
+							with_name_parent = with_name_parent.parent;
+						}
+
+						fileName = with_name_parent.name;
+					}
+
+					downloadGLTF(target, fileName);
+				});
+			};
+			loadingBox.remove();
+		},
+		function (evt) {
+			if (evt.lengthComputable) {
+				let percentComplete = evt.loaded / evt.total;
+				console.log(Math.round(percentComplete * 100) + "%");
+				loadingBox.updateRange(percentComplete);
+			};
+		}
+	);
+};
 
 
 var model;//模型本身
@@ -254,7 +309,7 @@ var list = [];
 
 // window.onload = function (event) {
 // 	console.log(123);
-	
+
 
 
 // 	// showarea.style.display = "block";
@@ -262,8 +317,8 @@ var list = [];
 // 	// console.log("页面加载完成：" +  lastDate.toLocaleString());
 // }
 
-$(function() {
-	
+$(function () {
+
 	init(name, list);
 	$('#loading').hide();
 })
@@ -319,8 +374,8 @@ function init(name, list) {
 	renderer.domElement.addEventListener('mousemove', mousemove, false);
 	renderer.domElement.addEventListener('mouseup', mouseup, false);
 
-	var A_light = new THREE.AmbientLight( 0x404040,2); // soft white light
-	scene.add( A_light );
+	var A_light = new THREE.AmbientLight(0x404040, 2); // soft white light
+	scene.add(A_light);
 	// light = new THREE.PointLight( 0xffffff, 1, 230000 );
 	// camera.add(light)
 	// scene.add(camera)
@@ -433,55 +488,8 @@ function init(name, list) {
 	// grid.material.opacity = 0.2;
 	// grid.material.transparent = true;
 	// scene.add(grid);
-	let loadingBox = new LoadingBox('加载');
-	new PDMSLoader().load(
-		"./js/rvm_att/rvmData1.js",
-		// "./js/rvm_att/cssout.js",
-		"",
-		function (data) {
-			console.log(data);
-			// if (data.dataType == "group") scene.add(data.data);
-			// if (data.PDMSObject) scene.add(data.PDMSObject);
-			if (data.rvmTree) {
-				const list = [];
-				rvmOriginal = data.original;
-				fill_tree_list(list, data.rvmTree);
-				mulushu(list);
-			}
-			if (data.PDMSObject) {
-				scene.add(data.PDMSObject);
 
-				$('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
-
-					let target = data.PDMSObject;
-					let fileName = data.PDMSObject.name == '' ? 'PDMS导出文件' : data.PDMSObject.name;
-
-					if (selected_mesh) {
-						target = selected_mesh;
-
-						let with_name_parent = selected_mesh;
-						while (with_name_parent.name == '') {
-							with_name_parent = with_name_parent.parent;
-						}
-
-						fileName = with_name_parent.name;
-					}
-
-					downloadGLTF(target, fileName);
-				});
-			};
-			loadingBox.remove();
-			geoIdArray = data.geoIdArray
-			geoCountArray = data.geoCountArray
-		},
-		function (evt) {
-			if (evt.lengthComputable) {
-				let percentComplete = evt.loaded / evt.total;
-				console.log(Math.round(percentComplete * 100) + "%");
-				loadingBox.updateRange(percentComplete);
-			};
-		}
-	);
+	loadingPDMS();
 
 	onWindowResize()
 	window.addEventListener('resize', onWindowResize, false);
@@ -677,6 +685,29 @@ function fill_tree_list(list, data) {
 	list.push(new_data);
 };
 
+/** 获取所有关联的id数组
+ * @param {*} obj 选取对象
+ * @returns [] array; 数组
+ */
+function getAllRelationIds(obj) {
+	let array = [];
+	function recursion(n) {
+		// 存在构建则添加该构建ID到数组中
+		if (n.PRIMS.length > 0) {
+			array.push(n.ID);
+		};
+		let child = n.children,
+			len = child.length;
+		if (len > 0) {
+			for (let i = 0; i < len; i++) {
+				recursion(child[i])
+			};
+		};
+	};
+	recursion(obj);
+	return array;
+};
+
 //提取信息生成目录树
 function mulushu(list) {
 	var setting = {
@@ -721,7 +752,10 @@ function mulushu(list) {
 	function nodeClick(event, treeId, treeNode, clickFlag) {
 		console.log(treeNode);
 		console.log(rvmOriginal[treeNode.id]);
+		setInfoPanel(rvmOriginal[treeNode.id]);
+		console.log(getAllRelationIds(rvmOriginal[treeNode.id]));
 		
+
 		// for (let i = 0; i < last_emissive_array.length; i++) {
 		// 	last_emissive_array[i].material.emissive.r = 0;
 		// }
@@ -753,24 +787,11 @@ function mulushu(list) {
 			if (obj.type == 'Group') {
 				for (let i = 0; i < obj.length; i++) {
 					lightallchildren(obj[i]);
-				}	
+				}
 			}
 		}
 	}
 }
-
-// function (){
-// 	function recursion(n){
-// 		if((n.children || []).length == 0) {
-// 			cfg.oids[n.id] = n.id
-// 		}
-// 		for(let i = 0; i < (n.children || []).length; ++i) {
-// 			recursion(n.children[i]);
-// 		}
-
-// 	};
-
-// }
 
 //载入模型
 function buildmodel(list) {
@@ -927,7 +948,7 @@ function buildmodel(list) {
 				for (let i = 0; i < group.children.length; i++) {
 					const o = group.children[i];
 					if (o.type != kind)
-					return false
+						return false
 				}
 				return true
 			}
@@ -1576,53 +1597,21 @@ function explode_recover() {
 }
 
 
-let testJson = {
-    ":REV0": "0",
-    ":REV1": "1",
-    ":REV2": "2",
-    ":REV3": "3",
-    ":REV4": "4",
-    ":REV5": "5",
-    ":REV6": "6",
-    ":REV7": "7",
-    ":REV8": "8",
-    ":REV9": "9",
-    Bore: "300",
-    Built: "false",
-    Ccentre: "0",
-    Cclass: "0",
-    Deldsg: "FALSE",
-    Erection: "0",
-    Jmaximum: "0",
-    Lissue: "false",
-    Lock: "false",
-    Name: "=16585/4944",
-    Owner: "/EDP-X-2001A/B",
-    Pmaximum: "0",
-    Pressure: "0",
-    Pspec: "/A1A",
-    Rev: "-1",
-    Rlstored: "Unset",
-    Safclass: "0",
-    Shop: "false",
-    Smaximum: "0",
-    Temperature: "-100000",
-    Type: "PIPE",
-    Wmaximum: "0"};
 
-(function setInfoPanel(json){
+function setInfoPanel(json) {
 
-    let array = Object.keys(json);
-    let len = array.length;
+	let array = Object.keys(json);
+	let len = array.length;
 
-    let str = "";
-    for (let i = 0; i < len; i++) {
+	let str = "";
+	for (let i = 0; i < len; i++) {
 		let e = array[i];
-		let newElement  = (e[0]!=":") ? e : e.substr(1);//删除数据键值上第一位是冒号的符号
-        str += "<li><div>"+newElement+"</div>";
-        str += "<span>"+json[e]+"</span></li>"; 
-    };
+		let newElement = (e[0] != ":") ? e : e.substr(1);//删除数据键值上第一位是冒号的符号
+		str += "<li><div>" + newElement + "</div>";
+		str += "<span>" + json[e] + "</span></li>";
+	};
 
-    $("#right-info-panel > .info-panel").html(str);
+	$("#right-info-panel > .info-panel").html(str);
+	$("#right-info-panel").show();
 
-}(testJson))
+};

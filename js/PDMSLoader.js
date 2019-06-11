@@ -515,6 +515,8 @@ function PDMSLoader() {
             },
             success: function (data) { //成功
 
+                console.log(data);
+
                 forEachRVMData(data);
                 analysisATT(attUrl, onProgress, onLoad, onError);
 
@@ -616,10 +618,17 @@ function PDMSLoader() {
 
             if (element.C > 50) element.C = 0;
 
+            let lastCount = geoCount;//记录上次的计数
+
             for (let j = 0; j < PRIMSNum; j++) {
 
                 setPDMSMember(element.PRIMS[j], colorArray[element.C], element.ID);
 
+            };
+
+            if(geoCount - lastCount > 0){
+                geoIdArray.push(element.ID); //几何id数组
+				geoCountArray.push(geoCount);//几何点索引数组
             };
 
         };
@@ -732,12 +741,6 @@ function PDMSLoader() {
 
             geoCount = geoCount + count;
 
-			if(geoIdArray.length==0||(geoIdArray.length>0&&id!=geoIdArray[geoIdArray.length-1])){
-				geoIdArray.push(id); //几何id数组
-				geoCountArray.push(geoCount);//几何点索引数组
-			}else{ //id相同
-				geoCountArray[geoCountArray.length-1] = geoCount;
-			}
         };
 
     };
