@@ -6,10 +6,10 @@ function PDMSLoader() {
 
     let geometries = [];
 
-    let startIndex = 0, endIndex = -1;
+    let geoCount = 0;//几何计数
 
-    let num = 0;
-    let objectAA = {};
+    let geoIdArray = []; //几何id数组
+    let geoCountArray = [];//几何点索引数组
 
     let maxX, maxY, maxZ, minX, minY, minZ;
 
@@ -513,12 +513,9 @@ function PDMSLoader() {
                     center: getCenter(),
                 });
 
-                console.log(num);
-                console.log(Object.keys(objectAA));
+                console.log(geoIdArray,geoCountArray);
+                
 
-                // for (const obj of Object.keys(objectAA)) {
-                //     if(objectAA[obj].length > 1) console.log(obj,objectAA[obj]);
-                // };
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
@@ -609,6 +606,9 @@ function PDMSLoader() {
 
             };
 
+            geoIdArray.push(element.ID); //几何id数组
+            geoCountArray.push(geoCount);//几何点索引数组
+
         };
     };
 
@@ -696,20 +696,8 @@ function PDMSLoader() {
 
             //============记录顶点索引对应的geo======================
 
-            startIndex = endIndex + 1;
-            endIndex = startIndex + count * 3 - 1;
+            geoCount = geoCount + count * 3;
 
-            // console.log(startIndex, endIndex);
-
-            // console.log(element.id);
-
-            num++;
-            if (objectAA[element.ID]) {
-                objectAA[element.ID].push(startIndex+"-"+endIndex);
-            } else {
-                objectAA[element.ID] = [];
-                objectAA[element.ID].push(startIndex+"-"+endIndex);
-            };
 
         };
 
