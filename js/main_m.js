@@ -72,7 +72,7 @@ window.onload = function(){
 	$("#chooseFile>.content>div.rvm>.fileList").on("click",">span",function(e){
 		$("#chooseFile>.content>div.rvm>.fileList>span").removeClass("active");
 		$(this).addClass("active");
-		console.log(e);
+		//console.log(e);
 		if($("#yes").attr("disabled") == "disabled"){
 			$("#yes").attr("disabled",false);
 			$("#yes").css({
@@ -248,6 +248,7 @@ function postATT(){
 			console.log(eval(data));
 			var responseAttURl = eval(data);
 			//here ...
+			console.log(responseAttURl);
 			
 		},
 		error:function(e){
@@ -283,9 +284,23 @@ function postRVM(){
 		},
 		success:function(data){
 			console.log("rvm");
-			console.log(eval(data));
-			var responseRVMUrl = eval(data);
+			console.log(data);
+			var responseObject  =  JSON.parse(data);
+			console.log(responseObject);
+			//console.log(data.path);
+			
+			//console.log(eval(data));
+			//var responseData = eval(data);
+			//后台解析时间
+			var analysisTime = responseObject.time;
+			//开始时间
+			var currentDate = new Date();
+			var beginTime = currentDate.getTime();
+			console.log(beginTime);
+			var responseRVMUrl = responseObject.path;
+			//var responseRVMUrl = eval(data);
 			//here ...
+			console.log(responseRVMUrl);
 			
 		},
 		error:function(e){
@@ -303,7 +318,9 @@ function getAllFiles(){
 		ansyc:true,
 		data:{},
 		success:function(data){
+			//console.log(data);
 			var allFiles = eval(data);
+			//console.log(allFiles);
 			arrayMnplton(allFiles);
 		},
 		error:function(e){
