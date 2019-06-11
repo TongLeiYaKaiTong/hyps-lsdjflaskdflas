@@ -513,7 +513,10 @@ function PDMSLoader() {
                 xhr.addEventListener("progress", function (evt) {
                     if (evt.lengthComputable) {
                         let percentComplete = evt.loaded / evt.total;
-                        if(onProgress) onProgress(percentComplete);
+                        if (onProgress) onProgress({
+                            text: "数据传输",
+                            progress: percentComplete
+                        });
                         // console.log(Math.round(percentComplete * 100) + "%");
                     };
                 }, false);
@@ -523,20 +526,24 @@ function PDMSLoader() {
 
                 console.log(data);
 
-                forEachRVMData(data, onProgress);
-                analysisATT(attUrl, onProgress, onLoad, onError);
+                forEachRVMData(data, onProgress, function () {
 
-                mergeBufferGeometries();
+                    analysisATT(attUrl, onProgress, onLoad, onError);
 
-                if (onLoad) onLoad({
-                    original: data,
-                    PDMSObject: PDMSGroup,
-                    rvmTree: formatRVMData(data),
-                    boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
-                    center: getCenter(),
-                    geoIdArray: geoIdArray, //几何id数组
-                    geoCountArray: geoCountArray//几何点索引数组
+                    mergeBufferGeometries();
+
+                    if (onLoad) onLoad({
+                        original: data,
+                        PDMSObject: PDMSGroup,
+                        rvmTree: formatRVMData(data),
+                        boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
+                        center: getCenter(),
+                        geoIdArray: geoIdArray, //几何id数组
+                        geoCountArray: geoCountArray//几何点索引数组
+                    });
+
                 });
+
 
                 // console.log(geoIdArray,geoCountArray);
 
@@ -620,46 +627,52 @@ function PDMSLoader() {
     };
 
 
+    // 遍历RVM数据
+    function forEachRVMData(data, onProgress, callback) {
 
-    // function forEachRVMData(data, onProgress) {
-    //     let len = data.length;
+        let len = data.length;//总数组数
 
-    //     function forEachRVMData1(i1, i2) {
+        function forEachRVMData1(i1, i2) {
 
-    //         for (let i = i1; i < i2; i++) {
-    //             let element = data[i];//当前元素
-    //             forEachRVMData2(element);
-    //         };
+            for (let i = i1; i < i2; i++) {
+                let element = data[i];//当前元素
+                forEachRVMData2(element);
+            };
 
-    //         if (onProgress) onProgress(i2/len);
+            if (onProgress) onProgress({
+                text: "模型加载",
+                progress: i2 / len
+            });
 
-    //         setTimeout(function () {
-    //             if (i2 + 500 < len) {
-    //                 forEachRVMData1(i2, i2 + 500);
-    //             } else {
-    //                 forEachRVMData1(i2, len);
-    //             };
-    //         }, 300);
+            if (i2 != len) {
+                let addNum = Math.floor(Math.random () * 900) + 512;
+                setTimeout(function () {
+                    if (i2 + addNum < len) {
+                        forEachRVMData1(i2, i2 + addNum);
+                    } else {
+                        forEachRVMData1(i2, len);
+                    };
+                }, 500);
+            } else {
+                callback();
+            };
 
+        };
 
+        forEachRVMData1(0, Math.floor(Math.random () * 900) + 512);
 
-    //     };
-
-    //     forEachRVMData1(0, 500);
-
-
-
-    // };
+    };
 
     // 遍历RVM数据
-    function forEachRVMData(data) {
-        for (let i = 0, len = data.length; i < len; i++) {
+    function forEachRVMData2(element) {
+        // for (let i = 0, len = data.length; i < len; i++) {
 
-        let element = data[i];//当前元素
+        //     let element = data[i];//当前元素
 
         let PRIMSNum = element.PRIMS.length;//prims 数量
 
-        if (PRIMSNum == 0) continue;//没有几何信息的跳过
+        // if (PRIMSNum == 0) continue;//没有几何信息的跳过
+        if (PRIMSNum == 0) return;//没有几何信息的跳过
 
         if (element.C > 50) element.C = 0;
 
@@ -676,7 +689,7 @@ function PDMSLoader() {
             geoCountArray.push(geoCount);//几何点索引数组
         };
 
-        };
+        // };
     };
 
     // 设置PDMS的每一个部位的构建
@@ -1036,3 +1049,4 @@ function PDMSLoader() {
 //     primitives.add(mesh);
 //     console.log(primitives);
 // };
+

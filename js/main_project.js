@@ -234,6 +234,9 @@ function LoadingBox(text, config) {
 		}
 		range = Math.round(range * 100);
 		this.updateText('已' + text + range + '%');
+
+		$(progress).find('>span:nth-child(-n+100)').css('background-color', '#ffffff'); //考虑超过100%，下个进度条能继续使用
+		
 		if (this.hasProgress) $(progress).find('>span:nth-child(-n+' + range + ')').css('background-color', '#337ab7');
 	}
 
@@ -287,8 +290,8 @@ function loadingPDMS(rvmUrl,attUrl) {
 			};
 			loadingBox.remove();
 		},
-		function (complete) {
-			loadingBox.updateRange(complete);
+		function (res) {
+			loadingBox.updateRange(res.progress);
 		}
 	);
 };
