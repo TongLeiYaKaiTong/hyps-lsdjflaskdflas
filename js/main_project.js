@@ -271,6 +271,8 @@ let view_controller; //视角球控制
 let view_controller_renderer; //视角球控制
 var pixelBuffer = new Uint8Array( 4 );
 let pickingRenderTarget
+let geoIdArray
+let geoCountArray
 function init(name, list) {
 	console.log('进入threejs场景init')
 	var container = document.getElementById("container");
@@ -427,6 +429,8 @@ function init(name, list) {
 			// if (data.dataType == "group") scene.add(data.data);
 			if (data.PDMSObject) scene.add(data.PDMSObject);
 			loadingBox.remove();
+			geoIdArray = data.geoIdArray
+			geoCountArray = data.geoCountArray
 		},
 		function (evt) {
 			if (evt.lengthComputable) {
@@ -480,7 +484,7 @@ function init(name, list) {
 			scene.children[scene.children.length-1].children[0].material = pickingMaterial
 			
 			renderer.setRenderTarget(pickingRenderTarget);
-			renderer.render( scene, camera);
+			renderer.render( scene.children[scene.children.length-1].children[0], camera);
 			renderer.setRenderTarget();
 			scene.children[scene.children.length-1].children[0].material = record;
 			
@@ -495,14 +499,37 @@ function init(name, list) {
 			);
 			console.log(mouse)
 			console.log(pixelBuffer)
-			var id =
+			var index =
 				( pixelBuffer[ 0 ] << 16 ) |
 				( pixelBuffer[ 1 ] << 8 ) |
 				( pixelBuffer[ 2 ] );
 				
-			console.log('你点击的ID是',id)
+			console.log('你点击的构件index是',index)
+			
+			if(index>15000000){
+				console.log('什么都没选到')
+				return
+			}
+				
+			console.log('geoIdArray',geoIdArray[index])
+			console.log('geoCountArray',geoCountArray[index])
+			
+			let start 
+			if(index == 0)
+				start = 0;
+			else 
+				start = geoCountArray[index-1]
+			
+			let end = geoCountArray[index]
 			
 			
+			let array = scene.children[3].children[0].geometry.attributes.color.array
+			for(let i=start;i<end;i+=3){
+				array[i] = 1;
+				array[i+1] = 0;
+				array[i+2] = 0;
+			}
+			scene.children[3].children[0].geometry.attributes.color.needsUpdate = true;
 			return
 			
 			if (selected_mesh)
