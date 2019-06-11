@@ -668,6 +668,7 @@ function PDMSLoader() {
         console.log('合并后的',mgeo);
 		// mgeo.computeFaceNormals();
 		// mgeo.computeVertexNormals();
+        // let mlt = new THREE.MeshLambertMaterial({ vertexColors: true });
         let mlt = new THREE.MeshLambertMaterial({ vertexColors: true });
         let mesh = new THREE.Mesh(mgeo, mlt);
 
@@ -702,11 +703,7 @@ function PDMSLoader() {
 
         let geo;//几何
 
-        // if (type == 11) return geo;
-
-        
-
-
+        // if (type != 10) return geo;
         switch (type) {
             case 1:   //Pyramid 
                 geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);
@@ -722,10 +719,10 @@ function PDMSLoader() {
                 geo = CircularTorusGeometry(arr[0], arr[1], arr[2]);
                 break;
             case 5:   //EllipticalDish Dish有遮挡
-                geo = DishGeometry(true, arr[0], arr[1], 8);
+                geo = DishGeometry(true, arr[0], arr[1], 16);
                 break;
             case 6:   //SphericalDish Dish无遮挡  
-                geo = DishGeometry(false, arr[0], arr[1], 8);
+                geo = DishGeometry(false, arr[0], arr[1], 16);
                 break;
             case 7:   //Snout
                 // geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
@@ -738,6 +735,7 @@ function PDMSLoader() {
                 geo = new THREE.SphereBufferGeometry(arr[0], 8, 8);
                 break;
             case 10:  //Line 
+				// console.log(arr)
                 break;
             case 11:  //FaceGroup
                 geo = FaceGroupGeometry(arr);
