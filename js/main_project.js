@@ -295,10 +295,11 @@ function init(name, list) {
 	renderer.domElement.addEventListener('mousemove', mousemove, false);
 	renderer.domElement.addEventListener('mouseup', mouseup, false);
 
-	
-	light = new THREE.PointLight( 0xffffff, 1, 230 );
-	camera.add(light)
-	scene.add(camera)
+	var A_light = new THREE.AmbientLight( 0x404040,2); // soft white light
+	scene.add( A_light );
+	// light = new THREE.PointLight( 0xffffff, 1, 230000 );
+	// camera.add(light)
+	// scene.add(camera)
 
 	light = new THREE.DirectionalLight(0xffffff);
 	light.position.set(0, 200, 100);
