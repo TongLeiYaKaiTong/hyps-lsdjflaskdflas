@@ -719,15 +719,14 @@ function PDMSLoader() {
         // console.log(geometries);
 
         let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
-        let colorAtt = new THREE.BufferAttribute(
-            new Float32Array(colors.length), 3
-        );
-        colorAtt.set(colors, 0);
-        mgeo.addAttribute('color', colorAtt);
-        console.log('合并后的',mgeo);
-		// mgeo.computeFaceNormals();
-		// mgeo.computeVertexNormals();
-        // let mlt = new THREE.MeshLambertMaterial({ vertexColors: true });
+        // let colorAtt = new THREE.BufferAttribute(
+        //     new Float32Array(colors.length), 3
+        // );
+        // colorAtt.set(colors, 0);
+        // mgeo.addAttribute('color', colorAtt);
+        console.log('合并后的', mgeo);
+        // mgeo.computeFaceNormals();
+        // mgeo.computeVertexNormals();
         let mlt = new THREE.MeshLambertMaterial({ vertexColors: true });
         let mesh = new THREE.Mesh(mgeo, mlt);
 
@@ -761,6 +760,11 @@ function PDMSLoader() {
     function getGeometryByGeotype(type, arr) {
 
         let geo;//几何
+
+        // if (type == 11) return geo;
+
+
+
 
         switch (type) {
             case 1:   //Pyramid 
@@ -804,7 +808,6 @@ function PDMSLoader() {
                 geo = new THREE.SphereBufferGeometry(arr[0], 8, 8);
                 break;
             case 10:  //Line 
-				// console.log(arr)
                 break;
             case 11:  //FaceGroup
                 geo = FaceGroupGeometry(arr);
