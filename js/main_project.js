@@ -229,8 +229,14 @@ function LoadingBox(text, config) {
 
 	// 更新进度条
 	this.updateRange = function (range) {
+		if (range % 0.05 == 0) {
+			console.log(range * 100);
+		}
 		range = Math.round(range * 100);
 		this.updateText('已' + text + range + '%');
+
+		$(progress).find('>span:nth-child(-n+100)').css('background-color', '#ffffff'); //考虑超过100%，下个进度条能继续使用
+		
 		if (this.hasProgress) $(progress).find('>span:nth-child(-n+' + range + ')').css('background-color', '#337ab7');
 	}
 
@@ -242,9 +248,13 @@ function LoadingBox(text, config) {
 
 function loadingPDMS(rvmUrl,attUrl) {
 	let loadingBox = new LoadingBox('加载');
+
 	new PDMSLoader().load(
+		// "./js/rvm_att/项目1out.js",
+		// "./js/rvm_att/项目1.ATT",
 		// "./js/rvm_att/项目120190611060651out.js",
-		// "",
+		// "http://192.168.0.110/files/RVM/sbytc20190611070114out.js",
+		// "http://192.168.0.110/files/ATT/sbytc20190611070126.ATT",
 		rvmUrl,
 		attUrl,
 		function (data) {
@@ -281,12 +291,8 @@ function loadingPDMS(rvmUrl,attUrl) {
 			};
 			loadingBox.remove();
 		},
-		function (evt) {
-			if (evt.lengthComputable) {
-				let percentComplete = evt.loaded / evt.total;
-				console.log(Math.round(percentComplete * 100) + "%");
-				loadingBox.updateRange(percentComplete);
-			};
+		function (res) {
+			loadingBox.updateRange(res.progress);
 		}
 	);
 };
@@ -1374,169 +1380,6 @@ function create_view_controller() {
 		out_camera.position.set(outTarget.x + Distance * (view_controller.object.position.x / distance), outTarget.y + Distance * (camera.position.y / distance), outTarget.z + Distance * (camera.position.z / distance))
 		out_camera.lookAt(outTarget)
 	}
-
-	function mousedown() {
-		is_have_move = false;
-		domElement.addEventListener('mousemove', mousemove, false);
-		domElement.addEventListener('mouseup', mouseup, false);
-	}
-
-	function mousemove(event) {
-		is_have_move = true
-	}
-
-	function mouseup(event) {
-		if (!is_have_move) {
-			// console.log(event)
-			// console.log(event.offsetX 
-			mouse.x = (event.offsetX / domElement.clientWidth) * 2 - 1;
-			mouse.y = -(event.offsetY / domElement.clientHeight) * 2 + 1;
-			raycaster.setFromCamera(mouse, view_controller.object);
-
-			var intersect = raycaster.intersectObject(box);
-			console.log(11)
-			if (intersect[0]) {
-				console.log(22)
-				// var materialIndex = intersect[0].face.materialIndex;
-				// var position_record = view_controller.object.position.clone();
-				// var sphere = new THREE.Spherical().setFromVector3(view_controller.object.position)
-				// var delta;
-				// console.log(sphere)
-				// switch (materialIndex) {
-				// case 0: //右边 Math.PI/2  MAth.PI/2
-				// console.log('右')
-				// if (sphere.theta > Math.PI / 2 || sphere.theta < -Math.PI / 2) {
-				// delta = -0.02
-				// } else {
-				// delta = 0.02
-				// }
-				// var target = new THREE.Vector3(view_controller.maxDistance, 0, 0)
-				// var distance_last;
-				// var out = setInterval(function () {
-				// sphere.theta += delta;
-				// console.log('循环中')
-				// view_controller.object.position.copy(new THREE.Vector3().setFromSpherical(sphere))
-
-				// rotate_callBack()
-				// console.log(camera.position,camera.position.distanceTo(target))
-				// new_distance = view_controller.object.position.distanceTo(target)
-				// if (new_distance > distance_last) {
-				// console.log('循环终止')
-				// view_controller.object.position.copy(target)
-				// clearInterval(out)
-				// } else {
-				// distance_last = new_distance;
-				// }
-				// }, 16)
-				// break
-				// case 1: //左  -Math.PI/2  MAth.PI/2
-				// console.log('左')
-				// if (sphere.theta > Math.PI / 2 || sphere.theta < -Math.PI / 2) {
-				// delta = 0.02
-				// } else {
-				// delta = -0.02
-				// }
-				// var target = new THREE.Vector3(-controls.maxDistance, 0, 0)
-				// var distance_last;
-				// var out = setInterval(function () {
-				// sphere.theta += delta;
-				// console.log('循环中')
-				// view_controller.object.position.copy(new THREE.Vector3().setFromSpherical(sphere))
-
-				// rotate_callBack()
-				// console.log(camera.position,camera.position.distanceTo(target))
-				// new_distance = view_controller.object.position.distanceTo(target)
-				// if (new_distance > distance_last) {
-				// console.log('循环终止')
-				// view_controller.object.position.copy(target)
-				// clearInterval(out)
-				// } else {
-				// distance_last = new_distance;
-				// }
-				// }, 16)
-				// break
-				// case 2: //上  Math.PI/2 
-				// console.log('上')
-				// delta = 0.02
-				// var target = new THREE.Vector3(0, view_controller.maxDistance, 0).add(new THREE.Vector3(camera.position.x, 0, camera.position.z).normalize())
-				// var distance_last = view_controller.object.position.distanceTo(target);
-				// var out = setInterval(function () {
-				// sphere.phi -= delta;
-				// console.log('循环中')
-				// view_controller.object.position.copy(new THREE.Vector3().setFromSpherical(sphere))
-
-				// console.log(camera.position,camera.position.distanceTo(target))
-				// new_distance = view_controller.object.position.distanceTo(target)
-				// if (new_distance > distance_last) {
-				// console.log('循环终止')
-				// view_controller.object.position.copy(target)
-				// console.log(view_controller.object.position)
-				// clearInterval(out)
-				// } else {
-				// distance_last = new_distance;
-				// }
-				// rotate_callBack()
-				// }, 16)
-				// break
-				// case 3:
-				// break
-				// case 4: //前	Math.PI/2  0
-				// if (sphere.theta > 0) {
-				// delta = -0.02
-				// } else {
-				// delta = 0.02
-				// }
-				// var target = new THREE.Vector3(0, 0, controls.maxDistance).add(new THREE.Vector3(camera.position.x, 0, camera.position.z).normalize())
-				// var distance_last;
-				// var out = setInterval(function () {
-				// sphere.theta += delta;
-				// console.log('循环中')
-				// view_controller.object.position.copy(new THREE.Vector3().setFromSpherical(sphere))
-
-				// rotate_callBack()
-				// console.log(camera.position,camera.position.distanceTo(target))
-				// new_distance = view_controller.object.position.distanceTo(target)
-				// if (new_distance > distance_last) {
-				// console.log('循环终止')
-				// view_controller.object.position.copy(target)
-				// clearInterval(out)
-				// } else {
-				// distance_last = new_distance;
-				// }
-				// }, 16)
-				// break
-				// case 5: //后	Math.PI/2  Math.PI
-				// console.log('后')
-				// if (sphere.theta > 0) {
-				// delta = 0.02
-				// } else {
-				// delta = -0.02
-				// }
-				// var target = new THREE.Vector3(0, 0, -view_controller.maxDistance)
-				// var distance_last;
-				// var out = setInterval(function () {
-				// sphere.theta += delta;
-				// console.log('循环中')
-				// view_controller.object.position.copy(new THREE.Vector3().setFromSpherical(sphere))
-
-				// rotate_callBack()
-				// console.log(camera.position,camera.position.distanceTo(target))
-				// new_distance = view_controller.object.position.distanceTo(target)
-				// if (new_distance > distance_last) {
-				// console.log('循环终止')
-				// view_controller.object.position.copy(target)
-				// clearInterval(out)
-				// } else {
-				// distance_last = new_distance;
-				// }
-				// }, 16)
-				// break
-				// }
-			}
-			domElement.removeEventListener('mousemove', mousemove, false);
-			domElement.removeEventListener('mouseup', mouseup, false);
-		}
-	}
 }
 
 function update_view_controller() { //更新右上角视角球
@@ -1616,3 +1459,4 @@ function setInfoPanel(json) {
 	$("#right-info-panel").show();
 
 };
+
