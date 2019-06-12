@@ -289,6 +289,10 @@ function loadingPDMS(rvmUrl,attUrl) {
 					downloadGLTF(target, fileName);
 				});
 			};
+
+			if(data.geoIdArray) geoIdArray = data.geoIdArray;
+			if(data.geoCountArray) geoIdArray = data.geoCountArray;
+
 			loadingBox.remove();
 		},
 		function (res) {
