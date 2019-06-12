@@ -59,7 +59,6 @@ window.onload = function(){
 		else{
 			// 加载页面
 			const loadingBox = new LoadingBox('请求文件', { hasProgress : false});
-
 			// 获取RVM路径
 			postRVM(function(responseRVMUrl){
 				//有att文件
@@ -202,12 +201,6 @@ function nofileOrNot(sig,files){
 		//rvm
 		case 0:
 			if(files.length!=0){
-				/* $("#chooseFile>.content>.rvm>.noFile").hide();
-				$("#chooseFile>.content>.rvm>.fileList").css({
-					"display":"flex !important"
-				});
-				showFileName("rvm>.fileList",files); */
-				
 				$("#chooseFile>.content>.rvm>.noFile").hide();
 				$("#chooseFile>.content>.rvm>.fileList").css("display","flex");
 				showFileName("rvm>.fileList",files);
@@ -217,7 +210,6 @@ function nofileOrNot(sig,files){
 				$("#chooseFile>.content>.rvm>.noFile").css("display","flex");
 				$("#chooseFile>.content>.rvm>.fileList").empty();
 				$("#chooseFile>.content>.rvm>.fileList").hide();
-				/* $("#chooseFile>.content>.rvm>.fileList").hide(); */
 			}
 			break;
 		//att
@@ -335,21 +327,15 @@ function postRVM(callback){
 		},
 		success:function(data){
 			console.log("rvm");
-			//console.log(data);
 			var responseObject = JSON.parse(data);
-			//console.log(responseObject);
-			//console.log(data.path);
-			//console.log(eval(data));
-			//var responseData = eval(data);
 			//后台解析时间(单位：毫秒)
 			var analysisTime = responseObject.time;
 			//开始时间
 			var currentDate = new Date();
 			var beginTime = currentDate.getTime();
-			console.log(beginTime);
+			//console.log(beginTime);
 			//rvm路径
 			var responseRVMUrl = responseObject.path;
-			//var responseRVMUrl = eval(data);
 			//here ...
 			console.log(responseRVMUrl);
 			callback(responseRVMUrl);
@@ -363,7 +349,6 @@ function postRVM(callback){
 
 //获取所有文件
 function getAllFiles(){
-	/* console.log(globalHttp); */
 	$.ajax({
 		type:"POST",
 		url:globalHttp+"allFiles",
@@ -371,10 +356,9 @@ function getAllFiles(){
 		data:{},
 		success:function(data){
 			console.log("获取文件");
-			console.log(data);
+			//console.log(data);
 			var allFiles = eval(data);
 			console.log(allFiles);
-			
 			arrayMnplton(allFiles);
 		},
 		error:function(e){
