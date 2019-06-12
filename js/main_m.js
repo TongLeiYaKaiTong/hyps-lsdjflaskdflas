@@ -1,5 +1,7 @@
 //url
-var globalHttp = "http://192.168.0.110/seervmWebService1.asmx/";
+//var globalHttp = "http://192.168.0.110/seervmWebService1.asmx/";
+var globalHttp = "http://121.40.174.117/seervmWebService1.asmx/";
+
 window.onload = function(){
 	//--------------------点击事件---------------
 	//#文件>打开
