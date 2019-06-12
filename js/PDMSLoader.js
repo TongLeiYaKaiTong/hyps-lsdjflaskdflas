@@ -4,6 +4,7 @@ function PDMSLoader() {
     let scope = this;
 
     let PDMSGroup = new THREE.Group();
+        PDMSGroup.name = "PDMSGroup";
 
     let geometries = [];
 
@@ -583,7 +584,7 @@ function PDMSLoader() {
                             text: "数据传输",
                             progress: percentComplete
                         });
-                        console.log(Math.round(percentComplete * 100) + "%");
+                        // console.log(Math.round(percentComplete * 100) + "%");
                     };
                 }, false);
                 return xhr;
@@ -849,12 +850,12 @@ function PDMSLoader() {
             geo.addAttribute('color', colorAtt);
 
             //=================pick color=========================
-			if(temp_test!=undefined&&geoCountArray.length-temp_test==0){
-				console.log('相同的ID')
+			// if(temp_test!=undefined&&geoCountArray.length-temp_test==0){
+			// 	console.log('相同的ID')
 				
-			}else{
-				console.log('不同的ID')
-			}
+			// }else{
+			// 	console.log('不同的ID')
+			// }
 			temp_test = geoCountArray.length
 			
             let pick_colorAtt = new THREE.BufferAttribute(

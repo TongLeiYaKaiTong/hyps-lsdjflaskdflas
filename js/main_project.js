@@ -65,8 +65,8 @@ $('#nav>.menu-area>.view-box>.dropdown-menu>li>a').click(function () {
 			controls.target.z--;
 			controls.update()
 		}
-		document.addEventListener('keydown', onKeyDown22, false);
-		document.addEventListener('keyup', onKeyUp22, false);
+		document.addEventListener('keydown', onKeyDown, false);
+		document.addEventListener('keyup', onKeyUp, false);
 
 
 	} else {
@@ -75,8 +75,8 @@ $('#nav>.menu-area>.view-box>.dropdown-menu>li>a').click(function () {
 		controls.target.copy(camera.recordT)
 		controls.update()
 
-		document.removeEventListener('keydown', onKeyDown22, false);
-		document.removeEventListener('keyup', onKeyUp22, false);
+		document.removeEventListener('keydown', onKeyDown, false);
+		document.removeEventListener('keyup', onKeyUp, false);
 
 	}
 })
@@ -87,9 +87,41 @@ $("#controller-tool-bar > .view-switch-btn > .view-btn").on('click', function ()
 	$(this).addClass('on');
 
 	if ($(this).attr('data-key') == "first") {//第一人称
+
+		camera.recordP = camera.position.clone();
+		camera.recordT = controls.target.clone();
+		controls.reset();
+		if (controls.target.y == 0) {
+			controls.target.copy(controls.object.position);
+			controls.target.z--;
+			controls.update();
+		}
+		document.addEventListener('keydown', onKeyDown, false);
+		document.addEventListener('keyup', onKeyUp, false);
 	} else {//第三人称
+
+		controls.saveState();
+		camera.position.copy(camera.recordP);
+		controls.target.copy(camera.recordT);
+		controls.update();
+
+		document.removeEventListener('keydown', onKeyDown, false);
+		document.removeEventListener('keyup', onKeyUp, false);
 	};
 
+});
+
+// 海水开关按钮
+$('#controller-tool-bar>.water>.icon').click(function () {
+	$(this).parent().toggleClass('on');
+
+	if ($(this).parent().hasClass('on')) {
+		scene.background = cubeCamera.renderTarget;
+		seaActioin = water.visible = true;
+	} else {
+		scene.background = new THREE.Color(0xf0f0f0);
+		seaActioin = water.visible = false;
+	}
 });
 
 
@@ -237,16 +269,12 @@ function LoadingBox(text, config) {
 
 	// 更新进度条
 	this.updateRange = function (range) {
-		if (range % 0.05 == 0) {
-			console.log(range * 100);
-		}
 		range = Math.round(range * 100);
-		console.log(text,range);
-		
+
 		this.updateTitle(this.text + ' ' + range + '%');
 
 		$(progress).find('>span:nth-child(-n+100)').css('background-color', '#ffffff'); //考虑超过100%，下个进度条能继续使用
-		
+
 		if (this.hasProgress) $(progress).find('>span:nth-child(-n+' + range + ')').css('background-color', '#337ab7');
 	}
 
@@ -256,28 +284,70 @@ function LoadingBox(text, config) {
 	}
 };
 
-function loadingPDMS(rvmUrl,attUrl) {
+function cleanPDMS() {
+
+	// ztree 列表清空
+	$("#treebg").empty();
+
+	// 切换到第三视角
+	if ($("#controller-tool-bar > .box.view-switch-btn > .view-btn.left").hasClass('on')) $("#controller-tool-bar > .box.view-switch-btn > .view-btn.right").click();
+
+	// 海水
+	if ($('#controller-tool-bar>.water').hasClass('on')) {
+		$('#controller-tool-bar>.water').removeClass('on');
+		scene.background = new THREE.Color(0xf0f0f0);
+		seaActioin = water.visible = false;
+	};
+
+	// 相机控制器位置调整
+	camera.position.set(0, 0, 100);
+	out_camera = camera;
+	controls.target.set(0, 0, 0);
+	controls.update();
+	out_controls = controls;
+
+	geoIdArray = []; //清空几何顶点id数组
+	geoCountArray = []; //清空几何顶点Count数组
+
+	// 清除缓存
+	let group = scene.getObjectByName("PDMSGroup");
+
+	if (group) {
+
+		THREE.Cache.clear();
+
+		group.children.forEach(function (mesh) {
+
+			mesh.geometry.dispose();
+
+			mesh.material.dispose();
+
+			group.remove(mesh);
+		});
+		
+		scene.remove(group);
+	};
+
+};
+
+function loadingPDMS(rvmUrl, attUrl) {
+
+	cleanPDMS();
+
+	rvmUrl = rvmUrl || "./PDMS/sbytcout.js";
+	attUrl = attUrl || "./PDMS/sbytc.ATT";
 	let loadingBox = new LoadingBox('加载');
 
 	new PDMSLoader().load(
-		"./PDMS/sbytcout.js",
-		"./PDMS/sbytc.ATT",
-		// "./js/rvm_att/项目120190611060651out.js",
+		// "./PDMS/sbytcout.js",
+		// "./PDMS/sbytc.ATT",
 		// "http://192.168.0.110/files/RVM/sbytc20190611070114out.js",
 		// "http://192.168.0.110/files/ATT/sbytc20190611070126.ATT",
-		// rvmUrl,
-		// attUrl,
+		rvmUrl,
+		attUrl,
 		function (data) {
 			console.log(data);
-			if (data.geoIdArray)
-				console.log('geoIdArray',data.geoIdArray)
-			if (data.geoCountArray)
-				console.log('geoCountArray',data.geoCountArray)
-			// if (data.PDMSObject) scene.add(data.PDMSObject);
-			
-			geoIdArray = data.geoIdArray;
-			geoCountArray = data.geoCountArray;
-			
+
 			if (data.rvmTree) {
 				const list = [];
 				rvmOriginal = data.original;
@@ -307,8 +377,8 @@ function loadingPDMS(rvmUrl,attUrl) {
 				});
 			};
 
-			if(data.geoIdArray) geoIdArray = data.geoIdArray;
-			if(data.geoCountArray) geoIdArray = data.geoCountArray;
+			if (data.geoIdArray) geoIdArray = data.geoIdArray;
+			if (data.geoCountArray) geoIdArray = data.geoCountArray;
 
 			loadingBox.remove();
 		},
@@ -322,7 +392,7 @@ function loadingPDMS(rvmUrl,attUrl) {
 					loadingBox.updateRange(res.progress);
 					break;
 			}
-			
+
 		}
 	);
 };
@@ -375,7 +445,7 @@ let out_camera;
 let out_controls;
 let view_controller; //视角球控制
 let view_controller_renderer; //视角球控制
-var pixelBuffer = new Uint8Array( 4 );
+var pixelBuffer = new Uint8Array(4);
 let pickingRenderTarget
 let geoIdArray
 let geoCountArray
@@ -425,13 +495,13 @@ function init(name, list) {
 	light.shadow.camera.left = -120;
 	light.shadow.camera.right = 120;
 	scene.add(light);
-	
+
 	pickingRenderTarget = new THREE.WebGLRenderTarget(
 		window.innerWidth, window.innerHeight
 	);
 	pickingRenderTarget.texture.generateMipmaps = false;
 	pickingRenderTarget.texture.minFilter = THREE.NearestFilter;
-			
+
 	// Water
 	var waterGeometry = new THREE.CircleBufferGeometry(100000, 16);
 
@@ -499,19 +569,6 @@ function init(name, list) {
 
 	updateSun();
 
-	// 海水开关按钮
-	$('#controller-tool-bar>.water>.icon').click(function () {
-		$(this).parent().toggleClass('on');
-
-		if ($(this).parent().hasClass('on')) {
-			scene.background = cubeCamera.renderTarget;
-			seaActioin = water.visible = true;
-		} else {
-			scene.background = new THREE.Color(0xf0f0f0);
-			seaActioin = water.visible = false;
-		}
-	})
-
 	// ground
 	// var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), new THREE.MeshPhongMaterial({
 	// 	color: 0x999999,
@@ -540,7 +597,7 @@ function init(name, list) {
 		camera.aspect = width / height;
 		camera.updateProjectionMatrix();
 		renderer.setSize(width, height);
-		pickingRenderTarget.setSize( width, height );
+		pickingRenderTarget.setSize(width, height);
 	}
 	function mousedown() {
 		mousedown = true;
@@ -567,15 +624,15 @@ function init(name, list) {
 			}
 
 
-			
-			let record = scene.children[scene.children.length-1].children[0].material;
-			scene.children[scene.children.length-1].children[0].material = pickingMaterial
-			
+
+			let record = scene.children[scene.children.length - 1].children[0].material;
+			scene.children[scene.children.length - 1].children[0].material = pickingMaterial
+
 			renderer.setRenderTarget(pickingRenderTarget);
-			renderer.render( scene.children[scene.children.length-1].children[0], camera);
+			renderer.render(scene.children[scene.children.length - 1].children[0], camera);
 			renderer.setRenderTarget();
-			scene.children[scene.children.length-1].children[0].material = record;
-			
+			scene.children[scene.children.length - 1].children[0].material = record;
+
 			console.log(pickingRenderTarget)
 			renderer.readRenderTargetPixels(
 				pickingRenderTarget,
@@ -588,65 +645,65 @@ function init(name, list) {
 			console.log(mouse)
 			console.log(pixelBuffer)
 			var index =
-				( pixelBuffer[ 0 ] << 16 ) |
-				( pixelBuffer[ 1 ] << 8 ) |
-				( pixelBuffer[ 2 ] );
-				
-			console.log('你点击的构件index是',index)
-			
-			
+				(pixelBuffer[0] << 16) |
+				(pixelBuffer[1] << 8) |
+				(pixelBuffer[2]);
+
+			console.log('你点击的构件index是', index)
+
+
 			let array = scene.children[3].children[0].geometry.attributes.color.array
 			let lastcolor_info = scene.children[3].children[0].geometry.lastcolor_info
 			//还原上次原色
-			console.log('lastcolor_info',scene.children[3].children[0].geometry)
-			console.log('lastcolor_info',lastcolor_info)
-			if(lastcolor_info){
-				for(let i=3*lastcolor_info.start;i<3*lastcolor_info.end+1;i+=3){
+			console.log('lastcolor_info', scene.children[3].children[0].geometry)
+			console.log('lastcolor_info', lastcolor_info)
+			if (lastcolor_info) {
+				for (let i = 3 * lastcolor_info.start; i < 3 * lastcolor_info.end + 1; i += 3) {
 					array[i] = lastcolor_info.r;
-					array[i+1] = lastcolor_info.g;
-					array[i+2] = lastcolor_info.b;
+					array[i + 1] = lastcolor_info.g;
+					array[i + 2] = lastcolor_info.b;
 				}
 			}
-			
-			if(index>15000000){
+
+			if (index > 15000000) {
 				console.log('什么都没选到')
 				// scene.children[3].children[0].geometry
 				return
 			}
-				
-			console.log('geoIdArray',geoIdArray[index])
-			console.log('geoCountArray',geoCountArray[index])
-			
-			let start 
-			if(index == 0)
+
+			console.log('geoIdArray', geoIdArray[index])
+			console.log('geoCountArray', geoCountArray[index])
+
+			let start
+			if (index == 0)
 				start = 0;
-			else 
-				start = geoCountArray[index-1]+1
-			
+			else
+				start = geoCountArray[index - 1] + 1
+
 			let end = geoCountArray[index]
-			
-			console.warn('start,end',start,end)
-			
-			
+
+			console.warn('start,end', start, end)
+
+
 			//记录这次颜色
-			let r = array[3*start];
-			let g = array[3*start+1];
-			let b = array[3*start+2];
-			
-			lastcolor_info = {start:start,end:end,r:r,g:g,b:b}
+			let r = array[3 * start];
+			let g = array[3 * start + 1];
+			let b = array[3 * start + 2];
+
+			lastcolor_info = { start: start, end: end, r: r, g: g, b: b }
 			scene.children[3].children[0].geometry.lastcolor_info = lastcolor_info
-			
+
 			//这次的变红
-			for(let i=3*start;i<3*end+1;i+=3){
+			for (let i = 3 * start; i < 3 * end + 1; i += 3) {
 				array[i] = 1;
-				array[i+1] = 0;
-				array[i+2] = 0;
+				array[i + 1] = 0;
+				array[i + 2] = 0;
 			}
-			
+
 			//needupdate
 			scene.children[3].children[0].geometry.attributes.color.needsUpdate = true;
 			return
-			
+
 			if (selected_mesh)
 				selected_mesh.material.emissive.r = 0;
 			let intersect = raycaster.intersectObject(model, true);
@@ -791,7 +848,7 @@ function mulushu(list) {
 		console.log(rvmOriginal[treeNode.id]);
 		setInfoPanel(rvmOriginal[treeNode.id]);
 		console.log(getAllRelationIds(rvmOriginal[treeNode.id]));
-		
+
 
 		// for (let i = 0; i < last_emissive_array.length; i++) {
 		// 	last_emissive_array[i].material.emissive.r = 0;
@@ -1214,7 +1271,7 @@ let moveRight = false;
 let moveUp = false;
 let moveDown = false;
 
-function onKeyDown22(event) {
+function onKeyDown(event) {
 
 	switch (event.keyCode) {
 
@@ -1253,7 +1310,7 @@ function onKeyDown22(event) {
 	}
 
 };
-function onKeyUp22(event) {
+function onKeyUp(event) {
 
 	switch (event.keyCode) {
 
