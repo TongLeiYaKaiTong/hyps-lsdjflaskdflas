@@ -446,6 +446,7 @@ $(function () {
 let rvmOriginal;
 
 let water;
+var cubeCamera;
 let seaActioin = false;
 let renderer;
 let camera;
@@ -552,7 +553,7 @@ function init(name, list) {
 		azimuth: 0.205
 	};
 
-	var cubeCamera = new THREE.CubeCamera(0.1, 1, 512);
+	cubeCamera = new THREE.CubeCamera(0.1, 1, 512);
 	cubeCamera.renderTarget.texture.generateMipmaps = true;
 	cubeCamera.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
 
@@ -772,29 +773,6 @@ function fill_tree_list(list, data) {
 	}
 
 	list.push(new_data);
-};
-
-/** 获取所有关联的id数组
- * @param {*} obj 选取对象
- * @returns [] array; 数组
- */
-function getAllRelationIds(obj) {
-	let array = [];
-	function recursion(n) {
-		// 存在构建则添加该构建ID到数组中
-		if (n.PRIMS.length > 0) {
-			array.push(n.ID);
-		};
-		let child = n.children,
-			len = child.length;
-		if (len > 0) {
-			for (let i = 0; i < len; i++) {
-				recursion(child[i])
-			};
-		};
-	};
-	recursion(obj);
-	return array;
 };
 
 //提取信息生成目录树
@@ -1581,9 +1559,42 @@ function selectZTreeNodeById(id) {
 
 	zTree_Menu.selectNode(zTree_Menu.getNodeByParam("id", id, null), false, false);
 
-
-
 };
+
+
+/** 获取所有关联的id数组
+ * @param {*} obj 选取对象
+ * @returns [] array; 数组
+ */
+function getAllRelationIds(obj) {
+	let array = [];
+
+	function aab(n){
+		let i = n.length;
+		while (i--) {
+			if(n[i].TYPE != 10 ) return true;
+		};
+		return false;
+
+	};
+	function recursion(n) {
+		// 存在构建则添加该构建ID到数组中
+		if (n.PRIMS.length > 0 && aab(n.PRIMS)) {
+			array.push(n.ID);
+		};
+		let child = n.children,
+			len = child.length;
+		if (len > 0) {
+			for (let i = 0; i < len; i++) {
+				recursion(child[i])
+			};
+		};
+	};
+	recursion(obj);
+	return array;
+};
+
+
 
 
 
