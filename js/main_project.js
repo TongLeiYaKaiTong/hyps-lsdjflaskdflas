@@ -269,8 +269,15 @@ function loadingPDMS(rvmUrl,attUrl) {
 		// attUrl,
 		function (data) {
 			console.log(data);
-			// if (data.dataType == "group") scene.add(data.data);
+			if (data.geoIdArray)
+				console.log('geoIdArray',data.geoIdArray)
+			if (data.geoCountArray)
+				console.log('geoCountArray',data.geoCountArray)
 			// if (data.PDMSObject) scene.add(data.PDMSObject);
+			
+			geoIdArray = data.geoIdArray;
+			geoCountArray = data.geoCountArray;
+			
 			if (data.rvmTree) {
 				const list = [];
 				rvmOriginal = data.original;

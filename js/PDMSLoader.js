@@ -1,3 +1,4 @@
+var temp_test;
 function PDMSLoader() {
 
     let scope = this;
@@ -173,18 +174,19 @@ function PDMSLoader() {
          * @param {*} y_shear 在y轴上的投影角度
          */
         function getNormalVector(x_shear, y_shear) {
+            // A -- x  B -- y C -- z
             let A, B ,C
             if (x_shear == 0 && y_shear == 0) {
-                A = B = 0;
-                C = 1;
+                A = C = 0;
+                B = 1;
             } else if (x_shear == 0) {
-                A = 0;
-                B = -Math.sin(y_shear) * Math.pow(Math.cos(y_shear), 2);
-                C = -Math.cos(y_shear) * Math.pow(Math.sin(y_shear), 2);
+                C = 0;
+                A = Math.sin(y_shear) * Math.pow(Math.cos(y_shear), 2);
+                B = -Math.cos(y_shear) * Math.pow(Math.sin(y_shear), 2);
             } else if (y_shear == 0) {
-                B = 0;
-                A = -Math.cos(x_shear) * Math.pow(Math.sin(x_shear), 2);
-                C = -Math.sin(x_shear) * Math.pow(Math.cos(x_shear), 2);
+                A = 0;
+                C = -Math.cos(x_shear) * Math.pow(Math.sin(x_shear), 2);
+                B = -Math.sin(x_shear) * Math.pow(Math.cos(x_shear), 2);
             } else {
                 // 计算实际角度
                 const radian_a_true = Math.atan(Math.tan(y_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(x_shear), 2))));
@@ -230,6 +232,7 @@ function PDMSLoader() {
          * @param {*} normal 法向量
          */
         function applyShear(vertices, center, normal) {
+            if (normal.B == 0) return
             // 点法式获取顶部平面方程
             // B(Y-y0) + A(X-x0) + C(z-z0) = 0
             for (let i = 0; i < vertices.length; i++) {
@@ -846,6 +849,14 @@ function PDMSLoader() {
             geo.addAttribute('color', colorAtt);
 
             //=================pick color=========================
+			if(temp_test!=undefined&&geoCountArray.length-temp_test==0){
+				console.log('相同的ID')
+				
+			}else{
+				console.log('不同的ID')
+			}
+			temp_test = geoCountArray.length
+			
             let pick_colorAtt = new THREE.BufferAttribute(
                 new Float32Array(count * 3), 3
             );
@@ -940,8 +951,7 @@ function PDMSLoader() {
                 geo = DishGeometry(false, arr[0], arr[1]);
                 break;
             case 7:   //Snout        
-                // if (arr.length == 9 && arr[3] == 0 && arr[4] == 0 && (arr[5] != 0 || arr[6] != 0 || arr[7] != 0 || arr[8] != 0)) {
-                if (arr.length == 9 && arr[3] == 0 && arr[4] == 0 && (arr[5] != 0 && arr[6] != 0 && arr[7] != 0 && arr[8] != 0)) {
+                if (arr.length == 9 && arr[3] == 0 && arr[4] == 0 && (arr[5] != 0 || arr[6] != 0 || arr[7] != 0 || arr[8] != 0)) {
                     // console.log('SlopedCylinder', arr);
                     geo = new THREE.SlopedCylinderGeometry(arr[0], arr[2], arr[5], arr[6], arr[7], arr[8]);
                 } else {
