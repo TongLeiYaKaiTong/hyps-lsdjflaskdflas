@@ -4,7 +4,7 @@ document.oncontextmenu = function (event) {
 	event.preventDefault();
 }
 // 没点到导航按键时，删除导航按键
-$('body').mousedown(function(event) {
+$('body').mousedown(function (event) {
 	const target = event.target
 	if ($(target).hasClass('walk_to_target')) {
 		console.log('导航');
@@ -316,6 +316,7 @@ function LoadingBox(text, config) {
 	}
 };
 
+// 清空PDMS场景
 function cleanPDMS() {
 
 	// ztree 列表清空
@@ -356,7 +357,7 @@ function cleanPDMS() {
 
 			group.remove(mesh);
 		});
-		
+
 		scene.remove(group);
 	};
 
@@ -392,22 +393,14 @@ function loadingPDMS(rvmUrl, attUrl) {
 				window.PDMSObject = data.PDMSObject;
 			};
 
-			if(data.geoIdArray) geoIdArray = data.geoIdArray;
-			if(data.geoCountArray) geoCountArray = data.geoCountArray;
+			if (data.geoIdArray) geoIdArray = data.geoIdArray;
+			if (data.geoCountArray) geoCountArray = data.geoCountArray;
 
 			loadingBox.remove();
 		},
 		function (res) {
-			switch (res.text) {
-				case "merge":
-					loadingBox.updateTitle("merge BufferGeometry");
-					break;
-				default:
-					loadingBox.updateText(res.text);
-					loadingBox.updateRange(res.progress);
-					break;
-			}
-
+			loadingBox.updateText(res.text);
+			loadingBox.updateRange(res.progress);
 		}
 	);
 };
@@ -619,40 +612,40 @@ function init(name, list) {
 		mouse.x = e.offsetX;
 		mouse.y = e.offsetY;
 
-		
+
 		let color_att = scene.children[3].children[0].geometry.attributes.color
 		let array = color_att.array
 		let lastcolor_info = color_att.last_info
 		//还原上次原色
 		// console.log('lastcolor_info',scene.children[3].children[0].geometry)
 		// console.log('lastcolor_info',lastcolor_info)
-		if(lastcolor_info){
-			for(let i=3*lastcolor_info.start;i<3*lastcolor_info.end+1;i+=3){
+		if (lastcolor_info) {
+			for (let i = 3 * lastcolor_info.start; i < 3 * lastcolor_info.end + 1; i += 3) {
 				array[i] = lastcolor_info.r;
-				array[i+1] = lastcolor_info.g;
-				array[i+2] = lastcolor_info.b;
-				
+				array[i + 1] = lastcolor_info.g;
+				array[i + 2] = lastcolor_info.b;
+
 				color_att.dynamic = true;
-				color_att.updateRange.offset = 3*lastcolor_info.start;
-				color_att.updateRange.count = 3*(lastcolor_info.end-lastcolor_info.start);
+				color_att.updateRange.offset = 3 * lastcolor_info.start;
+				color_att.updateRange.count = 3 * (lastcolor_info.end - lastcolor_info.start);
 				color_att.needsUpdate = true;
 			}
 		}
-		
+
 		//左侧目录树关联的变回去
 		for (let i = 0; i < last_emissive_array.length; i++) {
 			last_emissive_array[i].material.emissive.r = 0;
 		}
 
 
-		let record = scene.children[scene.children.length-1].children[0].material;
-		scene.children[scene.children.length-1].children[0].material = pickingMaterial
-		
+		let record = scene.children[scene.children.length - 1].children[0].material;
+		scene.children[scene.children.length - 1].children[0].material = pickingMaterial
+
 		renderer.setRenderTarget(pickingRenderTarget);
-		renderer.render( scene.children[scene.children.length-1].children[0], camera);
+		renderer.render(scene.children[scene.children.length - 1].children[0], camera);
 		renderer.setRenderTarget();
-		scene.children[scene.children.length-1].children[0].material = record;
-		
+		scene.children[scene.children.length - 1].children[0].material = record;
+
 		// console.log(pickingRenderTarget)
 		renderer.readRenderTargetPixels(
 			pickingRenderTarget,
@@ -665,58 +658,59 @@ function init(name, list) {
 		// console.log(mouse)
 		// console.log(pixelBuffer)
 		var index =
-			( pixelBuffer[ 0 ] << 16 ) |
-			( pixelBuffer[ 1 ] << 8 ) |
-			( pixelBuffer[ 2 ] );
-			
+			(pixelBuffer[0] << 16) |
+			(pixelBuffer[1] << 8) |
+			(pixelBuffer[2]);
+
 		// console.log('你点击的构件index是',index)
-		
-		
-		if(index>15000000){
+
+
+		if (index > 15000000) {
 			console.log('什么都没选到')
 			// scene.children[3].children[0].geometry
 			color_att.needsUpdate = true;
 			return
 		}
-			
-		console.log('点击构件的ID是',geoIdArray[index])
+
+		console.log('点击构件的ID是', geoIdArray[index])
 		// console.log('geoCountArray',geoCountArray[index])
-		
-		let start 
-		if(index == 0)
+		selectZTreeNodeById(geoIdArray[index]);
+
+		let start
+		if (index == 0)
 			start = 0;
-		else 
-			start = geoCountArray[index-1]+1
-		
+		else
+			start = geoCountArray[index - 1] + 1
+
 		let end = geoCountArray[index]
-		
-		console.warn('点击构件的顶点范围start,end',start,end)
-		
-		
+
+		console.warn('点击构件的顶点范围start,end', start, end)
+
+
 		//记录这次颜色
-		let r = array[3*start];
-		let g = array[3*start+1];
-		let b = array[3*start+2];
-		
-		lastcolor_info = {start:start,end:end,r:r,g:g,b:b}
+		let r = array[3 * start];
+		let g = array[3 * start + 1];
+		let b = array[3 * start + 2];
+
+		lastcolor_info = { start: start, end: end, r: r, g: g, b: b }
 		color_att.last_info = lastcolor_info
-		
+
 		//这次的变红
-		for(let i=3*start;i<3*end+1;i+=3){
+		for (let i = 3 * start; i < 3 * end + 1; i += 3) {
 			array[i] = 1;
-			array[i+1] = 0;
-			array[i+2] = 0;
+			array[i + 1] = 0;
+			array[i + 2] = 0;
 		}
-		
+
 		//needupdate
 		color_att.dynamic = true;
-		
+
 		// if(color_att.updateRange.offset>3*start)
-			color_att.updateRange.offset = 3*start
-		
+		color_att.updateRange.offset = 3 * start
+
 		// if(color_att.updateRange.offset+color_att.updateRange.count<end)
-			color_att.updateRange.count = 3*(end-start);
-		
+		color_att.updateRange.count = 3 * (end - start);
+
 		color_att.needsUpdate = true;
 		return
 	}
@@ -727,20 +721,20 @@ function init(name, list) {
 	$('#loading').hide();
 }
 
-function change_color_attr(start,end){
+function change_color_attr(start, end) {
 	let color_att = scene.children[3].children[0].geometry.attributes.color
 	let array = color_att.array
 	let lastcolor_info = color_att.last_info
-	for(let i=3*start;i<3*end+1;i+=3){
+	for (let i = 3 * start; i < 3 * end + 1; i += 3) {
 		array[i] = 1;
-		array[i+1] = 0;
-		array[i+2] = 0;
+		array[i + 1] = 0;
+		array[i + 2] = 0;
 	}
 	color_att.needsUpdate = true;
 }
-function recover_color_attr(start,end){
-	
-	
+function recover_color_attr(start, end) {
+
+
 }
 function animate2() {
 	requestAnimationFrame(animate2);
@@ -816,7 +810,7 @@ function mulushu(list) {
 		},
 		callback: {
 			onClick: nodeClick,
-			onRightClick: function(event, treeId, treeNode) {
+			onRightClick: function (event, treeId, treeNode) {
 				if (treeNode) {
 					// console.log('event', event);
 					// console.log('treeId', treeId);
@@ -837,7 +831,6 @@ function mulushu(list) {
 				}
 			},
 			onExpand: function (event, treeId, treeNode) {
-				//console.log(treeNode);
 				addSubNode(treeNode);
 			}
 		}
@@ -856,12 +849,14 @@ function mulushu(list) {
 	var zTree = $.fn.zTree.init($("#treebg"), setting, zNodes);
 
 	// setTimeout(function () {
-	var treeObj = $.fn.zTree.getZTreeObj("treebg");
+
+	zTree_Menu = $.fn.zTree.getZTreeObj("treebg");
+	var treeObj = zTree_Menu;
 	var nodes = treeObj.getNodes();
 	for (var i = 0; i < nodes.length; i++) { //设置节点展开
 		treeObj.expandNode(nodes[i], true, false, true);
 	}
-	// addSubNode(nodes[0]);
+	addSubNode(nodes[0]);
 	console.log('自动展开')
 	// }, 3000)
 	function nodeClick(event, treeId, treeNode, clickFlag) {
@@ -1548,6 +1543,48 @@ function explode_recover() {
 
 }
 
+let zTree_Menu;
+// = $.fn.zTree.getZTreeObj("treebg")
+// const nodes = treeObj.getNodes();
+// 	// for (var i = 0; i < nodes.length; i++) { //设置节点展开
+// 	// 	treeObj.expandNode(nodes[i], true, false, true);
+// 	// }
+
+function selectZTreeNodeById(id) {
+
+	zTree_Menu.expandAll(false); //关闭所有节点
+	console.log(rvmOriginal[id]);
+
+	let list = [];
+
+	function expandList(id) {
+
+		let pid = rvmOriginal[id].PID;
+
+		if (pid) list.push(pid);
+
+		if (pid != 0) expandList(pid)
+
+	};
+
+	expandList(id);
+
+	function expandChildNode(i) {
+		if (i == 0) return;
+		i--;
+		zTree_Menu.expandNode(zTree_Menu.getNodeByParam("id", list[i], null), true, false, false, true);
+		expandChildNode(i);
+	};
+
+	zTree_Menu.expandNode(zTree_Menu.getNodeByParam("id", 0, null), true, false, false, true);
+	expandChildNode(list.length);
+
+	zTree_Menu.selectNode(zTree_Menu.getNodeByParam("id", id, null), false, false);
+
+
+
+};
+
 
 
 function setInfoPanel(json) {
@@ -1567,4 +1604,3 @@ function setInfoPanel(json) {
 	$("#right-info-panel").show();
 
 };
-
