@@ -704,6 +704,8 @@ function PDMSLoader() {
 
         let len = data.length;//总数组数
 
+        let addNum = Math.floor(len / 5);
+
         function forEachRVMData1(i1, i2) {
 
             for (let i = i1; i < i2; i++) {
@@ -717,21 +719,21 @@ function PDMSLoader() {
             });
 
             if (i2 != len) {
-                let addNum = Math.floor(Math.random () * 1200) + 512;
+                // let addNum = Math.floor(Math.random () * 1200) + 512;
                 setTimeout(function () {
                     if (i2 + addNum < len) {
                         forEachRVMData1(i2, i2 + addNum);
                     } else {
                         forEachRVMData1(i2, len);
                     };
-                }, 500);
+                }, 100);
             } else {
                 callback();
             };
 
         };
 
-        forEachRVMData1(0, Math.floor(Math.random () * 900) + 512);
+        forEachRVMData1(0, addNum);
 
     };
 
