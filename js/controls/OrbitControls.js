@@ -720,13 +720,13 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 			case scope.mouseButtons.MIDDLE:
 
-				if ( scope.enableZoom === false ) return;
+				// if ( scope.enableZoom === false ) return;
 
-				handleMouseDownDolly( event );
+				// handleMouseDownDolly( event );
 
-				state = STATE.DOLLY;
+				// state = STATE.DOLLY;
 
-				break;
+				// break;
 
 			case scope.mouseButtons.RIGHT:
 
