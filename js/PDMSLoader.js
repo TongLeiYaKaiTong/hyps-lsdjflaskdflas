@@ -173,34 +173,48 @@ function PDMSLoader() {
          * @param {*} y_shear 在y轴上的投影角度
          */
         function getNormalVector(x_shear, y_shear) {
-            // 计算实际角度
-            const radian_a_true = Math.atan(Math.tan(y_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(x_shear), 2))));
-            const radian_b_true = Math.atan(Math.tan(x_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(y_shear), 2))));
+            let A, B ,C
+            if (x_shear == 0 && y_shear == 0) {
+                A = B = 0;
+                C = 1;
+            } else if (x_shear == 0) {
+                A = 0;
+                B = -Math.sin(y_shear) * Math.pow(Math.cos(y_shear), 2);
+                C = -Math.cos(y_shear) * Math.pow(Math.sin(y_shear), 2);
+            } else if (y_shear == 0) {
+                B = 0;
+                A = -Math.cos(x_shear) * Math.pow(Math.sin(x_shear), 2);
+                C = -Math.sin(x_shear) * Math.pow(Math.cos(x_shear), 2);
+            } else {
+                // 计算实际角度
+                const radian_a_true = Math.atan(Math.tan(y_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(x_shear), 2))));
+                const radian_b_true = Math.atan(Math.tan(x_shear) * Math.sqrt(1 + 1 / (Math.pow(Math.tan(y_shear), 2))));
 
-            // 计算轴线在底面投影的边长
-            const side_a = Math.cos(radian_a_true);
-            const side_b = Math.cos(radian_b_true);
+                // 计算轴线在底面投影的边长
+                const side_a = Math.cos(radian_a_true);
+                const side_b = Math.cos(radian_b_true);
 
-            // 计算轴线在底面投影和坐标轴形成的角度
-            const radian_a = Math.atan(side_b / side_a);
-            // const radian_b = Math.atan(side_a / side_b);
+                // 计算轴线在底面投影和坐标轴形成的角度
+                const radian_a = Math.atan(side_b / side_a);
+                // const radian_b = Math.atan(side_a / side_b);
 
-            // 计算轴线在底边投影长度
-            const side_c_pow = Math.pow(side_a, 2) + Math.pow(side_b, 2);
-            const side_c = Math.sqrt(side_c_pow);
+                // 计算轴线在底边投影长度
+                const side_c_pow = Math.pow(side_a, 2) + Math.pow(side_b, 2);
+                const side_c = Math.sqrt(side_c_pow);
 
-            // 计算轴线和底边的角度
-            const radian_c = Math.atan(Math.sqrt(1 - side_c_pow) / side_c);
+                // 计算轴线和底边的角度
+                const radian_c = Math.atan(Math.sqrt(1 - side_c_pow) / side_c);
 
-            // 计算法向量的B值
-            const B = -Math.pow(Math.cos(radian_c), 2) * Math.sin(radian_c);
+                // 计算法向量的B值
+                B = -Math.pow(Math.cos(radian_c), 2) * Math.sin(radian_c);
 
-            // 计算法向量在底边的投影长度
-            const side_c_result = Math.cos(radian_c) * Math.pow(Math.sin(radian_c), 2);
+                // 计算法向量在底边的投影长度
+                const side_c_result = Math.cos(radian_c) * Math.pow(Math.sin(radian_c), 2);
 
-            // 计算法向量的A、C值
-            const A = side_c_result * Math.cos(radian_a);
-            const C = -side_c_result * Math.sin(radian_a);
+                // 计算法向量的A、C值
+                A = side_c_result * Math.cos(radian_a);
+                C = -side_c_result * Math.sin(radian_a);
+            }
 
             return {
                 A: A,
