@@ -1,3 +1,4 @@
+var temp_test;
 function PDMSLoader() {
 
     let scope = this;
@@ -841,6 +842,14 @@ function PDMSLoader() {
             geo.addAttribute('color', colorAtt);
 
             //=================pick color=========================
+			if(temp_test!=undefined&&geoCountArray.length-temp_test==0){
+				console.log('相同的ID')
+				
+			}else{
+				console.log('不同的ID')
+			}
+			temp_test = geoCountArray.length
+			
             let pick_colorAtt = new THREE.BufferAttribute(
                 new Float32Array(count * 3), 3
             );
