@@ -161,10 +161,12 @@ function downloadModel(blob, filename) {
 
 /**
  * @name loading界面对象
- * @param {string} text 初始化文本
+ * @param {string} content 初始化文本
  * @param {*} config 配置选项 hasProgress 设置是否含有进度条
  */
 function LoadingBox(text, config) {
+
+	this.text = text;
 	// 界面外框
 	const element = document.createElement('div');
 	$('body').append(element);
@@ -224,8 +226,14 @@ function LoadingBox(text, config) {
 
 	// 更新显示文本
 	this.updateText = function (text) {
-		$(text_dom).text(text);
-	}
+		this.text = text;
+		// console.log(text);
+	};
+
+	// 更新显示文本
+	this.updateTitle = function (title) {
+		$(text_dom).text(title);
+	};
 
 	// 更新进度条
 	this.updateRange = function (range) {
@@ -233,7 +241,9 @@ function LoadingBox(text, config) {
 			console.log(range * 100);
 		}
 		range = Math.round(range * 100);
-		this.updateText('已' + text + range + '%');
+		console.log(text,range);
+		
+		this.updateTitle(this.text + ' ' + range + '%');
 
 		$(progress).find('>span:nth-child(-n+100)').css('background-color', '#ffffff'); //考虑超过100%，下个进度条能继续使用
 		
@@ -250,13 +260,13 @@ function loadingPDMS(rvmUrl,attUrl) {
 	let loadingBox = new LoadingBox('加载');
 
 	new PDMSLoader().load(
-		// "./js/rvm_att/项目1out.js",
-		// "./js/rvm_att/项目1.ATT",
+		"./js/rvm_att/项目3out.js",
+		"./js/rvm_att/项目3.ATT",
 		// "./js/rvm_att/项目120190611060651out.js",
 		// "http://192.168.0.110/files/RVM/sbytc20190611070114out.js",
 		// "http://192.168.0.110/files/ATT/sbytc20190611070126.ATT",
-		rvmUrl,
-		attUrl,
+		// rvmUrl,
+		// attUrl,
 		function (data) {
 			console.log(data);
 			// if (data.dataType == "group") scene.add(data.data);
@@ -296,7 +306,16 @@ function loadingPDMS(rvmUrl,attUrl) {
 			loadingBox.remove();
 		},
 		function (res) {
-			loadingBox.updateRange(res.progress);
+			switch (res.text) {
+				case "merge":
+					loadingBox.updateTitle("merge BufferGeometry");
+					break;
+				default:
+					loadingBox.updateText(res.text);
+					loadingBox.updateRange(res.progress);
+					break;
+			}
+			
 		}
 	);
 };
@@ -500,7 +519,7 @@ function init(name, list) {
 	// grid.material.transparent = true;
 	// scene.add(grid);
 
-	// loadingPDMS();
+	loadingPDMS();
 
 	onWindowResize()
 	window.addEventListener('resize', onWindowResize, false);

@@ -580,7 +580,7 @@ function PDMSLoader() {
                             text: "数据传输",
                             progress: percentComplete
                         });
-                        // console.log(Math.round(percentComplete * 100) + "%");
+                        console.log(Math.round(percentComplete * 100) + "%");
                     };
                 }, false);
                 return xhr;
@@ -592,6 +592,11 @@ function PDMSLoader() {
                 forEachRVMData(data, onProgress, function () {
 
                     analysisATT(attUrl, onProgress, onLoad, onError);
+
+                    // onProgress({ text: "merge" });
+
+                    console.log("merge BufferGeometry");
+                    
 
                     mergeBufferGeometries();
 
@@ -708,7 +713,7 @@ function PDMSLoader() {
             });
 
             if (i2 != len) {
-                let addNum = Math.floor(Math.random () * 900) + 512;
+                let addNum = Math.floor(Math.random () * 1200) + 512;
                 setTimeout(function () {
                     if (i2 + addNum < len) {
                         forEachRVMData1(i2, i2 + addNum);
@@ -909,8 +914,9 @@ function PDMSLoader() {
     };
 
     function getGeometryByGeotype(type, arr) {
-		// if(type!=11)
-			// return
+        
+        // if(type == 1 || type == 8 || type == 11) return;
+        // if(type != 11) return;
         let geo;//几何
 
         switch (type) {
