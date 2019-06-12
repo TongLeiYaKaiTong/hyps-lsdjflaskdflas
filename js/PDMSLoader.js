@@ -844,12 +844,12 @@ function PDMSLoader() {
             geo.addAttribute('color', colorAtt);
 
             //=================pick color=========================
-			if(temp_test!=undefined&&geoCountArray.length-temp_test==0){
-				console.log('相同的ID')
+			// if(temp_test!=undefined&&geoCountArray.length-temp_test==0){
+				// console.log('相同的ID')
 				
-			}else{
-				console.log('不同的ID')
-			}
+			// }else{
+				// console.log('不同的ID')
+			// }
 			temp_test = geoCountArray.length
 			
             let pick_colorAtt = new THREE.BufferAttribute(
@@ -920,7 +920,7 @@ function PDMSLoader() {
     };
 
     function getGeometryByGeotype(type, arr) {
-		// if(type!=11)
+		// if(type==11)
 			// return
         let geo;//几何
 

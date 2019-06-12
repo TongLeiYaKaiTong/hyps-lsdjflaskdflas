@@ -298,7 +298,7 @@ function loadingPDMS(rvmUrl,attUrl) {
 			};
 
 			if(data.geoIdArray) geoIdArray = data.geoIdArray;
-			if(data.geoCountArray) geoIdArray = data.geoCountArray;
+			if(data.geoCountArray) geoCountArray = data.geoCountArray;
 
 			loadingBox.remove();
 		},
@@ -388,9 +388,7 @@ function init(name, list) {
 	renderer.setSize(width, height);
 	renderer.shadowMap.enabled = true;
 	container.appendChild(renderer.domElement);
-	renderer.domElement.addEventListener('mousedown', mousedown, false);
-	renderer.domElement.addEventListener('mousemove', mousemove, false);
-	renderer.domElement.addEventListener('mouseup', mouseup, false);
+	renderer.domElement.addEventListener('click', click, false);
 
 	var A_light = new THREE.AmbientLight(0x404040, 2); // soft white light
 	scene.add(A_light);
@@ -523,147 +521,135 @@ function init(name, list) {
 		renderer.setSize(width, height);
 		pickingRenderTarget.setSize( width, height );
 	}
-	function mousedown() {
-		mousedown = true;
-	}
-	function mousemove() {
-		if (mousedown)
-			mousemove = true;
-	}
-	function mouseup(e) {
-		console.log('mouseup')
-		mousedown = false
-		if (mousemove) {
-			mousemove = false;
-		} else {//是一次纯点击事件，触发clik
-			console.log('是一次纯点击事件，触发clik')
-			// let raycaster = new THREE.Raycaster(); //射线
-			let mouse = new THREE.Vector2(); //鼠标位置
-			mouse.x = e.offsetX;
-			mouse.y = e.offsetY;
+	function click(e) {
+		// console.log('是一次纯点击事件，触发clik')
+		// let raycaster = new THREE.Raycaster(); //射线
+		let mouse = new THREE.Vector2(); //鼠标位置
+		mouse.x = e.offsetX;
+		mouse.y = e.offsetY;
 
-			//左侧目录树关联的变回去
-			for (let i = 0; i < last_emissive_array.length; i++) {
-				last_emissive_array[i].material.emissive.r = 0;
-			}
-
-
-			
-			let record = scene.children[scene.children.length-1].children[0].material;
-			scene.children[scene.children.length-1].children[0].material = pickingMaterial
-			
-			renderer.setRenderTarget(pickingRenderTarget);
-			renderer.render( scene.children[scene.children.length-1].children[0], camera);
-			renderer.setRenderTarget();
-			scene.children[scene.children.length-1].children[0].material = record;
-			
-			console.log(pickingRenderTarget)
-			renderer.readRenderTargetPixels(
-				pickingRenderTarget,
-				mouse.x,
-				pickingRenderTarget.height - mouse.y,
-				1,
-				1,
-				pixelBuffer
-			);
-			console.log(mouse)
-			console.log(pixelBuffer)
-			var index =
-				( pixelBuffer[ 0 ] << 16 ) |
-				( pixelBuffer[ 1 ] << 8 ) |
-				( pixelBuffer[ 2 ] );
+		
+		let color_att = scene.children[3].children[0].geometry.attributes.color
+		let array = color_att.array
+		let lastcolor_info = color_att.last_info
+		//还原上次原色
+		// console.log('lastcolor_info',scene.children[3].children[0].geometry)
+		// console.log('lastcolor_info',lastcolor_info)
+		if(lastcolor_info){
+			for(let i=3*lastcolor_info.start;i<3*lastcolor_info.end+1;i+=3){
+				array[i] = lastcolor_info.r;
+				array[i+1] = lastcolor_info.g;
+				array[i+2] = lastcolor_info.b;
 				
-			console.log('你点击的构件index是',index)
-			
-			
-			let array = scene.children[3].children[0].geometry.attributes.color.array
-			let lastcolor_info = scene.children[3].children[0].geometry.lastcolor_info
-			//还原上次原色
-			console.log('lastcolor_info',scene.children[3].children[0].geometry)
-			console.log('lastcolor_info',lastcolor_info)
-			if(lastcolor_info){
-				for(let i=3*lastcolor_info.start;i<3*lastcolor_info.end+1;i+=3){
-					array[i] = lastcolor_info.r;
-					array[i+1] = lastcolor_info.g;
-					array[i+2] = lastcolor_info.b;
-				}
-			}
-			
-			if(index>15000000){
-				console.log('什么都没选到')
-				// scene.children[3].children[0].geometry
-				return
-			}
-				
-			console.log('geoIdArray',geoIdArray[index])
-			console.log('geoCountArray',geoCountArray[index])
-			
-			let start 
-			if(index == 0)
-				start = 0;
-			else 
-				start = geoCountArray[index-1]+1
-			
-			let end = geoCountArray[index]
-			
-			console.warn('start,end',start,end)
-			
-			
-			//记录这次颜色
-			let r = array[3*start];
-			let g = array[3*start+1];
-			let b = array[3*start+2];
-			
-			lastcolor_info = {start:start,end:end,r:r,g:g,b:b}
-			scene.children[3].children[0].geometry.lastcolor_info = lastcolor_info
-			
-			//这次的变红
-			for(let i=3*start;i<3*end+1;i+=3){
-				array[i] = 1;
-				array[i+1] = 0;
-				array[i+2] = 0;
-			}
-			
-			//needupdate
-			scene.children[3].children[0].geometry.attributes.color.needsUpdate = true;
-			return
-			
-			if (selected_mesh)
-				selected_mesh.material.emissive.r = 0;
-			let intersect = raycaster.intersectObject(model, true);
-			if (intersect[0]) {
-				console.log(intersect[0].object);
-				$('#inquery_texture').show();
-				selected_mesh = intersect[0].object;
-				console.log(selected_mesh)
-				selected_mesh.material.emissiveIntensity = 1
-				selected_mesh.material.emissive.r = 1;
-
-				$('.mask-box.info-box').show();
-
-				let with_name_parent = selected_mesh;
-				while (with_name_parent.name == "") {
-					console.log('循环一次')
-					with_name_parent = with_name_parent.parent;
-				}
-
-				let result_name = with_name_parent.name;
-				console.log(result_name)
-				$('.mask-box.info-box>.content>.line-name>.value').text(result_name);
-
-
-			} else {
-
-				$('#inquery_texture').hide();
-				$('.mask-box.info-box').hide();
+				color_att.dynamic = true;
+				color_att.updateRange.offset = 3*lastcolor_info.start;
+				color_att.updateRange.count = 3*(lastcolor_info.end-lastcolor_info.start);
+				color_att.needsUpdate = true;
 			}
 		}
+		
+		//左侧目录树关联的变回去
+		for (let i = 0; i < last_emissive_array.length; i++) {
+			last_emissive_array[i].material.emissive.r = 0;
+		}
+
+
+		let record = scene.children[scene.children.length-1].children[0].material;
+		scene.children[scene.children.length-1].children[0].material = pickingMaterial
+		
+		renderer.setRenderTarget(pickingRenderTarget);
+		renderer.render( scene.children[scene.children.length-1].children[0], camera);
+		renderer.setRenderTarget();
+		scene.children[scene.children.length-1].children[0].material = record;
+		
+		// console.log(pickingRenderTarget)
+		renderer.readRenderTargetPixels(
+			pickingRenderTarget,
+			mouse.x,
+			pickingRenderTarget.height - mouse.y,
+			1,
+			1,
+			pixelBuffer
+		);
+		// console.log(mouse)
+		// console.log(pixelBuffer)
+		var index =
+			( pixelBuffer[ 0 ] << 16 ) |
+			( pixelBuffer[ 1 ] << 8 ) |
+			( pixelBuffer[ 2 ] );
+			
+		// console.log('你点击的构件index是',index)
+		
+		
+		if(index>15000000){
+			console.log('什么都没选到')
+			// scene.children[3].children[0].geometry
+			color_att.needsUpdate = true;
+			return
+		}
+			
+		console.log('点击构件的ID是',geoIdArray[index])
+		// console.log('geoCountArray',geoCountArray[index])
+		
+		let start 
+		if(index == 0)
+			start = 0;
+		else 
+			start = geoCountArray[index-1]+1
+		
+		let end = geoCountArray[index]
+		
+		console.warn('点击构件的顶点范围start,end',start,end)
+		
+		
+		//记录这次颜色
+		let r = array[3*start];
+		let g = array[3*start+1];
+		let b = array[3*start+2];
+		
+		lastcolor_info = {start:start,end:end,r:r,g:g,b:b}
+		color_att.last_info = lastcolor_info
+		
+		//这次的变红
+		for(let i=3*start;i<3*end+1;i+=3){
+			array[i] = 1;
+			array[i+1] = 0;
+			array[i+2] = 0;
+		}
+		
+		//needupdate
+		color_att.dynamic = true;
+		
+		// if(color_att.updateRange.offset>3*start)
+			color_att.updateRange.offset = 3*start
+		
+		// if(color_att.updateRange.offset+color_att.updateRange.count<end)
+			color_att.updateRange.count = 3*(end-start);
+		
+		color_att.needsUpdate = true;
+		return
 	}
 	var animate1 = animate2;
 
 	// buildmodel(list);
 
 	$('#loading').hide();
+}
+
+function change_color_attr(start,end){
+	let color_att = scene.children[3].children[0].geometry.attributes.color
+	let array = color_att.array
+	let lastcolor_info = color_att.last_info
+	for(let i=3*start;i<3*end+1;i+=3){
+		array[i] = 1;
+		array[i+1] = 0;
+		array[i+2] = 0;
+	}
+	color_att.needsUpdate = true;
+}
+function recover_color_attr(start,end){
+	
+	
 }
 function animate2() {
 	requestAnimationFrame(animate2);
