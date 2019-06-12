@@ -248,60 +248,108 @@ function PDMSLoader() {
      * @param {*} arr 定点组
      */
     function FaceGroupGeometry(arr) {
-
+		// console.log(arr)
         let vertices_array = [];
 
         let geo = new THREE.BufferGeometry();
         var index = [];
         for (let i = 0, len = arr.length; i < len; i++) {
-            let num = arr[i];
-            // console.log(num)
-
+            let geometry_num = arr[i];
+            let vs_nums = []
+			i++;//偏移到后方v_num
+			
+			var current_sum =  0;//到每个循环的顶点的个数
+			for(j=0;j<geometry_num;j++){ //运行geometry个数次
+				vs_num = arr[i+current_sum*6+j];
+				vs_nums.push(vs_num)
+				current_sum+=vs_num
+			}
+			
+			num = vs_nums[0]
+			// console.log('geometry_num,num,num2',geometry_num,vs_nums)
             //先算当前大面的中点坐标
-            let x_sum = 0, y_sum = 0, z_sum = 0;
-            for (let j = i + 1; j < i + 3 * num + 1; j += 3) {
-                x_sum += arr[j];
-                y_sum += arr[j + 2];
-                z_sum += arr[j + 1];
-            };
-            x_sum /= num;
-            y_sum /= num;
-            z_sum /= num;
+			
+			// if(true){
+				//计算中心点
+				let x_sum = 0, y_sum = 0, z_sum = 0;
+				for (let j = i + 1; j < i + 6 * num + 1; j += 6) {
+					x_sum += arr[j];
+					y_sum += arr[j + 2];
+					z_sum += arr[j + 1];
+				};
+				x_sum /= num;
+				y_sum /= num;
+				z_sum /= num;
 
-            // console.log('大面中点坐标',x_sum,y_sum,z_sum)
-            for (let j = i + 1; j < i + 3 * (num - 1) + 1; j += 3) { //一循环一个三角片
-                vertices_array.push(arr[j]);
-                vertices_array.push(arr[j + 2]);
-                vertices_array.push(-arr[j + 1]);
+				// console.log('大面中点坐标',x_sum,y_sum,z_sum)
+				for (let j = i + 1; j < i + 6 * (num - 1) + 1; j += 6) { //一循环一个三角片
+					vertices_array.push(arr[j]);
+					vertices_array.push(arr[j + 2]);
+					vertices_array.push(-arr[j + 1]);
 
-                vertices_array.push(arr[j + 3]);
-                vertices_array.push(arr[j + 5]);
-                vertices_array.push(-arr[j + 4]);
+					vertices_array.push(arr[j + 6]);
+					vertices_array.push(arr[j + 8]);
+					vertices_array.push(-arr[j + 7]);
 
-                //中点
-                vertices_array.push(x_sum);
-                vertices_array.push(y_sum);
-                vertices_array.push(-z_sum);
-                // console.log(arr[j+3],arr[j+5],arr[j+4])
-            };
-            //最后一个面
-            vertices_array.push(arr[i + 3 * (num - 1) + 1]);
-            vertices_array.push(arr[i + 3 * (num - 1) + 3]);
-            vertices_array.push(-arr[i + 3 * (num - 1) + 2]);
-            // console.log('最后三个数字是',arr[3*(num-1)+1],arr[3*(num-1)+3],arr[3*(num-1)+2])
-            vertices_array.push(arr[i + 1]);
-            vertices_array.push(arr[i + 3]);
-            vertices_array.push(-arr[i + 2]);
+					//中点
+					vertices_array.push(x_sum);
+					vertices_array.push(y_sum);
+					vertices_array.push(-z_sum);
+				};
+				//最后一个面
+				vertices_array.push(arr[i + 6 * (num - 1) + 1]);
+				vertices_array.push(arr[i + 6 * (num - 1) + 3]);
+				vertices_array.push(-arr[i + 6 * (num - 1) + 2]);
+				// console.log('最后三个数字是',arr[3*(num-1)+1],arr[3*(num-1)+3],arr[3*(num-1)+2])
+				vertices_array.push(arr[i + 1]);
+				vertices_array.push(arr[i + 3]);
+				vertices_array.push(-arr[i + 2]);
 
-            //中点
-            vertices_array.push(x_sum);
-            vertices_array.push(y_sum);
-            vertices_array.push(-z_sum);
+				//中点
+				vertices_array.push(x_sum);
+				vertices_array.push(y_sum);
+				vertices_array.push(-z_sum);
 
-            // console.log('最前三个数字是',arr[i+1],arr[i+3],arr[i+2])
+				// console.log('最前三个数字是',arr[i+1],arr[i+3],arr[i+2])
 
-            //然后取刚push的几个点的中点计算一个
-            i += 3 * num;
+				//然后取刚push的几个点的中点计算一个
+				// i += 6 * num; //偏移一个顶点
+			// }else{  //geometry_num==2
+				// for (let j = i + 1; j < i + 6 * (num - 1) + 1; j += 6) { //一循环一个三角片
+					// vertices_array.push(arr[j]);
+					// vertices_array.push(arr[j + 2]);
+					// vertices_array.push(-arr[j + 1]);
+
+					// vertices_array.push(arr[j + 3]);
+					// vertices_array.push(arr[j + 5]);
+					// vertices_array.push(-arr[j + 4]);
+
+					// vertices_array.push(arr[j + 6 * num +1 +1]);
+					// vertices_array.push(arr[j + 6 * num +1+3]);
+					// vertices_array.push(-arr[j + 6 * num +1+3]);
+					// console.log(arr[j+3],arr[j+5],arr[j+4])
+				// };
+				
+				// for (let j = i + 6*num + 2; j < i + 6*(num+num2) + 3; j += 6) { //一循环一个三角片
+					// vertices_array.push(arr[j]);
+					// vertices_array.push(arr[j + 2]);
+					// vertices_array.push(-arr[j + 1]);
+
+					// vertices_array.push(arr[j + 3]);
+					// vertices_array.push(arr[j + 5]);
+					// vertices_array.push(-arr[j + 4]);
+
+					// vertices_array.push(arr[j + 6 * num +1 +1]);
+					// vertices_array.push(arr[j + 6 * num +1+3]);
+					// vertices_array.push(-arr[j + 6 * num +1+3]);
+					// console.log(arr[j+3],arr[j+5],arr[j+4])
+				// };
+				var all_v_sum = 0;
+				for(let o of vs_nums){
+					all_v_sum+=o;
+				}
+				
+				i +=  6 * all_v_sum+vs_nums.length-1;
         };
 
         let vertices = new Float32Array(vertices_array);
@@ -312,12 +360,13 @@ function PDMSLoader() {
             index.push(i)
         }
         geo.setIndex(index);
-        index.count = index.length
 
         geo.computeVertexNormals();
 
+		// console.log(geo)
+		
+		// debugger
         return geo;
-
     };
 
     /** 四棱台几何
@@ -524,7 +573,7 @@ function PDMSLoader() {
             },
             success: function (data) { //成功
 
-                console.log(data);
+                console.log('data',data);
 
                 forEachRVMData(data, onProgress, function () {
 
@@ -804,7 +853,7 @@ function PDMSLoader() {
     };
 
     function mergeBufferGeometries() {
-        // console.log(geometries);
+        console.log('geometries',geometries);
 
         let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
         // let colorAtt = new THREE.BufferAttribute(
@@ -846,7 +895,8 @@ function PDMSLoader() {
     };
 
     function getGeometryByGeotype(type, arr) {
-
+		// if(type!=11)
+			// return
         let geo;//几何
 
         switch (type) {
@@ -909,3 +959,4 @@ function PDMSLoader() {
 
 
 };
+
