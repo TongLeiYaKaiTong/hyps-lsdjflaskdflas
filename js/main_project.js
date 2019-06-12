@@ -702,7 +702,7 @@ function animate2() {
 	requestAnimationFrame(animate2);
 
 	if (seaActioin) {
-		water.material.uniforms['time'].value += 5.0 / 60.0;
+		water.material.uniforms['time'].value += 1.0 / 60.0;
 	}
 
 	if (renderer) {
