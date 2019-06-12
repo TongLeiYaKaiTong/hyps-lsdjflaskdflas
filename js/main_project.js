@@ -260,8 +260,8 @@ function loadingPDMS(rvmUrl,attUrl) {
 	let loadingBox = new LoadingBox('加载');
 
 	new PDMSLoader().load(
-		"./js/rvm_att/项目3out.js",
-		"./js/rvm_att/项目3.ATT",
+		"./PDMS/sbytcout.js",
+		"./PDMS/sbytc.ATT",
 		// "./js/rvm_att/项目120190611060651out.js",
 		// "http://192.168.0.110/files/RVM/sbytc20190611070114out.js",
 		// "http://192.168.0.110/files/ATT/sbytc20190611070126.ATT",
