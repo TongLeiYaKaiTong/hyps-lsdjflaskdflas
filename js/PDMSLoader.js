@@ -926,9 +926,8 @@ function PDMSLoader() {
     };
 
     function getGeometryByGeotype(type, arr) {
-        
-        // if(type == 1 || type == 8 || type == 11) return;
-        // if(type != 11) return;
+		// if(type==11)
+			// return
         let geo;//几何
 
         switch (type) {
