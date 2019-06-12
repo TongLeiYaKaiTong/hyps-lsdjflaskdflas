@@ -262,60 +262,108 @@ function PDMSLoader() {
      * @param {*} arr 定点组
      */
     function FaceGroupGeometry(arr) {
-
+		// console.log(arr)
         let vertices_array = [];
 
         let geo = new THREE.BufferGeometry();
         var index = [];
         for (let i = 0, len = arr.length; i < len; i++) {
-            let num = arr[i];
-            // console.log(num)
-
+            let geometry_num = arr[i];
+            let vs_nums = []
+			i++;//偏移到后方v_num
+			
+			var current_sum =  0;//到每个循环的顶点的个数
+			for(j=0;j<geometry_num;j++){ //运行geometry个数次
+				vs_num = arr[i+current_sum*6+j];
+				vs_nums.push(vs_num)
+				current_sum+=vs_num
+			}
+			
+			num = vs_nums[0]
+			// console.log('geometry_num,num,num2',geometry_num,vs_nums)
             //先算当前大面的中点坐标
-            let x_sum = 0, y_sum = 0, z_sum = 0;
-            for (let j = i + 1; j < i + 3 * num + 1; j += 3) {
-                x_sum += arr[j];
-                y_sum += arr[j + 2];
-                z_sum += arr[j + 1];
-            };
-            x_sum /= num;
-            y_sum /= num;
-            z_sum /= num;
+			
+			// if(true){
+				//计算中心点
+				let x_sum = 0, y_sum = 0, z_sum = 0;
+				for (let j = i + 1; j < i + 6 * num + 1; j += 6) {
+					x_sum += arr[j];
+					y_sum += arr[j + 2];
+					z_sum += arr[j + 1];
+				};
+				x_sum /= num;
+				y_sum /= num;
+				z_sum /= num;
 
-            // console.log('大面中点坐标',x_sum,y_sum,z_sum)
-            for (let j = i + 1; j < i + 3 * (num - 1) + 1; j += 3) { //一循环一个三角片
-                vertices_array.push(arr[j]);
-                vertices_array.push(arr[j + 2]);
-                vertices_array.push(-arr[j + 1]);
+				// console.log('大面中点坐标',x_sum,y_sum,z_sum)
+				for (let j = i + 1; j < i + 6 * (num - 1) + 1; j += 6) { //一循环一个三角片
+					vertices_array.push(arr[j]);
+					vertices_array.push(arr[j + 2]);
+					vertices_array.push(-arr[j + 1]);
 
-                vertices_array.push(arr[j + 3]);
-                vertices_array.push(arr[j + 5]);
-                vertices_array.push(-arr[j + 4]);
+					vertices_array.push(arr[j + 6]);
+					vertices_array.push(arr[j + 8]);
+					vertices_array.push(-arr[j + 7]);
 
-                //中点
-                vertices_array.push(x_sum);
-                vertices_array.push(y_sum);
-                vertices_array.push(-z_sum);
-                // console.log(arr[j+3],arr[j+5],arr[j+4])
-            };
-            //最后一个面
-            vertices_array.push(arr[i + 3 * (num - 1) + 1]);
-            vertices_array.push(arr[i + 3 * (num - 1) + 3]);
-            vertices_array.push(-arr[i + 3 * (num - 1) + 2]);
-            // console.log('最后三个数字是',arr[3*(num-1)+1],arr[3*(num-1)+3],arr[3*(num-1)+2])
-            vertices_array.push(arr[i + 1]);
-            vertices_array.push(arr[i + 3]);
-            vertices_array.push(-arr[i + 2]);
+					//中点
+					vertices_array.push(x_sum);
+					vertices_array.push(y_sum);
+					vertices_array.push(-z_sum);
+				};
+				//最后一个面
+				vertices_array.push(arr[i + 6 * (num - 1) + 1]);
+				vertices_array.push(arr[i + 6 * (num - 1) + 3]);
+				vertices_array.push(-arr[i + 6 * (num - 1) + 2]);
+				// console.log('最后三个数字是',arr[3*(num-1)+1],arr[3*(num-1)+3],arr[3*(num-1)+2])
+				vertices_array.push(arr[i + 1]);
+				vertices_array.push(arr[i + 3]);
+				vertices_array.push(-arr[i + 2]);
 
-            //中点
-            vertices_array.push(x_sum);
-            vertices_array.push(y_sum);
-            vertices_array.push(-z_sum);
+				//中点
+				vertices_array.push(x_sum);
+				vertices_array.push(y_sum);
+				vertices_array.push(-z_sum);
 
-            // console.log('最前三个数字是',arr[i+1],arr[i+3],arr[i+2])
+				// console.log('最前三个数字是',arr[i+1],arr[i+3],arr[i+2])
 
-            //然后取刚push的几个点的中点计算一个
-            i += 3 * num;
+				//然后取刚push的几个点的中点计算一个
+				// i += 6 * num; //偏移一个顶点
+			// }else{  //geometry_num==2
+				// for (let j = i + 1; j < i + 6 * (num - 1) + 1; j += 6) { //一循环一个三角片
+					// vertices_array.push(arr[j]);
+					// vertices_array.push(arr[j + 2]);
+					// vertices_array.push(-arr[j + 1]);
+
+					// vertices_array.push(arr[j + 3]);
+					// vertices_array.push(arr[j + 5]);
+					// vertices_array.push(-arr[j + 4]);
+
+					// vertices_array.push(arr[j + 6 * num +1 +1]);
+					// vertices_array.push(arr[j + 6 * num +1+3]);
+					// vertices_array.push(-arr[j + 6 * num +1+3]);
+					// console.log(arr[j+3],arr[j+5],arr[j+4])
+				// };
+				
+				// for (let j = i + 6*num + 2; j < i + 6*(num+num2) + 3; j += 6) { //一循环一个三角片
+					// vertices_array.push(arr[j]);
+					// vertices_array.push(arr[j + 2]);
+					// vertices_array.push(-arr[j + 1]);
+
+					// vertices_array.push(arr[j + 3]);
+					// vertices_array.push(arr[j + 5]);
+					// vertices_array.push(-arr[j + 4]);
+
+					// vertices_array.push(arr[j + 6 * num +1 +1]);
+					// vertices_array.push(arr[j + 6 * num +1+3]);
+					// vertices_array.push(-arr[j + 6 * num +1+3]);
+					// console.log(arr[j+3],arr[j+5],arr[j+4])
+				// };
+				var all_v_sum = 0;
+				for(let o of vs_nums){
+					all_v_sum+=o;
+				}
+				
+				i +=  6 * all_v_sum+vs_nums.length-1;
         };
 
         let vertices = new Float32Array(vertices_array);
@@ -326,12 +374,13 @@ function PDMSLoader() {
             index.push(i)
         }
         geo.setIndex(index);
-        index.count = index.length
 
         geo.computeVertexNormals();
 
+		// console.log(geo)
+		
+		// debugger
         return geo;
-
     };
 
     /** 四棱台几何
@@ -524,30 +573,43 @@ function PDMSLoader() {
             url: rvmUrl,
             xhr: function () { //进度
                 let xhr = new window.XMLHttpRequest();
-                xhr.addEventListener("progress", onProgress, false);
+                xhr.addEventListener("progress", function (evt) {
+                    if (evt.lengthComputable) {
+                        let percentComplete = evt.loaded / evt.total;
+                        if (onProgress) onProgress({
+                            text: "数据传输",
+                            progress: percentComplete
+                        });
+                        // console.log(Math.round(percentComplete * 100) + "%");
+                    };
+                }, false);
                 return xhr;
             },
             success: function (data) { //成功
 
-                console.log(data);
+                console.log('data',data);
 
-                forEachRVMData(data);
-                analysisATT(attUrl, onProgress, onLoad, onError);
+                forEachRVMData(data, onProgress, function () {
 
-                mergeBufferGeometries();
+                    analysisATT(attUrl, onProgress, onLoad, onError);
 
-                if (onLoad) onLoad({
-                    original: data,
-                    PDMSObject: PDMSGroup,
-                    rvmTree: formatRVMData(data),
-                    boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
-                    center: getCenter(),
-                    geoIdArray: geoIdArray, //几何id数组
-                    geoCountArray: geoCountArray//几何点索引数组
+                    mergeBufferGeometries();
+
+                    if (onLoad) onLoad({
+                        original: data,
+                        PDMSObject: PDMSGroup,
+                        rvmTree: formatRVMData(data),
+                        boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
+                        center: getCenter(),
+                        geoIdArray: geoIdArray, //几何id数组
+                        geoCountArray: geoCountArray//几何点索引数组
+                    });
+
                 });
 
+
                 // console.log(geoIdArray,geoCountArray);
-                
+
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
                 onError(xhr.responseText);
@@ -572,13 +634,18 @@ function PDMSLoader() {
         loader.setResponseType('text');
 
         loader.load(attUrl, function (text) {
+            // console.log(text);
+
             let arr = text.split("NEW");
 
             // 总json表
             let json = {};
 
             //记录 起源数据 的Name
-            let origin = arr[3].replace(/\s*/g, "").split("Name:=")[0];
+            let origin = arr[3].replace(/\s*/g, "").toLowerCase().split("name:=")[0];
+
+            let reg1 = RegExp(/name/i),
+                reg2 = RegExp(/Owner/i);
 
             // 遍历每个New 的对象
             for (let i = 3, len = arr.length; i < len; i++) {
@@ -592,8 +659,10 @@ function PDMSLoader() {
                 for (let j = 1, l = arr1.length - 1; j < l; j++) {
 
                     let arr2 = arr1[j].split(":=");//分割字符串为数组
-                    if (j == 1 && arr2[0] == "Name") json[arr2[1]] = json1;//存在Name属性的 创建到json表中
-                    if (j == 4 && arr2[0] == "Owner" && json[arr2[1]]) json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
+                    // if (j == 1 && arr2[0] == "Name") json[arr2[1]] = json1;//存在Name属性的 创建到json表中
+                    // if (j == 4 && arr2[0] == "Owner" && json[arr2[1]]) json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
+                    if (j == 1 && reg1.test(arr2[0])) json[arr2[1]] = json1;//存在Name属性的 创建到json表中
+                    if (j == 4 && reg2.test(arr2[0]) && json[arr2[1]]) json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
                     json1[arr2[0]] = arr2[1];//这个属性
 
                 };
@@ -602,7 +671,7 @@ function PDMSLoader() {
             let data = json[origin];//获取总的关系
             json = undefined;//清空josn数据
 
-            if (onSuccess) onSuccess(data);
+            // if (onSuccess) onSuccess(data);
             console.log(data);
         });
     };
@@ -620,39 +689,77 @@ function PDMSLoader() {
         return data[0];
     };
 
+
     // 遍历RVM数据
-    function forEachRVMData(data) {
-        for (let i = 0, len = data.length; i < len; i++) {
+    function forEachRVMData(data, onProgress, callback) {
 
-            let element = data[i];//当前元素
+        let len = data.length;//总数组数
 
-            let PRIMSNum = element.PRIMS.length;//prims 数量
+        function forEachRVMData1(i1, i2) {
 
-            if (PRIMSNum == 0) continue;//没有几何信息的跳过
-
-            if (element.C > 50) element.C = 0;
-
-            let lastCount = geoCount;//记录上次的计数
-
-            for (let j = 0; j < PRIMSNum; j++) {
-
-                setPDMSMember(element.PRIMS[j], colorArray[element.C], element.ID);
-
+            for (let i = i1; i < i2; i++) {
+                let element = data[i];//当前元素
+                forEachRVMData2(element);
             };
 
-            if(geoCount - lastCount > 0){
-                geoIdArray.push(element.ID); //几何id数组
-				geoCountArray.push(geoCount);//几何点索引数组
+            if (onProgress) onProgress({
+                text: "模型加载",
+                progress: i2 / len
+            });
+
+            if (i2 != len) {
+                let addNum = Math.floor(Math.random () * 900) + 512;
+                setTimeout(function () {
+                    if (i2 + addNum < len) {
+                        forEachRVMData1(i2, i2 + addNum);
+                    } else {
+                        forEachRVMData1(i2, len);
+                    };
+                }, 500);
+            } else {
+                callback();
             };
 
         };
+
+        forEachRVMData1(0, Math.floor(Math.random () * 900) + 512);
+
+    };
+
+    // 遍历RVM数据
+    function forEachRVMData2(element) {
+        // for (let i = 0, len = data.length; i < len; i++) {
+
+        //     let element = data[i];//当前元素
+
+        let PRIMSNum = element.PRIMS.length;//prims 数量
+
+        // if (PRIMSNum == 0) continue;//没有几何信息的跳过
+        if (PRIMSNum == 0) return;//没有几何信息的跳过
+
+        if (element.C > 50) element.C = 0;
+
+        let lastCount = geoCount;//记录上次的计数
+
+        for (let j = 0; j < PRIMSNum; j++) {
+
+            setPDMSMember(element.PRIMS[j], colorArray[element.C], element.ID);
+
+        };
+
+        if (geoCount - lastCount > 0) {
+            geoIdArray.push(element.ID); //几何id数组
+            geoCountArray.push(geoCount);//几何点索引数组
+        };
+
+        // };
     };
 
     // 设置PDMS的每一个部位的构建
-	
+
     function setPDMSMember(PRIM, color, id) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
-		// if(PRIM.TYPE == 10) console.log(10);
+        // if(PRIM.TYPE == 10) console.log(10);
 
         if (geo) {
 
@@ -732,25 +839,25 @@ function PDMSLoader() {
             };
 
             geo.addAttribute('color', colorAtt);
-			
+
             //=================pick color=========================
             let pick_colorAtt = new THREE.BufferAttribute(
                 new Float32Array(count * 3), 3
             );
-			
-			var col = new THREE.Color;
-			col.setHex(geoCountArray.length)
-			console.log(geoCountArray.length)
+
+            var col = new THREE.Color;
+            col.setHex(geoCountArray.length)
+            // console.log(geoCountArray.length)
             for (let i = 0; i < count; i++) {
                 pick_colorAtt.setXYZ(i, col.r, col.g, col.b);
             };
 
             geo.addAttribute('pickingColor', pick_colorAtt);
 
-			pickingMaterial = new THREE.ShaderMaterial( {
-				vertexShader: THREE.pickShader.vertexShader,
-				fragmentShader: THREE.pickShader.fragmentShader
-			} );
+            pickingMaterial = new THREE.ShaderMaterial({
+                vertexShader: THREE.pickShader.vertexShader,
+                fragmentShader: THREE.pickShader.fragmentShader
+            });
             //============记录顶点索引对应的geo======================
 
             geoCount = geoCount + count;
@@ -760,7 +867,7 @@ function PDMSLoader() {
     };
 
     function mergeBufferGeometries() {
-        console.log(geometries);
+        console.log('geometries',geometries);
 
         let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
         // let colorAtt = new THREE.BufferAttribute(
@@ -802,7 +909,8 @@ function PDMSLoader() {
     };
 
     function getGeometryByGeotype(type, arr) {
-
+		// if(type!=11)
+			// return
         let geo;//几何
 
         switch (type) {
@@ -853,14 +961,9 @@ function PDMSLoader() {
             case 10:  //Line 
                 break;
             case 11:  //FaceGroup
-                // geo = FaceGroupGeometry(arr);
+                geo = FaceGroupGeometry(arr);
                 break;
         };
-
-        // if (!geo) console.error("不存在几何类型");
-
-        // 偏心圆台存在问题
-        // if (geo.isGeometry) geo = new THREE.BufferGeometry().fromGeometry(geo);
 
         return geo;
     };
@@ -870,140 +973,4 @@ function PDMSLoader() {
 
 
 };
-
-
-//=============================测试场景==========================================
-
-// let container;//html容器
-
-// let scene, renderer, camera;//three 三组件
-
-// let controls;//控制器
-
-// let primitives;//几何集合
-
-// let material = new THREE.MeshPhongMaterial({ color: 0xff00ff });//统一材质
-
-// function render() {
-//     renderer.render(scene, camera);
-// };
-
-// function animate() {
-//     requestAnimationFrame(animate);
-//     render();
-// };
-
-// function init() {
-
-//     container = document.getElementById('container');
-
-//     // renderer
-//     renderer = new THREE.WebGLRenderer({ antialias: true });
-//     renderer.setPixelRatio(window.devicePixelRatio);
-//     renderer.setSize(container.clientWidth, container.clientHeight);
-//     container.appendChild(renderer.domElement);
-
-//     // scene
-//     scene = new THREE.Scene();
-//     scene.background = new THREE.Color(0x000000);
-
-//     // light
-//     let light1 = new THREE.DirectionalLight(0xffffff, 0.45);
-//     light1.position.set(1, 1, 1);
-//     scene.add(light1);
-
-//     let light2 = new THREE.DirectionalLight(0xffffff, 0.45);
-//     light2.position.set(-1, -1, 1);
-//     scene.add(light2);
-
-//     scene.add(new THREE.AmbientLight(0xffffff, 0.1));
-
-//     // camera
-//     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 1000000);
-//     camera.position.set(8.7, 17.97, -9.8);
-
-//     // controls
-//     controls = new THREE.OrbitControls(camera, renderer.domElement);
-//     controls.target.set(8.6, -5.05, -10);
-//     controls.update();
-
-//     // Object3D
-//     primitives = new THREE.Group();
-//     scene.add(primitives);
-
-//     // AxesHelper
-//     scene.add(new THREE.AxesHelper(5));
-
-//     new PDMSLoader().load(
-//         // "./js/rvm_att/pyrout.js",
-//         "./js/rvm_att/rvmData1.js",
-//         "",
-//         function (data) {
-//             console.log(data);
-//             if (data.PDMSObject) scene.add(data.PDMSObject);
-
-//             // let boxH = new THREE.Box3();
-//             // boxH.setFromCenterAndSize(new THREE.Vector3(800, 300, 300), new THREE.Vector3(-300, -300, -800));
-//             // let helper = new THREE.Box3Helper(boxH, 0xffff00);
-//             // scene.add(helper);
-
-//             if (data.center && data.boundingBox && false) {
-
-//                 let box = data.boundingBox;
-//                 // console.log(box);
-
-//                 let center = data.center;
-
-//                 // let boxH = new THREE.Box3();
-//                 // boxH.setFromCenterAndSize(new THREE.Vector3(box[0] * 1000, box[1]* 1000, box[2]* 1000), new THREE.Vector3(box[3]* 1000, box[4]* 1000, box[5]* 1000));
-//                 // let helper = new THREE.Box3Helper(boxH, 0xffff00);
-//                 // scene.add(helper);
-
-//                 let diagonal = Math.sqrt(
-//                     Math.pow(box[0] - box[3], 2) +
-//                     Math.pow(box[1] - box[4], 2) +
-//                     Math.pow(box[2] - box[5], 2));
-
-//                 camera.position.set(center[0] - diagonal, center[1] + diagonal, center[2] + diagonal);
-
-//                 controls.target.set(center[0], center[1], center[2]);
-
-//                 controls.update();
-
-//             };
-
-//         },
-//         function (evt) {
-//             if (evt.lengthComputable) {
-//                 let percentComplete = evt.loaded / evt.total;
-//                 console.log(Math.round(percentComplete * 100) + "%");
-//             };
-//         }
-//     );
-
-//     window.addEventListener('resize', onWindowResize, false);
-
-// };
-
-// function onWindowResize() {
-//     camera.aspect = window.innerWidth / window.innerHeight;
-//     camera.updateProjectionMatrix();
-//     renderer.setSize(container.clientWidth, container.clientHeight);
-// };
-
-// init();
-// animate();
-// // 添加几何体
-// // testAddGeo();
-
-// /** 几何添加测试
-//  * @param {*} geo 任意几何体
-//  */
-// function testAddGeo(geo) {
-//     let mlt = new THREE.MeshLambertMaterial({ color: 0x0f0f0 });
-//     let mesh = new THREE.Mesh(geo, mlt);
-//     primitives.add(mesh);
-//     console.log(primitives);
-// };
-
 

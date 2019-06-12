@@ -369,6 +369,7 @@ function getAllFiles(){
 		url:globalHttp+"allFiles",
 		ansyc:true,
 		data:{},
+		cache:false,
 		success:function(data){
 			console.log("获取文件");
 			console.log(data);
