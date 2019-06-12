@@ -138,6 +138,24 @@ $('#controller-tool-bar>.water>.icon').click(function () {
 	}
 });
 
+// 下载按钮绑定
+$('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
+	let target = window.PDMSObject;
+	let fileName = target.name == '' ? 'PDMS导出文件' : target.name;
+
+	if (selected_mesh) {
+		target = selected_mesh;
+
+		let with_name_parent = selected_mesh;
+		while (with_name_parent.name == '') {
+			with_name_parent = with_name_parent.parent;
+		}
+
+		fileName = with_name_parent.name;
+	}
+
+	downloadGLTF(target, fileName);
+});
 
 // 下载gltf格式模型
 function downloadGLTF(model, fileName) {
@@ -371,24 +389,7 @@ function loadingPDMS(rvmUrl, attUrl) {
 			if (data.PDMSObject) {
 				scene.add(data.PDMSObject);
 
-				$('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
-
-					let target = data.PDMSObject;
-					let fileName = data.PDMSObject.name == '' ? 'PDMS导出文件' : data.PDMSObject.name;
-
-					if (selected_mesh) {
-						target = selected_mesh;
-
-						let with_name_parent = selected_mesh;
-						while (with_name_parent.name == '') {
-							with_name_parent = with_name_parent.parent;
-						}
-
-						fileName = with_name_parent.name;
-					}
-
-					downloadGLTF(target, fileName);
-				});
+				window.PDMSObject = data.PDMSObject;
 			};
 
 			if(data.geoIdArray) geoIdArray = data.geoIdArray;
