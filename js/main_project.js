@@ -1,4 +1,18 @@
 // ============================ dom事件绑定 ============================
+// 取消默认右键功能
+document.oncontextmenu = function (event) {
+	event.preventDefault();
+}
+// 没点到导航按键时，删除导航按键
+$('body').mousedown(function(event) {
+	const target = event.target
+	if ($(target).hasClass('walk_to_target')) {
+		console.log('导航');
+	} else {
+		$('.walk_to_target').remove();
+	}
+})
+
 // 下拉菜单鼠标移入触发
 $(".menu-box").mouseover(function () {
 	$(this).addClass('open');
@@ -161,10 +175,12 @@ function downloadModel(blob, filename) {
 
 /**
  * @name loading界面对象
- * @param {string} text 初始化文本
+ * @param {string} content 初始化文本
  * @param {*} config 配置选项 hasProgress 设置是否含有进度条
  */
 function LoadingBox(text, config) {
+
+	this.text = text;
 	// 界面外框
 	const element = document.createElement('div');
 	$('body').append(element);
@@ -224,8 +240,14 @@ function LoadingBox(text, config) {
 
 	// 更新显示文本
 	this.updateText = function (text) {
-		$(text_dom).text(text);
-	}
+		this.text = text;
+		// console.log(text);
+	};
+
+	// 更新显示文本
+	this.updateTitle = function (title) {
+		$(text_dom).text(title);
+	};
 
 	// 更新进度条
 	this.updateRange = function (range) {
@@ -233,7 +255,9 @@ function LoadingBox(text, config) {
 			console.log(range * 100);
 		}
 		range = Math.round(range * 100);
-		this.updateText('已' + text + range + '%');
+		console.log(text,range);
+		
+		this.updateTitle(this.text + ' ' + range + '%');
 
 		$(progress).find('>span:nth-child(-n+100)').css('background-color', '#ffffff'); //考虑超过100%，下个进度条能继续使用
 		
@@ -250,8 +274,8 @@ function loadingPDMS(rvmUrl,attUrl) {
 	let loadingBox = new LoadingBox('加载');
 
 	new PDMSLoader().load(
-		"./js/rvm_att/项目1out.js",
-		"./js/rvm_att/项目1.ATT",
+		"./PDMS/sbytcout.js",
+		"./PDMS/sbytc.ATT",
 		// "./js/rvm_att/项目120190611060651out.js",
 		// "http://192.168.0.110/files/RVM/sbytc20190611070114out.js",
 		// "http://192.168.0.110/files/ATT/sbytc20190611070126.ATT",
@@ -303,7 +327,16 @@ function loadingPDMS(rvmUrl,attUrl) {
 			loadingBox.remove();
 		},
 		function (res) {
-			loadingBox.updateRange(res.progress);
+			switch (res.text) {
+				case "merge":
+					loadingBox.updateTitle("merge BufferGeometry");
+					break;
+				default:
+					loadingBox.updateText(res.text);
+					loadingBox.updateRange(res.progress);
+					break;
+			}
+			
 		}
 	);
 };
@@ -655,7 +688,7 @@ function animate2() {
 	requestAnimationFrame(animate2);
 
 	if (seaActioin) {
-		water.material.uniforms['time'].value += 5.0 / 60.0;
+		water.material.uniforms['time'].value += 1.0 / 60.0;
 	}
 
 	if (renderer) {
@@ -725,6 +758,26 @@ function mulushu(list) {
 		},
 		callback: {
 			onClick: nodeClick,
+			onRightClick: function(event, treeId, treeNode) {
+				if (treeNode) {
+					// console.log('event', event);
+					// console.log('treeId', treeId);
+					// console.log('treeNode', treeNode);
+
+					const guide_dom = document.createElement('span');
+					$(guide_dom).addClass('walk_to_target').text('导航到目标').css({
+						'position': 'fixed',
+						'top': event.pageY + 'px',
+						'left': event.pageX + 'px',
+						'background-color': '#5bc0de',
+						'padding': '5px 8px',
+						'color': '#fff',
+						'border-radius': '5px',
+						'cursor': 'pointer',
+					})
+					$('body').append(guide_dom);
+				}
+			},
 			onExpand: function (event, treeId, treeNode) {
 				//console.log(treeNode);
 				addSubNode(treeNode);
