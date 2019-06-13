@@ -259,7 +259,7 @@ function LoadingBox(text_array, config) {
 	this.text_dom_array = [];
 	this.progress_array = [];
 
-	for (const text of this.text_array) {
+	this.addProgress = function(text) {
 		// 文字
 		const text_dom = document.createElement('p');
 		$(element).append(text_dom);
@@ -300,6 +300,9 @@ function LoadingBox(text_array, config) {
 		this.progress_array.push(progress);
 	}
 
+	for (const text of this.text_array) {
+		this.addProgress(text);
+	}
 
 	// 更新显示文本
 	this.updateText = function (text, index = 0) {
