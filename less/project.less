@@ -861,19 +861,29 @@ a:focus {
         li{
             display: flex;
             font-size: 14px;
-            margin-top:10px;
+            // margin-top:10px;
+
+            @borderColor: #aaaaaa;
+            @border: 1px solid @borderColor;
 
             div{
+                display: flex;
+                align-items: center;
                 width: 90px;
                 word-wrap:break-word;
                 &:after{
                     content:":";
                 }
+                border-right: @border;
+                border-bottom: @border;
+                padding: 3px;
             }
 
             span {
+                padding: 3px;
                 width: 140px;
                 word-wrap:break-word;
+                border-bottom: @border;
             }
             
         }
