@@ -1,3 +1,4 @@
+var test = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 function PDMSLoader() {
 
     let scope = this;
@@ -12,9 +13,12 @@ function PDMSLoader() {
     let geoIdArray = []; //几何id数组
     let geoCountArray = [];//几何点索引数组
 
+    let original;//原始文件
+    let rvmTree; //rvm树结构数据
     let ATTData;//ATT文件数据
 
-    let maxX, maxY, maxZ, minX, minY, minZ;
+    let rvmAnalysis = false;
+    let attAnalysis = false;
 
     // ==================================================新建几何函数区域==================================================
 
@@ -26,8 +30,9 @@ function PDMSLoader() {
      * @param {*} heightSegments 垂直分段数 【默认16】
      */
     function DishGeometry(cover, radius, height, widthSegments, heightSegments) {
-
+		
         widthSegments = widthSegments || 8;
+		if(radius>500) widthSegments = 12
         heightSegments = heightSegments || 4;
 
         let r = Math.floor(((height * height) + (radius * radius)) / (2 * height)); //半径 
@@ -350,49 +355,81 @@ function PDMSLoader() {
         let half_y_t = y_top / 2;
         let half_h = height / 2;
 
-        var geometry = new THREE.Geometry();
-
+        var geometry = new THREE.BufferGeometry();
+		var vertices_array = []
+		
         //bottom v
-        geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, -half_y_b));
-        geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, -half_y_b));
-        geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, half_y_b));
-        geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, half_y_b));
+        // geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, -half_y_b));
+        // geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, -half_y_b));
+        // geometry.vertices.push(new THREE.Vector3(half_x_b, -half_h, half_y_b));
+        // geometry.vertices.push(new THREE.Vector3(-half_x_b, -half_h, half_y_b));
+		
+        var v0 = [-half_x_b, -half_h, -half_y_b];
+        var v1 = [half_x_b, -half_h, -half_y_b];
+        var v2 = [half_x_b, -half_h, half_y_b];
+        var v3 = [-half_x_b, -half_h, half_y_b];
 
         //top v
-        geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, half_h, -half_y_t - y_offset));
-        geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, half_h, -half_y_t - y_offset));
-        geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, half_h, half_y_t - y_offset));
-        geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, half_h, half_y_t - y_offset));
+        // geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, half_h, -half_y_t - y_offset));
+        // geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, half_h, -half_y_t - y_offset));
+        // geometry.vertices.push(new THREE.Vector3(half_x_t + x_offset, half_h, half_y_t - y_offset));
+        // geometry.vertices.push(new THREE.Vector3(-half_x_t + x_offset, half_h, half_y_t - y_offset));
+
+        var v4 = [-half_x_t + x_offset, half_h, -half_y_t - y_offset];
+        var v5 = [half_x_t + x_offset, half_h, -half_y_t - y_offset];
+        var v6 = [half_x_t + x_offset, half_h, half_y_t - y_offset];
+        var v7 = [-half_x_t + x_offset, half_h, half_y_t - y_offset];
 
         //=====================================
         //bottom
-        geometry.faces.push(new THREE.Face3(0, 1, 3));
-        geometry.faces.push(new THREE.Face3(3, 1, 2));
+        vertices_array.push(v0[0],v0[1],v0[2], v1[0], v1[1], v1[2], v3[0],v3[1],v3[2]);
+        vertices_array.push(v3[0],v3[1],v3[2], v1[0], v1[1], v1[2], v2[0],v2[1],v2[2]);
 
-        //top
-        geometry.faces.push(new THREE.Face3(4, 6, 5));
-        geometry.faces.push(new THREE.Face3(4, 7, 6));
+        //top 
+        vertices_array.push(v4[0],v4[1],v4[2], v6[0], v6[1], v6[2], v5[0],v5[1],v5[2]);
+        vertices_array.push(v4[0],v4[1],v4[2], v7[0], v7[1], v7[2], v6[0],v6[1],v6[2]);
+
 
         //front
-        geometry.faces.push(new THREE.Face3(7, 3, 6));
-        geometry.faces.push(new THREE.Face3(6, 3, 2));
+        vertices_array.push(v7[0],v7[1],v7[2], v3[0], v3[1], v3[2], v6[0],v6[1],v6[2]);
+        vertices_array.push(v6[0],v6[1],v6[2], v3[0], v3[1], v3[2], v2[0],v2[1],v2[2]);
+
+        // vertices_array.push(new THREE.Face3(7, 3, 6));
+		// vertices_array.push(new THREE.Face3(6, 3, 2));
 
         //back
-        geometry.faces.push(new THREE.Face3(5, 1, 0));
-        geometry.faces.push(new THREE.Face3(4, 5, 0));
+        vertices_array.push(v5[0],v5[1],v5[2], v1[0], v1[1], v1[2], v0[0],v0[1],v0[2]);
+        vertices_array.push(v4[0],v4[1],v4[2], v5[0], v5[1], v5[2], v0[0],v0[1],v0[2]);
+
+        // vertices_array.push(new THREE.Face3(5, 1, 0));
+        // vertices_array.push(new THREE.Face3(4, 5, 0));
 
         //left
-        geometry.faces.push(new THREE.Face3(4, 0, 3));
-        geometry.faces.push(new THREE.Face3(7, 4, 3));
+        vertices_array.push(v4[0],v4[1],v4[2], v0[0], v0[1], v0[2], v3[0],v3[1],v3[2]);
+        vertices_array.push(v7[0],v7[1],v7[2], v4[0], v4[1], v4[2], v3[0],v3[1],v3[2]);
+
+        // vertices_array.push(new THREE.Face3(4, 0, 3));
+        // vertices_array.push(new THREE.Face3(7, 4, 3));
 
         //right
-        geometry.faces.push(new THREE.Face3(5, 6, 2));
-        geometry.faces.push(new THREE.Face3(5, 2, 1));
+        vertices_array.push(v5[0],v5[1],v5[2], v6[0], v6[1], v6[2], v2[0],v2[1],v2[2]);
+        vertices_array.push(v5[0],v5[1],v5[2], v2[0], v2[1], v2[2], v1[0],v1[1],v1[2]);
+
+        // vertices_array.push(new THREE.Face3(5, 6, 2));
+        // vertices_array.push(new THREE.Face3(5, 2, 1));
 
         //the face normals and vertex normals can be calculated automatically if not supplied above
         // geometry.computeFaceNormals();
-        geometry.computeVertexNormals();
+		
+		geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices_array), 3));
 
+		var index = [];
+        for (var i = 0; i < vertices_array.length / 3; i++) {
+            index.push(i)
+        }
+        geometry.setIndex(index);
+        geometry.computeVertexNormals();
+		
         geometry.translate(x_offset / 2, 0, y_offset / 2)
         return geometry;
     };
@@ -491,7 +528,7 @@ function PDMSLoader() {
 
     // ==================================================PDMS文件解析区域================================================== 
 
-    // ===================================RVM文件解析模块=================================== 
+     
 
     /** load函数
      * @param {*} rvmUrl 
@@ -505,6 +542,39 @@ function PDMSLoader() {
 
         onError = onError || function (errorInfo) { console.error(errorInfo) };
 
+        // ATT信息异步加载
+        analysisATT(attUrl, onProgress, successCallback);
+
+        // RVM信息异步加载
+        analysisRVM(rvmUrl, onProgress, successCallback)
+
+        // 成功之后的函数回调
+        function successCallback() {
+            if (rvmAnalysis && attAnalysis && onLoad) {
+                onLoad({
+                    original: original,
+                    PDMSObject: PDMSGroup,
+                    rvmTree: rvmTree, //rvm树结构数据
+                    geoIdArray: geoIdArray, //几何id数组
+                    geoCountArray: geoCountArray,//几何点索引数组
+                    ATTData: ATTData// ATT文件数据
+                    // boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
+                    // center: getCenter(),
+                });
+            };
+        };
+    };
+
+
+
+    // ===================================RVM文件解析模块===================================
+
+    /**
+     * @param {*} rvmUrl 
+     * @param {*} onProgress 
+     * @param {*} successCallback 
+     */
+    function analysisRVM(rvmUrl, onProgress, successCallback) {
         // rvm信息异步加载
         $.ajax({
             type: 'GET',
@@ -516,7 +586,7 @@ function PDMSLoader() {
                     if (evt.lengthComputable) {
                         let percentComplete = evt.loaded / evt.total;
                         if (onProgress) onProgress({
-                            text: "数据传输",
+                            text: "RVM文件数据传输",
                             progress: percentComplete
                         });
                         // console.log(Math.round(percentComplete * 100) + "%");
@@ -528,34 +598,15 @@ function PDMSLoader() {
 
                 // console.log('data',data);
 
+                original = data; //原始文件
 
+                rvmTree = formatRVMData(data); //rvm树结构数据
 
                 forEachRVMData(data, onProgress, function () {
 
-                    analysisATT(attUrl, onProgress, function () {
-
-                        mergeBufferGeometries(function () {
-                            if (onLoad) onLoad({
-                                original: data,
-                                PDMSObject: PDMSGroup,
-                                rvmTree: formatRVMData(data),
-                                boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
-                                center: getCenter(),
-                                geoIdArray: geoIdArray, //几何id数组
-                                geoCountArray: geoCountArray,//几何点索引数组
-                                ATTData: ATTData// ATT文件数据
-                            });
-
-                        });
-
-                    });
-
-                    // onProgress({ text: "merge" });
+                        mergeBufferGeometries(successCallback);
 
                 });
-
-
-                // console.log(geoIdArray,geoCountArray);
 
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
@@ -563,7 +614,10 @@ function PDMSLoader() {
                 onError(thrownError);
             },
         });
+
     };
+
+
 
     // ===================================ATT文件解析模块=================================== 
 
@@ -574,7 +628,10 @@ function PDMSLoader() {
      */
     function analysisATT(attUrl, onProgress, callback) {
 
-        if (!attUrl || attUrl == "") callback();
+        if (!attUrl || attUrl == "") {
+            attAnalysis = true;
+            return;
+        }; 
 
         let loader = new THREE.FileLoader();
         loader.setResponseType('text');
@@ -642,8 +699,18 @@ function PDMSLoader() {
 
             ATTData = json[origin];//获取总的关系
 
+            attAnalysis = true;
             callback();
 
+        },function(evt){
+            if (evt.lengthComputable) {
+                let percentComplete = evt.loaded / evt.total;
+                if (onProgress) onProgress({
+                    text: "ATT文件数据传输",
+                    progress: percentComplete
+                });
+                // console.log(Math.round(percentComplete * 100) + "%");
+            };
         });
     };
 
@@ -736,9 +803,6 @@ function PDMSLoader() {
 
         if (geo) {
 
-            geo.computeBoundingBox();
-            reviseBoundingBox(geo.boundingBox);
-
             // let mlt = new THREE.MeshLambertMaterial({ color: color, wireframe: false });
             // let mesh = new THREE.Mesh(geo, mlt);
             let mtx = PRIM.Direction;//12位矩阵
@@ -818,9 +882,9 @@ function PDMSLoader() {
             geo.addAttribute('color', colorAtt);
 
             //=================pick color=========================
-
+			let countx3 = count * 3;
             let pick_colorAtt = new THREE.BufferAttribute(
-                new Float32Array(count * 3), 3
+                new Float32Array(countx3), 3
             );
 
             var col = new THREE.Color;
@@ -831,15 +895,8 @@ function PDMSLoader() {
             };
 
             geo.addAttribute('pickingColor', pick_colorAtt);
-
-            pickingMaterial = new THREE.ShaderMaterial({
-                vertexShader: THREE.pickShader.vertexShader,
-                fragmentShader: THREE.pickShader.fragmentShader
-            });
-            //============记录顶点索引对应的geo======================
-
-            geoCount = geoCount + count;
-
+			
+			geoCount = geoCount + count;
         };
 
     };
@@ -872,7 +929,8 @@ function PDMSLoader() {
 				console.log('wait_merged_array[count]',wait_merged_array[count])
 				if(!wait_merged_array[count]){
 					console.log('切断interval')
-					clearInterval(interval)
+                    clearInterval(interval)
+                    rvmAnalysis = true;
 					callback();
 					return
 				}
@@ -898,34 +956,12 @@ function PDMSLoader() {
 		)
     };
 
-    // 修正场景包围盒
-    function reviseBoundingBox(box3) {
-        // console.log(box3.max, box3.min);
-
-        if (!maxX || (maxX && maxX < box3.max.x)) maxX = box3.max.x;
-        if (!maxY || (maxY && maxY < box3.max.y)) maxY = box3.max.y;
-        if (!maxZ || (maxZ && maxZ < box3.max.z)) maxZ = box3.max.z;
-
-        if (!minX || (minX && minX > box3.min.x)) minX = box3.min.x;
-        if (!minY || (minY && minY > box3.min.y)) minY = box3.min.y;
-        if (!minZ || (minZ && minZ > box3.min.z)) minZ = box3.min.z;
-    };
-
-    function getCenter() {
-        //计算中心点
-        return [
-            (maxX + minX) / 2000,
-            (maxY + minY) / 2000,
-            (maxZ + minZ) / 2000
-        ];
-
-    };
-
     function getGeometryByGeotype(type, arr) {
         let geo;//几何
-        // if(type!=5&&type!=6)
-        // return geo
-
+		
+		test[type]++
+        // if(type!=1)
+			// return geo
         switch (type) {
             case 1:   //Pyramid 
                 geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);

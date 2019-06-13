@@ -373,9 +373,12 @@ function cleanPDMS() {
 		scene.remove(group);
 	};
 
+	renderer.render(scene, camera);
+
 };
 
 let ATTData;
+let attLoaded = false;
 function loadingPDMS(rvmUrl, attUrl) {
 	cleanPDMS();
 	cancelAnimationFrame(animateReq);
@@ -412,8 +415,11 @@ function loadingPDMS(rvmUrl, attUrl) {
 			loadingBox.remove();
 		},
 		function (res) {
+			if (res.text == "ATT文件数据传输" && !attLoaded) return;
+			if(res.text == "模型加载" && res.progress == 1) attLoaded = true;
 			loadingBox.updateText(res.text);
 			loadingBox.updateRange(res.progress);
+			
 		}
 	);
 };
@@ -522,6 +528,10 @@ function init(name, list) {
 	pickingRenderTarget.texture.generateMipmaps = false;
 	pickingRenderTarget.texture.minFilter = THREE.NearestFilter;
 
+	pickingMaterial = new THREE.ShaderMaterial({
+		vertexShader: THREE.pickShader.vertexShader,
+		fragmentShader: THREE.pickShader.fragmentShader
+	});
 	// Water
 	var waterGeometry = new THREE.CircleBufferGeometry(100000, 16);
 
@@ -1478,8 +1488,8 @@ var viewMovement = function () {
 
 	last_delta = new THREE.Vector3(last_delta.x, moveUp - moveDown, last_delta.y);
 
-	camera.position.addScaledVector(last_delta, 0.5);
-	controls.target.addScaledVector(last_delta, 0.5);
+	camera.position.addScaledVector(last_delta, 0.2);
+	controls.target.addScaledVector(last_delta, 0.2);
 
 };
 //建立视角球
