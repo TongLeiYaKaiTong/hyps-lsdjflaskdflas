@@ -100,7 +100,6 @@ function PDMSLoader() {
         // 有遮盖
         if (cover) {
 			// console.log('有盖子')
-			return
             // bottom plane
             let bottomPlane = new THREE.CircleBufferGeometry(radius, widthSegments);
             bottomPlane.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / 2));
