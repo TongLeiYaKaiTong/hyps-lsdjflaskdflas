@@ -603,7 +603,9 @@ function init(name, list) {
 	window.addEventListener('resize', onWindowResize, false);
 
 	animate();
-	loadingPDMS();
+	
+	//是否调用本地模型
+	//loadingPDMS();
 	var data;
 
 	function onWindowResize() {
@@ -1470,8 +1472,8 @@ var viewMovement = function () {
 
 	last_delta = new THREE.Vector3(last_delta.x, moveUp - moveDown, last_delta.y);
 
-	camera.position.addScaledVector(last_delta, 0.5);
-	controls.target.addScaledVector(last_delta, 0.5);
+	camera.position.addScaledVector(last_delta, 0.2);
+	controls.target.addScaledVector(last_delta, 0.2);
 
 };
 //建立视角球

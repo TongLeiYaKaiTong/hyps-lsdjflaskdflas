@@ -17,61 +17,6 @@ function PDMSLoader() {
 
     let maxX, maxY, maxZ, minX, minY, minZ;
 
-    // ==================================================颜色数组表区域==================================================
-    let colorArray = [
-        new THREE.Color('#F0F0F0'),
-        new THREE.Color('#BEBEBE'),
-        new THREE.Color('#FF0000'),
-        new THREE.Color('#FFA500'),
-        new THREE.Color('#FFFF00'),
-        new THREE.Color('#00FF00'),
-        new THREE.Color('#00FFFF'),
-        new THREE.Color('#0000FF'),
-        new THREE.Color('#EE82EE'),
-        new THREE.Color('#A52A2A'),
-        new THREE.Color('#FFFFFF'),
-        new THREE.Color('#FFC0CB'),
-        new THREE.Color('#7C509D'),
-        new THREE.Color('#40E0D0'),
-        new THREE.Color('#002E5A'),
-        new THREE.Color('#000000'),
-        new THREE.Color('#FF00FF'),
-        new THREE.Color('#F5F5F5'),
-        new THREE.Color('#FFFFF0'),
-        new THREE.Color('#D3D3D3'),
-        new THREE.Color('#A9A9A9'),
-        new THREE.Color('#2F4F4F'),
-        new THREE.Color('#AA0114'),
-        new THREE.Color('#FF7F50'),
-        new THREE.Color('#FF6347'),
-        new THREE.Color('#DDA0DD'),
-        new THREE.Color('#FF1493'),
-        new THREE.Color('#FA8072'),
-        new THREE.Color('#ec8a2a'),
-        new THREE.Color('#FF4500'),
-        new THREE.Color('#B03060'),
-        new THREE.Color('#FFD700'),
-        new THREE.Color('#FFFFE0'),
-        new THREE.Color('#FAFAD2'),
-        new THREE.Color('#9ACD32'),
-        new THREE.Color('#00FF7F'),
-        new THREE.Color('#228B22'),
-        new THREE.Color('#006400'),
-        new THREE.Color('#7FFFD4'),
-        new THREE.Color('#4169E1'),
-        new THREE.Color('#000080'),
-        new THREE.Color('#B0E0E6'),
-        new THREE.Color('#191970'),
-        new THREE.Color('#4682B4'),
-        new THREE.Color('#F5F5DC'),
-        new THREE.Color('#F5DEB3'),
-        new THREE.Color('#D2B48C'),
-        new THREE.Color('#F4A460'),
-        new THREE.Color('#F0E68C'),
-        new THREE.Color('#D2691E'),
-        new THREE.Color('#23210A'),
-    ];
-	colorArray[234] = new THREE.Color('#122012')
     // ==================================================新建几何函数区域==================================================
 
     /** 盘状几何
@@ -703,9 +648,6 @@ function PDMSLoader() {
                     NAME: name,
                 };
 
-                // console.log(arr1[0]);
-
-
                 // 遍历每个对象中的属性
                 for (let j = 1, l = arr1.length - 1; j < l; j++) {
 
@@ -802,13 +744,13 @@ function PDMSLoader() {
         // if (PRIMSNum == 0) continue;//没有几何信息的跳过
         if (PRIMSNum == 0) return;//没有几何信息的跳过
 
-        if (element.C > 50) element.C = 0;
+        let color = PDMSMaterial[element.C] || new THREE.Color('#F0F0F0');//颜色
 
         let lastCount = geoCount;//记录上次的计数
 
         for (let j = 0; j < PRIMSNum; j++) {
 
-            setPDMSMember(element.PRIMS[j], colorArray[element.C], element.ID);
+            setPDMSMember(element.PRIMS[j], color, element.ID);
 
         };
 
@@ -979,7 +921,7 @@ function PDMSLoader() {
 
 				PDMSGroup.add(mesh);
 				// renderer.render()
-			},1
+			},5
 		)
     };
 
