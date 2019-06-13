@@ -972,11 +972,12 @@ function PDMSLoader() {
 		//拆分成几段以便于merge
 		let wait_merged_array = []
 		
-		var segment = Math.floor(geometries.length/10)
-		for(let i=0;i<10;i++){
-			wait_merged_array.push(geometries.slice(i*segment,(i+1)*segment))
+		var segment = 10;
+		var segment_L = Math.floor(geometries.length/10)
+		for(let i=0;i<segment-1;i++){
+			wait_merged_array.push(geometries.slice(i*segment_L,(i+1)*segment_L))
 		}
-		wait_merged_array[9] = geometries.slice(9*segment)
+		wait_merged_array[segment] = geometries.slice(9*segment_L)
 		//前面的数量都相等，最后一个会多一点
 		
 		console.log(wait_merged_array)
@@ -987,19 +988,23 @@ function PDMSLoader() {
 		let interval = setInterval(
 			function(){
 				console.log('count',count)
+				// console.log('wait_merged_array[count-1]',wait_merged_array[count-1])
 				console.log('wait_merged_array[count]',wait_merged_array[count])
 				if(!wait_merged_array[count]){
 					console.log('切断interval')
 					clearInterval(interval)
+					geometries = [];
 					callback();
 					return
 				}
 				let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(wait_merged_array[count]);
 				
+				//刚merge后，就清除缓存
 				for(let j=0;j<wait_merged_array[count].length;j++){
-					wait_merged_array[count][j].dispose()
+					wait_merged_array[count][j].dispose();
 					wait_merged_array[count][j] = null;
 				}
+				wait_merged_array[count] = null;
 				count++;
 				
 				 // console.log('合并后的2', mgeo2);
@@ -1010,7 +1015,7 @@ function PDMSLoader() {
 
 				PDMSGroup.add(mesh);
 				
-			},400
+			},100
 		)
     };
 
