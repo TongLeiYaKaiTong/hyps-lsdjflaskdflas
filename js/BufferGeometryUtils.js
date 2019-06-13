@@ -134,9 +134,9 @@ THREE.BufferGeometryUtils = {
     // console.log(geometries[ 0 ].index)
     var isIndexed = geometries[0].index !== null; // console.log(isIndexed)
 
-    var attributesUsed = new Set(Object.keys(geometries[0].attributes));
+    // var attributesUsed = new Set(Object.keys(geometries[0].attributes));
     var attributes = {};
-    var morphAttributes = {};
+    // var morphAttributes = {};
     var mergedGeometry = new THREE.BufferGeometry();
     var offset = 0;
 
@@ -154,40 +154,40 @@ THREE.BufferGeometryUtils = {
       for (var name in geometry.attributes) {
         // console.log(geometry)
         // console.log(name)
-        if (!attributesUsed.has(name)) {
-          console.warn('! attributesUsed.has( ' + name + ' ) ');
-          return null;
-        }
+        // if (!attributesUsed.has(name)) {
+          // console.warn('! attributesUsed.has( ' + name + ' ) ');
+          // return null;
+        // }
 
         if (attributes[name] === undefined) attributes[name] = [];
         attributes[name].push(geometry.attributes[name]);
       } // gather morph attributes, exit early if they're different
 
 
-      for (var name in geometry.morphAttributes) {
-        if (!morphAttributesUsed.has(name)) return null;
-        if (morphAttributes[name] === undefined) morphAttributes[name] = [];
-        morphAttributes[name].push(geometry.morphAttributes[name]);
-      } // gather .userData
+      // for (var name in geometry.morphAttributes) {
+        // if (!morphAttributesUsed.has(name)) return null;
+        // if (morphAttributes[name] === undefined) morphAttributes[name] = [];
+        // morphAttributes[name].push(geometry.morphAttributes[name]);
+      // } // gather .userData
 
 
       mergedGeometry.userData.mergedUserData = mergedGeometry.userData.mergedUserData || [];
       mergedGeometry.userData.mergedUserData.push(geometry.userData);
 
-      if (useGroups) {
-        var count;
+      // if (useGroups) {
+        // var count;
 
-        if (isIndexed) {
-          count = geometry.index.count;
-        } else if (geometry.attributes.position !== undefined) {
-          count = geometry.attributes.position.count;
-        } else {
-          return null;
-        }
+        // if (isIndexed) {
+          // count = geometry.index.count;
+        // } else if (geometry.attributes.position !== undefined) {
+          // count = geometry.attributes.position.count;
+        // } else {
+          // return null;
+        // }
 
-        mergedGeometry.addGroup(offset, count, i);
-        offset += count;
-      }
+        // mergedGeometry.addGroup(offset, count, i);
+        // offset += count;
+      // }
     } // merge indices
 
 
@@ -215,7 +215,7 @@ THREE.BufferGeometryUtils = {
 
     for (var name in attributes) {
       var mergedAttribute = this.mergeBufferAttributes(attributes[name]);
-      if (!mergedAttribute) return null;
+      // if (!mergedAttribute) return null;
       mergedGeometry.addAttribute(name, mergedAttribute);
     } // merge morph attributes
 
