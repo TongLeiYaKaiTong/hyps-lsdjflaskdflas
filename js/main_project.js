@@ -140,6 +140,8 @@ $('#controller-tool-bar>.water>.icon').click(function () {
 
 // 下载按钮绑定
 $('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
+	if (!window.PDMSObject) return;
+	
 	let target = window.PDMSObject;
 	let fileName = target.name == '' ? 'PDMS导出文件' : target.name;
 
@@ -1361,8 +1363,8 @@ var viewMovement = function () {
 
 	last_delta = new THREE.Vector3(last_delta.x, moveUp - moveDown, last_delta.y);
 
-	camera.position.addScaledVector(last_delta, 4);
-	controls.target.addScaledVector(last_delta, 4);
+	camera.position.addScaledVector(last_delta, 0.5);
+	controls.target.addScaledVector(last_delta, 0.5);
 
 };
 //建立视角球
