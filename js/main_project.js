@@ -163,7 +163,7 @@ $('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
 function downloadGLTF(model, fileName) {
 	const exporter = new THREE.GLTFExporter();
 
-	const loadingBox = new LoadingBox('导出', { hasProgress: false });
+	const loadingBox = new LoadingBox(['导出'], { hasProgress: false });
 
 	exporter.parse(
 		model,
@@ -227,12 +227,12 @@ function downloadModel(blob, filename) {
 
 /**
  * @name loading界面对象
- * @param {string} content 初始化文本
+ * @param {array} text_array 初始化文本数组
  * @param {*} config 配置选项 hasProgress 设置是否含有进度条
  */
-function LoadingBox(text, config) {
+function LoadingBox(text_array, config) {
+	this.text_array = text_array;
 
-	this.text = text;
 	// 界面外框
 	const element = document.createElement('div');
 	$('body').append(element);
@@ -252,64 +252,77 @@ function LoadingBox(text, config) {
 	// 图片
 	const img = document.createElement('img');
 	$(element).append(img);
-	$(img).attr('src', "./img/loading.gif").css({
+	$(img).attr('src', "./img/solving.gif").css({
 		width: '8%',
 	});
 
-	// 文字
-	const text_dom = document.createElement('p');
-	$(element).append(text_dom);
-	$(text_dom).text(text ? '正在' + text + '...' : '正在加载...').css({
-		'font-size': '20px',
-		'font-weight': 'bold',
-		'margin-top': '20px',
-	})
+	this.text_dom_array = [];
+	this.progress_array = [];
 
-	// 进度条外框
-	const progress = document.createElement('div');
+	this.addProgress = function(text) {
+		// 文字
+		const text_dom = document.createElement('p');
+		$(element).append(text_dom);
+		$(text_dom).text(text ? '正在' + text + '...' : '正在加载...').css({
+			'font-size': '20px',
+			'font-weight': 'bold',
+			'margin-top': '20px',
+			'color': '#ffffff',
+		})
+		this.text_dom_array.push(text_dom);
 
-	if (config && config.hasProgress == false) {
-		this.hasProgress = false;
-	} else {
-		this.hasProgress = true;
+
+		// 进度条外框
+		const progress = document.createElement('div');
+
+		if (config && config.hasProgress == false) {
+			this.hasProgress = false;
+		} else {
+			this.hasProgress = true;
+		}
+
+		if (this.hasProgress) {
+			$(element).append(progress);
+			$(progress).addClass('progress').css({
+				'margin-top': '20px',
+				'width': '50%',
+				'display': 'flex',
+			})
+
+			// 进度条进度区
+			for (let i = 0; i < 100; i++) {
+				const span = document.createElement('span');
+				$(progress).append(span);
+				$(span).css('width', '100%');
+			}
+		}
+
+		this.progress_array.push(progress);
 	}
 
-	if (this.hasProgress) {
-		$(element).append(progress);
-		$(progress).addClass('progress').css({
-			'margin-top': '20px',
-			'width': '50%',
-			'display': 'flex',
-		})
-
-		// 进度条进度区
-		for (let i = 0; i < 100; i++) {
-			const span = document.createElement('span');
-			$(progress).append(span);
-			$(span).css('width', '100%');
-		}
+	for (const text of this.text_array) {
+		this.addProgress(text);
 	}
 
 	// 更新显示文本
-	this.updateText = function (text) {
-		this.text = text;
-		// console.log(text);
+	this.updateText = function (text, index = 0) {
+		this.text_array[index] = text;
 	};
 
 	// 更新显示文本
-	this.updateTitle = function (title) {
-		$(text_dom).text(title);
+	this.updateTitle = function (title, index = 0) {
+		$(this.text_dom_array[index]).text(title);
 	};
 
 	// 更新进度条
-	this.updateRange = function (range) {
+	this.updateRange = function (range, index = 0) {
 		range = Math.round(range * 100);
 
-		this.updateTitle(this.text + ' ' + range + '%');
+		this.updateTitle(this.text_array[index] + ' ' + range + '%', index);
 
-		$(progress).find('>span:nth-child(-n+100)').css('background-color', '#ffffff'); //考虑超过100%，下个进度条能继续使用
+		$(this.progress_array[index]).find('>span:nth-child(-n+100)').css('background-color', '#ffffff'); //考虑超过100%，下个进度条能继续使用
 
-		if (this.hasProgress) $(progress).find('>span:nth-child(-n+' + range + ')').css('background-color', '#337ab7');
+		if (this.hasProgress) $(this.progress_array[index]).find('>span:nth-child(-n+' + range + ')').css('background-color', '#337ab7');
 	}
 
 	// 移除进度界面
@@ -363,18 +376,22 @@ function cleanPDMS() {
 		scene.remove(group);
 	};
 
+	renderer.render(scene, camera);
+
 };
 
 let ATTData;
+let attLoaded;
 function loadingPDMS(rvmUrl, attUrl) {
 	cleanPDMS();
 	cancelAnimationFrame(animateReq);
+	attLoaded = false; //att加载进度条是否开启设置为false;
 
 	rvmUrl = rvmUrl || "./PDMS/项目3out.js";
 	attUrl = attUrl || "./PDMS/项目3.ATT";
 	// rvmUrl = rvmUrl || "./PDMS/sampleout.js";
 	// attUrl = attUrl || "./PDMS/sample.ATT";
-	let loadingBox = new LoadingBox('加载');
+	let loadingBox = new LoadingBox(['加载']);
 
 	new PDMSLoader().load(
 		rvmUrl, //rvm路径
@@ -402,8 +419,11 @@ function loadingPDMS(rvmUrl, attUrl) {
 			loadingBox.remove();
 		},
 		function (res) {
+			if (res.text == "ATT文件数据传输" && !attLoaded) return;
+			if(res.text == "模型加载" && res.progress == 1) attLoaded = true;
 			loadingBox.updateText(res.text);
 			loadingBox.updateRange(res.progress);
+			
 		}
 	);
 };
@@ -1709,6 +1729,8 @@ function getAllRelationIds(obj) {
 };
 
 function setInfoPanel(id, list) {
+
+	if(!ATTData) return;
 
 	json = rvmOriginal[id];
 
