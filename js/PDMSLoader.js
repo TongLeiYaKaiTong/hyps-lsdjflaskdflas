@@ -659,26 +659,57 @@ function PDMSLoader() {
             // 遍历每个New 的对象
             for (let i = 3, len = arr.length; i < len; i++) {
 
+                // 提取目录名
+                let title = arr[i].replace(/\n/g, "↵").split("↵")[0];
+                let name;
+                if(title.indexOf("of")) {
+                    name = title.split(" /")[0].replace(/(^\s*)|(\s*$)/g, "");//去掉首尾的空格，
+                } else {
+                    name = (title[0] != "/") ? title : title.substr(1);
+                };
+
+
                 let arr1 = arr[i].replace(/\n/g, "↵").replace(/\s*/g, "").replace(/END↵/g, "").split("↵"); //获得每个New 的对象
 
                 // 创建当前记录数据信息json
-                let json1 = { children: [] };
+                let json1 = { 
+                    children: [],
+                    Name:name,
+                };
+
+                // console.log(arr1[0]);
+                
 
                 // 遍历每个对象中的属性
                 for (let j = 1, l = arr1.length - 1; j < l; j++) {
 
                     let arr2 = arr1[j].split(":=");//分割字符串为数组
+                    
+
                     // if (j == 1 && arr2[0] == "Name") json[arr2[1]] = json1;//存在Name属性的 创建到json表中
                     // if (j == 4 && arr2[0] == "Owner" && json[arr2[1]]) json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
-                    if (j == 1 && reg1.test(arr2[0])) json[arr2[1]] = json1;//存在Name属性的 创建到json表中
-                    if (j == 4 && reg2.test(arr2[0]) && json[arr2[1]]) json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
-                    json1[arr2[0]] = arr2[1];//这个属性
+                    if (j == 1 && reg1.test(arr2[0])) {
+                        let nameStr = arr2[1];
+                        json[nameStr] = json1;//（先）存在Name属性的 创建到json表中
+                        nameStr = (nameStr[0] != "/") ? nameStr : nameStr.substr(1);
+                        if(json1.Name == "") json1.Name = nameStr;
+                    };
+                    // if (j == 1 && reg1.test(arr2[0])) console.log(arr2[1]);
+                    
+                    if (j == 4 && reg2.test(arr2[0]) && json[arr2[1]]) {
+                        json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
+                        let attr = arr2[1]; //Owner值
+                        json1[arr2[0]] = (attr[0] != "/") ? attr : attr.substr(1);//这个属性
+                    }; 
+                    if (j != 1 && j != 4) json1[arr2[0]] = arr2[1];//这个属性
 
                 };
             };
 
             let data = json[origin];//获取总的关系
-            json = undefined;//清空josn数据
+            // console.log(data);
+            
+            // json = undefined;//清空josn数据
 
             // if (onSuccess) onSuccess(data);
             console.log(data);
