@@ -62,7 +62,7 @@ window.onload = function(){
 		}
 		else{
 			// 加载页面
-			const loadingBox = new LoadingBox('解析RVM文件', { hasProgress : false});
+			const loadingBox = new LoadingBox([{text: '获取RVM/ATT路径', hasProgress : false}]);
 			// 获取RVM路径
 			postRVM(function(responseRVMUrl){
 				//有att文件

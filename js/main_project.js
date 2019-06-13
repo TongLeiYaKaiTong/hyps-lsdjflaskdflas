@@ -231,7 +231,7 @@ function downloadModel(blob, filename) {
  * @param {*} config 配置选项 hasProgress 设置是否含有进度条
  */
 function LoadingBox(config_array) {
-	this.config_array = config_array;
+	this.config_array = [];
 
 	// 界面外框
 	const element = document.createElement('div');
@@ -296,9 +296,11 @@ function LoadingBox(config_array) {
 		}
 
 		this.progress_array.push(progress);
+
+		this.config_array.push(config);
 	}
 
-	for (const config of this.config_array) {
+	for (const config of config_array) {
 		this.addProgress(config);
 	}
 
@@ -384,13 +386,13 @@ function loadingPDMS(rvmUrl, attUrl) {
 	cleanPDMS();
 	cancelAnimationFrame(animateReq);
 	attLoaded = false; //att加载进度条是否开启设置为false;
+	let attAppended = false;
 
-	rvmUrl = rvmUrl || "./PDMS/项目3out.js";
-	attUrl = attUrl || "./PDMS/项目3.ATT";
+	// rvmUrl = rvmUrl || "./PDMS/项目3out.js";
+	// attUrl = attUrl || "./PDMS/项目3.ATT";
 	// rvmUrl = rvmUrl || "./PDMS/sampleout.js";
 	// attUrl = attUrl || "./PDMS/sample.ATT";
-	let loadingBox = new LoadingBox([{text: '加载'}]);
-
+	let loadingBox = new LoadingBox([{text: '加载', hasProgress: true}]);
 	new PDMSLoader().load(
 		rvmUrl, //rvm路径
 		attUrl, //ATT路径
@@ -417,11 +419,24 @@ function loadingPDMS(rvmUrl, attUrl) {
 			loadingBox.remove();
 		},
 		function (res) {
-			if (res.text == "ATT文件数据传输" && !attLoaded) return;
-			if(res.text == "模型加载" && res.progress == 1) attLoaded = true;
-			loadingBox.updateText(res.text);
-			loadingBox.updateRange(res.progress);
+			if (res.text == "ATT文件数据传输") {
+				if (!attAppended) {
+					loadingBox.addProgress({text: res.text});
+					attAppended = true;
+				} else {
+					loadingBox.updateRange(res.progress, 1);
+				}
+			}
+
+			// if (res.text == "ATT文件数据传输" && !attLoaded) return;
+			// if(res.text == "模型加载" && res.progress == 1) attLoaded = true;
+			// loadingBox.updateText(res.text);
+			// loadingBox.updateRange(res.progress);
 			
+			if (res.text == "模型加载") {
+				loadingBox.updateText(res.text);
+				loadingBox.updateRange(res.progress);
+			}
 		}
 	);
 };
