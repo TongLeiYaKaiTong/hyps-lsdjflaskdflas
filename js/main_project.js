@@ -603,7 +603,7 @@ function init(name, list) {
 	window.addEventListener('resize', onWindowResize, false);
 
 	animate();
-	loadingPDMS();
+	//loadingPDMS();
 	var data;
 
 	function onWindowResize() {
