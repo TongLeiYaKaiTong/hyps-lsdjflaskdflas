@@ -184,11 +184,11 @@ function arrayMnplton(fileArray){
 	var rvmFiles = [];
 	if(!(fileArray.length==1&&fileArray[0]==undefined)){
 		for(var i=0;i<fileArray.length;i++){
-			if(fileArray[i].ATT){
-				attFiles.push(fileArray[i].ATT);
+			if(fileArray[i].att){
+				attFiles.push(fileArray[i].att);
 			}
-			if(fileArray[i].RVM){
-				rvmFiles.push(fileArray[i].RVM);
+			if(fileArray[i].rvm){
+				rvmFiles.push(fileArray[i].rvm);
 			}
 		}
 	}
