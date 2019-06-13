@@ -599,7 +599,9 @@ function init(name, list) {
 	window.addEventListener('resize', onWindowResize, false);
 
 	animate();
-	loadingPDMS();
+	
+	//是否调用本地模型
+	//loadingPDMS();
 	var data;
 
 	function onWindowResize() {

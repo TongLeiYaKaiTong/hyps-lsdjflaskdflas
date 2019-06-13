@@ -952,7 +952,7 @@ function PDMSLoader() {
 
 				PDMSGroup.add(mesh);
 				// renderer.render()
-			},500
+			},5
 		)
     };
 
