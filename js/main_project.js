@@ -227,7 +227,7 @@ function downloadModel(blob, filename) {
 
 /**
  * @name loading界面对象
- * @param {string} content 初始化文本
+ * @param {array} text_array 初始化文本数组
  * @param {*} config 配置选项 hasProgress 设置是否含有进度条
  */
 function LoadingBox(text_array, config) {
