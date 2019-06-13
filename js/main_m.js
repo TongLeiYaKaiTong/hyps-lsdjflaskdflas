@@ -12,13 +12,15 @@ window.onload = function(){
 	});
 	//#删除 ,#取消 
 	$("#chooseFile>.title>.delete,.submissionArea>.buttonPane>#no").click(function(){
+		
 		//清空强制转换复选框
 		if($("#checkboxIcon").hasClass("select")){
 			$("#checkboxIcon").removeClass("select");
 			$("#checkboxIcon").addClass("unselect");
 		}
 		//清空文件
-		$("#chooseFile>.content .fileList").empty();
+		console.log("清控我");
+		$("#chooseFile>.content .fileList>span").detach();
 		//确定按钮禁用
 		if(!($("#yes").attr("disabled") == "disabled")){
 			$("#yes").attr("disabled",true);
@@ -268,6 +270,7 @@ function uploadFiles(formData){
 			console.log(XMLHttpRequest.status);
 			// 状态
 			console.log(XMLHttpRequest.readyState);
+			console.log(XMLHttpRequest);
 			// 错误信息   
 			console.log(textStatus);
 		}
