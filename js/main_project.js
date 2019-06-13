@@ -140,6 +140,8 @@ $('#controller-tool-bar>.water>.icon').click(function () {
 
 // 下载按钮绑定
 $('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
+	if (!window.PDMSObject) return;
+	
 	let target = window.PDMSObject;
 	let fileName = target.name == '' ? 'PDMS导出文件' : target.name;
 
