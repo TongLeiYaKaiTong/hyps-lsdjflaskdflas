@@ -370,8 +370,8 @@ function loadingPDMS(rvmUrl, attUrl) {
 	cleanPDMS();
 	cancelAnimationFrame(animateReq);
 
-	rvmUrl = rvmUrl || "./PDMS/项目1out.js";
-	attUrl = attUrl || "./PDMS/项目1.ATT";
+	rvmUrl = rvmUrl || "./PDMS/项目3out.js";
+	attUrl = attUrl || "./PDMS/项目3.ATT";
 	// rvmUrl = rvmUrl || "./PDMS/sampleout.js";
 	// attUrl = attUrl || "./PDMS/sample.ATT";
 	let loadingBox = new LoadingBox('加载');
@@ -605,7 +605,7 @@ function init(name, list) {
 	animate();
 	
 	//是否调用本地模型
-	//loadingPDMS();
+	// loadingPDMS();
 	var data;
 
 	function onWindowResize() {
@@ -625,6 +625,8 @@ function init(name, list) {
 		mouse.y = e.offsetY;
 
 		//还原上次原色
+		if(!group)
+			return
 		for (var j = 0; j < group.children.length; j++) {
 			let color_att = group.children[j].geometry.attributes.color
 			let array = color_att.array

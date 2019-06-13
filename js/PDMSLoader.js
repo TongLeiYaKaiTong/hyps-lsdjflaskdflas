@@ -29,7 +29,7 @@ function PDMSLoader() {
     function DishGeometry(cover, radius, height, widthSegments, heightSegments) {
 		
         widthSegments = widthSegments || 8;
-		if(radius>500) widthSegments = 12
+		if(radius>500) widthSegments = 24
         heightSegments = heightSegments || 4;
 
         let r = Math.floor(((height * height) + (radius * radius)) / (2 * height)); //半径 
@@ -69,26 +69,26 @@ function PDMSLoader() {
         x_offset = x_offset || 0;
         z_offset = z_offset || 0;
 
-        THREE.CylinderGeometry.call(this, radius_top, radius_bottom, height, 32);
+        THREE.CylinderBufferGeometry.call(this, radius_top, radius_bottom, height, 12);
 
-        this.type = 'SnoutGeometry';
+        // this.type = 'SnoutGeometry';
 
-        const vertices = this.vertices;
-        const length = vertices.length;
-
-
-        // 获取顶部点
-        const top_vertices = vertices.slice(0, length / 2 - 1);
-        top_vertices.push(vertices[length - 2]);
-
-        // 顶部圆环顶点偏移
-        for (let i = 0; i < top_vertices.length; i++) {
-            const vector = top_vertices[i];
-            vector.x += x_offset;
-            vector.z += z_offset;
+        var vertices = this.attributes.position;
+		
+		radialSegments = 12;
+        // 侧面顶部偏移
+        for (let i = 0; i < radialSegments+1 ;i++) {
+            vertices[3*i] += x_offset;
+            vertices[3*i+2] += z_offset;
+        }
+		
+		//顶面帽子偏移
+        for (let i = 2*radialSegments+2; i < 4*radialSegments+-1; i++) {
+            vertices[3*i] += x_offset;
+            vertices[3*i+2] += z_offset;
         }
     };
-    THREE.SnoutGeometry.prototype = Object.create(THREE.CylinderGeometry.prototype);
+    THREE.SnoutGeometry.prototype = Object.create(THREE.CylinderBufferGeometry.prototype);
     THREE.SnoutGeometry.prototype.constructor = THREE.SnoutGeometry;
 
     /** 
@@ -573,8 +573,8 @@ function PDMSLoader() {
                                 original: data,
                                 PDMSObject: PDMSGroup,
                                 rvmTree: formatRVMData(data),
-                                boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
-                                center: getCenter(),
+                                // boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
+                                // center: getCenter(),
                                 geoIdArray: geoIdArray, //几何id数组
                                 geoCountArray: geoCountArray,//几何点索引数组
                                 ATTData: ATTData// ATT文件数据
@@ -952,7 +952,7 @@ function PDMSLoader() {
         let geo;//几何
 		
 		test[type]++
-        // if(type!=1)
+        // if(type!=7)
 			// return geo
         switch (type) {
             case 1:   //Pyramid 
@@ -979,20 +979,23 @@ function PDMSLoader() {
                     // console.log('SlopedCylinder', arr);
                     geo = new THREE.SlopedCylinderGeometry(arr[0], arr[2], arr[5], arr[6], arr[7], arr[8]);
                 } else {
-                    if (arr[3] == 0 && arr[4] == 0 && arr[5] == 0 && arr[6] == 0 && arr[7] == 0 && arr[8] == 0) {
+                    // if (arr[3] == 0 && arr[4] == 0 && arr[5] == 0 && arr[6] == 0 && arr[7] == 0 && arr[8] == 0) {
                         // console.log('Cone', arr);
                         geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
-                        geo.type = 'ConeGeometry'
-                    } else {
+                        // geo.type = 'ConeGeometry'
+                    // } else {
                         // console.log('Snout', arr);
-                        geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
-                    }
+                        // geo = new THREE.SnoutGeometry(arr[0], arr[1], arr[2], arr[3], arr[4]);
+                    // }
                 }
 
-                if (geo.faces.length == 0) return null
+                if (geo.faces&&geo.faces.length == 0||geo.attributes&&geo.attributes.position.count == 0) return null
                 break;
             case 8:  //Cylinder 
-                geo = new THREE.CylinderBufferGeometry(arr[0], arr[0], arr[1], 8);
+				r_segment = 8;
+				if(arr[0]>500)
+					r_segment = 24
+                geo = new THREE.CylinderBufferGeometry(arr[0], arr[0], arr[1], r_segment);
                 // geo = new THREE.CylinderGeometry(arr[0], arr[0], arr[1], 8);
                 break;
             case 9:  //Sphere
