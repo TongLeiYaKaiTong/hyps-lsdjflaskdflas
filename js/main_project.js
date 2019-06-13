@@ -621,13 +621,14 @@ function init(name, list) {
 
 		//还原上次原色
 		for(var j=0;j<group.children.length;j++){
-			console.log('上次变红了，还原上次颜色，group.change_index是',group.change_index)
 			let color_att = group.children[j].geometry.attributes.color
 			let array = color_att.array
 			let lastcolor_info = color_att.last_info;
 			if(!lastcolor_info){
 				continue
 			}
+			console.log('上次变红了，还原上次颜色，group.change_index是',group.change_index)
+			
 			console.log('start,end',lastcolor_info.start,lastcolor_info.end)
 			for(let i=3*lastcolor_info.start;i<3*lastcolor_info.end+1;i+=3){
 				array[i] = lastcolor_info.r;
@@ -713,8 +714,9 @@ function init(name, list) {
 			//计算前面所有的顶点总和
 			for(var i =0;i<out_i;i++){
 				num_before_vs+=group.children[i].geometry.attributes.position.count;
-				num_current_vs = num_before_vs+group.children[i+1].geometry.attributes.position.count
 			}
+			num_current_vs = num_before_vs+group.children[out_i].geometry.attributes.position.count
+			
 			if(num_current_vs<start){//如果顶点范围根本不在这里，直接跳过
 				console.log('continue')
 				continue

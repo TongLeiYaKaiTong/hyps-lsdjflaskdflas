@@ -81,32 +81,34 @@ function PDMSLoader() {
      */
     function DishGeometry(cover, radius, height, widthSegments, heightSegments) {
 
-        widthSegments = widthSegments || 16;
+        widthSegments = widthSegments || 6;
         heightSegments = heightSegments || 4;
 
         let r = Math.floor(((height * height) + (radius * radius)) / (2 * height)); //半径 
 
         let a = Math.abs(r - height);//半径和球冠高的差
 
-        let geometry = new THREE.Geometry();
+        // let geometry = new THREE.Geometry();
 
         // dish 段
         // geometry.merge(new THREE.SphereGeometry(r, widthSegments, heightSegments, undefined, undefined, undefined, Math.atan(radius / a)));
-        let sphere = new THREE.SphereGeometry(r, widthSegments, heightSegments, undefined, undefined, 0, Math.atan(radius / a));
+        let sphere = new THREE.SphereBufferGeometry(r, widthSegments, heightSegments, undefined, undefined, 0, Math.atan(radius / a));
         // sphere.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI));
         sphere.applyMatrix(new THREE.Matrix4().makeTranslation(0, -a, 0));
-        geometry.merge(sphere);
-
+        
+		
         // 有遮盖
         if (cover) {
+			// console.log('有盖子')
+			return
             // bottom plane
-            let bottomPlane = new THREE.CircleGeometry(radius, widthSegments);
+            let bottomPlane = new THREE.CircleBufferGeometry(radius, widthSegments);
             bottomPlane.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / 2));
+			
+            sphere = THREE.BufferGeometryUtils.mergeBufferGeometries([sphere,bottomPlane]);
+        }
 
-            geometry.merge(bottomPlane);
-        };
-
-        return geometry;
+        return sphere;
     };
 
     /** Snout几何
@@ -341,7 +343,7 @@ function PDMSLoader() {
 					vertices_array.push(arr[i+13]);
 					vertices_array.push(arr[i+15]);
 					vertices_array.push(-arr[i+14]);
-				}else{
+				}else{//四边形
 					vertices_array.push(arr[i+1]);
 					vertices_array.push(arr[i+3]);
 					vertices_array.push(-arr[i+2]);
@@ -366,40 +368,7 @@ function PDMSLoader() {
 					vertices_array.push(arr[i+3]);
 					vertices_array.push(-arr[i+2]);
 				}
-				// console.log('最前三个数字是',arr[i+1],arr[i+3],arr[i+2])
-
-				//然后取刚push的几个点的中点计算一个
-				// i += 6 * num; //偏移一个顶点
-			// }else{  //geometry_num==2
-				// for (let j = i + 1; j < i + 6 * (num - 1) + 1; j += 6) { //一循环一个三角片
-					// vertices_array.push(arr[j]);
-					// vertices_array.push(arr[j + 2]);
-					// vertices_array.push(-arr[j + 1]);
-
-					// vertices_array.push(arr[j + 3]);
-					// vertices_array.push(arr[j + 5]);
-					// vertices_array.push(-arr[j + 4]);
-
-					// vertices_array.push(arr[j + 6 * num +1 +1]);
-					// vertices_array.push(arr[j + 6 * num +1+3]);
-					// vertices_array.push(-arr[j + 6 * num +1+3]);
-					// console.log(arr[j+3],arr[j+5],arr[j+4])
-				// };
 				
-				// for (let j = i + 6*num + 2; j < i + 6*(num+num2) + 3; j += 6) { //一循环一个三角片
-					// vertices_array.push(arr[j]);
-					// vertices_array.push(arr[j + 2]);
-					// vertices_array.push(-arr[j + 1]);
-
-					// vertices_array.push(arr[j + 3]);
-					// vertices_array.push(arr[j + 5]);
-					// vertices_array.push(-arr[j + 4]);
-
-					// vertices_array.push(arr[j + 6 * num +1 +1]);
-					// vertices_array.push(arr[j + 6 * num +1+3]);
-					// vertices_array.push(-arr[j + 6 * num +1+3]);
-					// console.log(arr[j+3],arr[j+5],arr[j+4])
-				// };
 				var all_v_sum = 0;
 				for(let o of vs_nums){
 					all_v_sum+=o;
@@ -630,7 +599,7 @@ function PDMSLoader() {
             success: function (data) { //成功
 
                 console.log('data',data);
-                console.log('onProgress',onProgress);
+                // console.log('onProgress',onProgress);
 
                 forEachRVMData(data, onProgress, function () {
 
@@ -640,7 +609,7 @@ function PDMSLoader() {
 
                     console.log("merge BufferGeometry");
                     
-					console.log('1s后merge')
+					console.log('1ms后merge')
 					setTimeout(
 						function(){
 							console.log('开始merge')
@@ -847,10 +816,10 @@ function PDMSLoader() {
 
     function setPDMSMember(PRIM, color, id) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
-        // if(PRIM.TYPE == 10) console.log(10);
+        // co
 
         if (geo) {
-
+				
             geo.computeBoundingBox();
             reviseBoundingBox(geo.boundingBox);
 
@@ -892,7 +861,7 @@ function PDMSLoader() {
                 // console.log(geo)
                 let b_geo = new THREE.BufferGeometry().fromGeometry(geo);
 				// return
-                
+                geo.dispose();
                 // b_geo.index.count = index.length;
                 geo = b_geo;
             };
@@ -977,7 +946,7 @@ function PDMSLoader() {
 		for(let i=0;i<segment-1;i++){
 			wait_merged_array.push(geometries.slice(i*segment_L,(i+1)*segment_L))
 		}
-		wait_merged_array[segment] = geometries.slice(9*segment_L)
+		wait_merged_array[segment-1] = geometries.slice(9*segment_L)
 		//前面的数量都相等，最后一个会多一点
 		
 		console.log(wait_merged_array)
@@ -1043,10 +1012,10 @@ function PDMSLoader() {
     };
 
     function getGeometryByGeotype(type, arr) {
-		// if(type!=9)
-			// return
         let geo;//几何
-
+		// if(type!=5&&type!=6)
+			// return geo
+		
         switch (type) {
             case 1:   //Pyramid 
                 geo = PyramidGeometry(arr[0], arr[1], arr[2], arr[3], arr[5], arr[4], arr[6]);

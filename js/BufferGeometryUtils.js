@@ -191,7 +191,7 @@ THREE.BufferGeometryUtils = {
     } // merge indices
 
 
-    // if (isIndexed) {
+    if (isIndexed) {
       var indexOffset = 0;
       var mergedIndex = [];
 
@@ -210,7 +210,7 @@ THREE.BufferGeometryUtils = {
       }
 
       mergedGeometry.setIndex(mergedIndex);
-    // } // merge attributes
+    } // merge attributes
 
 
     for (var name in attributes) {
