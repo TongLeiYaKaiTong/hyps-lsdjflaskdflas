@@ -72,6 +72,8 @@ window.onload = function(){
 						loadingPDMS(responseRVMUrl,responseATTUrl)
 					});
 				} else {
+					console.log(responseRVMUrl);
+					
 					loadingPDMS(responseRVMUrl,"")
 				};
 				$("#chooseFile>.title>.delete,.submissionArea>.buttonPane>#no").click();
