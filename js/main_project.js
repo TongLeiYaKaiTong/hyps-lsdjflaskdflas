@@ -1,4 +1,18 @@
 // ============================ dom事件绑定 ============================
+// 取消默认右键功能
+document.oncontextmenu = function (event) {
+	event.preventDefault();
+}
+// 没点到导航按键时，删除导航按键
+$('body').mousedown(function (event) {
+	const target = event.target
+	if ($(target).hasClass('walk_to_target')) {
+		console.log('导航');
+	} else {
+		$('.walk_to_target').remove();
+	}
+})
+
 // 下拉菜单鼠标移入触发
 $(".menu-box").mouseover(function () {
 	$(this).addClass('open');
@@ -65,8 +79,8 @@ $('#nav>.menu-area>.view-box>.dropdown-menu>li>a').click(function () {
 			controls.target.z--;
 			controls.update()
 		}
-		document.addEventListener('keydown', onKeyDown22, false);
-		document.addEventListener('keyup', onKeyUp22, false);
+		document.addEventListener('keydown', onKeyDown, false);
+		document.addEventListener('keyup', onKeyUp, false);
 
 
 	} else {
@@ -75,8 +89,8 @@ $('#nav>.menu-area>.view-box>.dropdown-menu>li>a').click(function () {
 		controls.target.copy(camera.recordT)
 		controls.update()
 
-		document.removeEventListener('keydown', onKeyDown22, false);
-		document.removeEventListener('keyup', onKeyUp22, false);
+		document.removeEventListener('keydown', onKeyDown, false);
+		document.removeEventListener('keyup', onKeyUp, false);
 
 	}
 })
@@ -87,11 +101,63 @@ $("#controller-tool-bar > .view-switch-btn > .view-btn").on('click', function ()
 	$(this).addClass('on');
 
 	if ($(this).attr('data-key') == "first") {//第一人称
+
+		camera.recordP = camera.position.clone();
+		camera.recordT = controls.target.clone();
+		controls.reset();
+		if (controls.target.y == 0) {
+			controls.target.copy(controls.object.position);
+			controls.target.z--;
+			controls.update();
+		}
+		document.addEventListener('keydown', onKeyDown, false);
+		document.addEventListener('keyup', onKeyUp, false);
 	} else {//第三人称
+
+		controls.saveState();
+		camera.position.copy(camera.recordP);
+		controls.target.copy(camera.recordT);
+		controls.update();
+
+		document.removeEventListener('keydown', onKeyDown, false);
+		document.removeEventListener('keyup', onKeyUp, false);
 	};
 
 });
 
+// 海水开关按钮
+$('#controller-tool-bar>.water>.icon').click(function () {
+	$(this).parent().toggleClass('on');
+
+	if ($(this).parent().hasClass('on')) {
+		scene.background = cubeCamera.renderTarget;
+		seaActioin = water.visible = true;
+	} else {
+		scene.background = new THREE.Color(0xf0f0f0);
+		seaActioin = water.visible = false;
+	}
+});
+
+// 下载按钮绑定
+$('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
+	if (!window.PDMSObject) return;
+	
+	let target = window.PDMSObject;
+	let fileName = target.name == '' ? 'PDMS导出文件' : target.name;
+
+	if (selected_mesh) {
+		target = selected_mesh;
+
+		let with_name_parent = selected_mesh;
+		while (with_name_parent.name == '') {
+			with_name_parent = with_name_parent.parent;
+		}
+
+		fileName = with_name_parent.name;
+	}
+
+	downloadGLTF(target, fileName);
+});
 
 // 下载gltf格式模型
 function downloadGLTF(model, fileName) {
@@ -161,10 +227,12 @@ function downloadModel(blob, filename) {
 
 /**
  * @name loading界面对象
- * @param {string} text 初始化文本
+ * @param {string} content 初始化文本
  * @param {*} config 配置选项 hasProgress 设置是否含有进度条
  */
 function LoadingBox(text, config) {
+
+	this.text = text;
 	// 界面外框
 	const element = document.createElement('div');
 	$('body').append(element);
@@ -224,19 +292,23 @@ function LoadingBox(text, config) {
 
 	// 更新显示文本
 	this.updateText = function (text) {
-		$(text_dom).text(text);
-	}
+		this.text = text;
+		// console.log(text);
+	};
+
+	// 更新显示文本
+	this.updateTitle = function (title) {
+		$(text_dom).text(title);
+	};
 
 	// 更新进度条
 	this.updateRange = function (range) {
-		if (range % 0.05 == 0) {
-			console.log(range * 100);
-		}
 		range = Math.round(range * 100);
-		this.updateText('已' + text + range + '%');
+
+		this.updateTitle(this.text + ' ' + range + '%');
 
 		$(progress).find('>span:nth-child(-n+100)').css('background-color', '#ffffff'); //考虑超过100%，下个进度条能继续使用
-		
+
 		if (this.hasProgress) $(progress).find('>span:nth-child(-n+' + range + ')').css('background-color', '#337ab7');
 	}
 
@@ -246,21 +318,72 @@ function LoadingBox(text, config) {
 	}
 };
 
-function loadingPDMS(rvmUrl,attUrl) {
+// 清空PDMS场景
+function cleanPDMS() {
+
+	// ztree 列表清空
+	$("#treebg").empty();
+
+	// 切换到第三视角
+	if ($("#controller-tool-bar > .box.view-switch-btn > .view-btn.left").hasClass('on')) $("#controller-tool-bar > .box.view-switch-btn > .view-btn.right").click();
+
+	// 海水
+	if ($('#controller-tool-bar>.water').hasClass('on')) {
+		$('#controller-tool-bar>.water').removeClass('on');
+		scene.background = new THREE.Color(0xf0f0f0);
+		seaActioin = water.visible = false;
+	};
+
+	// 相机控制器位置调整
+	camera.position.set(0, 0, 100);
+	out_camera = camera;
+	controls.target.set(0, 0, 0);
+	controls.update();
+	out_controls = controls;
+
+	geoIdArray = []; //清空几何顶点id数组
+	geoCountArray = []; //清空几何顶点Count数组
+
+	// 清除缓存
+	let group = scene.getObjectByName("PDMSGroup");
+
+	if (group) {
+
+		THREE.Cache.clear();
+
+		group.children.forEach(function (mesh) {
+
+			mesh.geometry.dispose();
+
+			mesh.material.dispose();
+
+			group.remove(mesh);
+		});
+
+		scene.remove(group);
+	};
+
+};
+
+function loadingPDMS(rvmUrl, attUrl) {
+
+	cleanPDMS();
+	cancelAnimationFrame(animateReq);
+
+	rvmUrl = rvmUrl || "./PDMS/sbytcout.js";
+	attUrl = attUrl || "./PDMS/sbytc.ATT";
 	let loadingBox = new LoadingBox('加载');
 
 	new PDMSLoader().load(
-		// "./js/rvm_att/项目1out.js",
-		// "./js/rvm_att/项目1.ATT",
-		// "./js/rvm_att/项目120190611060651out.js",
+		// "./PDMS/sbytcout.js",
+		// "./PDMS/sbytc.ATT",
 		// "http://192.168.0.110/files/RVM/sbytc20190611070114out.js",
 		// "http://192.168.0.110/files/ATT/sbytc20190611070126.ATT",
 		rvmUrl,
 		attUrl,
 		function (data) {
 			console.log(data);
-			// if (data.dataType == "group") scene.add(data.data);
-			// if (data.PDMSObject) scene.add(data.PDMSObject);
+
 			if (data.rvmTree) {
 				const list = [];
 				rvmOriginal = data.original;
@@ -270,28 +393,17 @@ function loadingPDMS(rvmUrl,attUrl) {
 			if (data.PDMSObject) {
 				scene.add(data.PDMSObject);
 
-				$('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
-
-					let target = data.PDMSObject;
-					let fileName = data.PDMSObject.name == '' ? 'PDMS导出文件' : data.PDMSObject.name;
-
-					if (selected_mesh) {
-						target = selected_mesh;
-
-						let with_name_parent = selected_mesh;
-						while (with_name_parent.name == '') {
-							with_name_parent = with_name_parent.parent;
-						}
-
-						fileName = with_name_parent.name;
-					}
-
-					downloadGLTF(target, fileName);
-				});
+				window.PDMSObject = data.PDMSObject;
 			};
+
+			if (data.geoIdArray) geoIdArray = data.geoIdArray;
+			if (data.geoCountArray) geoCountArray = data.geoCountArray;
+
+			animate();
 			loadingBox.remove();
 		},
 		function (res) {
+			loadingBox.updateText(res.text);
 			loadingBox.updateRange(res.progress);
 		}
 	);
@@ -338,6 +450,7 @@ $(function () {
 let rvmOriginal;
 
 let water;
+var cubeCamera;
 let seaActioin = false;
 let renderer;
 let camera;
@@ -345,7 +458,7 @@ let out_camera;
 let out_controls;
 let view_controller; //视角球控制
 let view_controller_renderer; //视角球控制
-var pixelBuffer = new Uint8Array( 4 );
+var pixelBuffer = new Uint8Array(4);
 let pickingRenderTarget
 let geoIdArray
 let geoCountArray
@@ -377,9 +490,7 @@ function init(name, list) {
 	renderer.setSize(width, height);
 	renderer.shadowMap.enabled = true;
 	container.appendChild(renderer.domElement);
-	renderer.domElement.addEventListener('mousedown', mousedown, false);
-	renderer.domElement.addEventListener('mousemove', mousemove, false);
-	renderer.domElement.addEventListener('mouseup', mouseup, false);
+	renderer.domElement.addEventListener('click', click, false);
 
 	var A_light = new THREE.AmbientLight(0x404040, 2); // soft white light
 	scene.add(A_light);
@@ -395,13 +506,13 @@ function init(name, list) {
 	light.shadow.camera.left = -120;
 	light.shadow.camera.right = 120;
 	scene.add(light);
-	
+
 	pickingRenderTarget = new THREE.WebGLRenderTarget(
 		window.innerWidth, window.innerHeight
 	);
 	pickingRenderTarget.texture.generateMipmaps = false;
 	pickingRenderTarget.texture.minFilter = THREE.NearestFilter;
-			
+
 	// Water
 	var waterGeometry = new THREE.CircleBufferGeometry(100000, 16);
 
@@ -446,7 +557,7 @@ function init(name, list) {
 		azimuth: 0.205
 	};
 
-	var cubeCamera = new THREE.CubeCamera(0.1, 1, 512);
+	cubeCamera = new THREE.CubeCamera(0.1, 1, 512);
 	cubeCamera.renderTarget.texture.generateMipmaps = true;
 	cubeCamera.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
 
@@ -469,19 +580,6 @@ function init(name, list) {
 
 	updateSun();
 
-	// 海水开关按钮
-	$('#controller-tool-bar>.water>.icon').click(function () {
-		$(this).parent().toggleClass('on');
-
-		if ($(this).parent().hasClass('on')) {
-			scene.background = cubeCamera.renderTarget;
-			seaActioin = water.visible = true;
-		} else {
-			scene.background = new THREE.Color(0xf0f0f0);
-			seaActioin = water.visible = false;
-		}
-	})
-
 	// ground
 	// var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000), new THREE.MeshPhongMaterial({
 	// 	color: 0x999999,
@@ -496,12 +594,13 @@ function init(name, list) {
 	// grid.material.transparent = true;
 	// scene.add(grid);
 
-	// loadingPDMS();
+	
 
 	onWindowResize()
 	window.addEventListener('resize', onWindowResize, false);
 
-	animate2();
+	animate();
+	loadingPDMS();
 	var data;
 
 	function onWindowResize() {
@@ -510,155 +609,145 @@ function init(name, list) {
 		camera.aspect = width / height;
 		camera.updateProjectionMatrix();
 		renderer.setSize(width, height);
-		pickingRenderTarget.setSize( width, height );
+		pickingRenderTarget.setSize(width, height);
 	}
-	function mousedown() {
-		mousedown = true;
-	}
-	function mousemove() {
-		if (mousedown)
-			mousemove = true;
-	}
-	function mouseup(e) {
-		console.log('mouseup')
-		mousedown = false
-		if (mousemove) {
-			mousemove = false;
-		} else {//是一次纯点击事件，触发clik
-			console.log('是一次纯点击事件，触发clik')
-			// let raycaster = new THREE.Raycaster(); //射线
-			let mouse = new THREE.Vector2(); //鼠标位置
-			mouse.x = e.offsetX;
-			mouse.y = e.offsetY;
-
-			//左侧目录树关联的变回去
-			for (let i = 0; i < last_emissive_array.length; i++) {
-				last_emissive_array[i].material.emissive.r = 0;
-			}
+	function click(e) {
+		// console.log('是一次纯点击事件，触发clik')
+		// let raycaster = new THREE.Raycaster(); //射线
+		let mouse = new THREE.Vector2(); //鼠标位置
+		mouse.x = e.offsetX;
+		mouse.y = e.offsetY;
 
 
-			
-			let record = scene.children[scene.children.length-1].children[0].material;
-			scene.children[scene.children.length-1].children[0].material = pickingMaterial
-			
-			renderer.setRenderTarget(pickingRenderTarget);
-			renderer.render( scene.children[scene.children.length-1].children[0], camera);
-			renderer.setRenderTarget();
-			scene.children[scene.children.length-1].children[0].material = record;
-			
-			console.log(pickingRenderTarget)
-			renderer.readRenderTargetPixels(
-				pickingRenderTarget,
-				mouse.x,
-				pickingRenderTarget.height - mouse.y,
-				1,
-				1,
-				pixelBuffer
-			);
-			console.log(mouse)
-			console.log(pixelBuffer)
-			var index =
-				( pixelBuffer[ 0 ] << 16 ) |
-				( pixelBuffer[ 1 ] << 8 ) |
-				( pixelBuffer[ 2 ] );
-				
-			console.log('你点击的构件index是',index)
-			
-			
-			let array = scene.children[3].children[0].geometry.attributes.color.array
-			let lastcolor_info = scene.children[3].children[0].geometry.lastcolor_info
-			//还原上次原色
-			console.log('lastcolor_info',scene.children[3].children[0].geometry)
-			console.log('lastcolor_info',lastcolor_info)
-			if(lastcolor_info){
-				for(let i=3*lastcolor_info.start;i<3*lastcolor_info.end+1;i+=3){
-					array[i] = lastcolor_info.r;
-					array[i+1] = lastcolor_info.g;
-					array[i+2] = lastcolor_info.b;
-				}
-			}
-			
-			if(index>15000000){
-				console.log('什么都没选到')
-				// scene.children[3].children[0].geometry
-				return
-			}
-				
-			console.log('geoIdArray',geoIdArray[index])
-			console.log('geoCountArray',geoCountArray[index])
-			
-			let start 
-			if(index == 0)
-				start = 0;
-			else 
-				start = geoCountArray[index-1]+1
-			
-			let end = geoCountArray[index]
-			
-			console.warn('start,end',start,end)
-			
-			
-			//记录这次颜色
-			let r = array[3*start];
-			let g = array[3*start+1];
-			let b = array[3*start+2];
-			
-			lastcolor_info = {start:start,end:end,r:r,g:g,b:b}
-			scene.children[3].children[0].geometry.lastcolor_info = lastcolor_info
-			
-			//这次的变红
-			for(let i=3*start;i<3*end+1;i+=3){
-				array[i] = 1;
-				array[i+1] = 0;
-				array[i+2] = 0;
-			}
-			
-			//needupdate
-			scene.children[3].children[0].geometry.attributes.color.needsUpdate = true;
-			return
-			
-			if (selected_mesh)
-				selected_mesh.material.emissive.r = 0;
-			let intersect = raycaster.intersectObject(model, true);
-			if (intersect[0]) {
-				console.log(intersect[0].object);
-				$('#inquery_texture').show();
-				selected_mesh = intersect[0].object;
-				console.log(selected_mesh)
-				selected_mesh.material.emissiveIntensity = 1
-				selected_mesh.material.emissive.r = 1;
+		let color_att = scene.children[3].children[0].geometry.attributes.color
+		let array = color_att.array
+		let lastcolor_info = color_att.last_info
+		//还原上次原色
+		// console.log('lastcolor_info',scene.children[3].children[0].geometry)
+		// console.log('lastcolor_info',lastcolor_info)
+		if (lastcolor_info) {
+			for (let i = 3 * lastcolor_info.start; i < 3 * lastcolor_info.end + 1; i += 3) {
+				array[i] = lastcolor_info.r;
+				array[i + 1] = lastcolor_info.g;
+				array[i + 2] = lastcolor_info.b;
 
-				$('.mask-box.info-box').show();
-
-				let with_name_parent = selected_mesh;
-				while (with_name_parent.name == "") {
-					console.log('循环一次')
-					with_name_parent = with_name_parent.parent;
-				}
-
-				let result_name = with_name_parent.name;
-				console.log(result_name)
-				$('.mask-box.info-box>.content>.line-name>.value').text(result_name);
-
-
-			} else {
-
-				$('#inquery_texture').hide();
-				$('.mask-box.info-box').hide();
+				color_att.dynamic = true;
+				color_att.updateRange.offset = 3 * lastcolor_info.start;
+				color_att.updateRange.count = 3 * (lastcolor_info.end - lastcolor_info.start);
+				color_att.needsUpdate = true;
 			}
 		}
+
+		//左侧目录树关联的变回去
+		for (let i = 0; i < last_emissive_array.length; i++) {
+			last_emissive_array[i].material.emissive.r = 0;
+		}
+
+
+		let record = scene.children[scene.children.length - 1].children[0].material;
+		scene.children[scene.children.length - 1].children[0].material = pickingMaterial
+
+		renderer.setRenderTarget(pickingRenderTarget);
+		renderer.render(scene.children[scene.children.length - 1].children[0], camera);
+		renderer.setRenderTarget();
+		scene.children[scene.children.length - 1].children[0].material = record;
+
+		// console.log(pickingRenderTarget)
+		renderer.readRenderTargetPixels(
+			pickingRenderTarget,
+			mouse.x,
+			pickingRenderTarget.height - mouse.y,
+			1,
+			1,
+			pixelBuffer
+		);
+		// console.log(mouse)
+		// console.log(pixelBuffer)
+		var index =
+			(pixelBuffer[0] << 16) |
+			(pixelBuffer[1] << 8) |
+			(pixelBuffer[2]);
+
+		// console.log('你点击的构件index是',index)
+
+
+		if (index > 15000000) {
+			console.log('什么都没选到')
+			// scene.children[3].children[0].geometry
+			color_att.needsUpdate = true;
+			return
+		}
+
+		console.log('点击构件的ID是', geoIdArray[index])
+		// console.log('geoCountArray',geoCountArray[index])
+		selectZTreeNodeById(geoIdArray[index]);
+
+		let start
+		if (index == 0)
+			start = 0;
+		else
+			start = geoCountArray[index - 1] + 1
+
+		let end = geoCountArray[index]
+
+		console.warn('点击构件的顶点范围start,end', start, end)
+
+
+		//记录这次颜色
+		let r = array[3 * start];
+		let g = array[3 * start + 1];
+		let b = array[3 * start + 2];
+
+		lastcolor_info = { start: start, end: end, r: r, g: g, b: b }
+		color_att.last_info = lastcolor_info
+
+		//这次的变红
+		for (let i = 3 * start; i < 3 * end + 1; i += 3) {
+			array[i] = 1;
+			array[i + 1] = 0;
+			array[i + 2] = 0;
+		}
+
+		//needupdate
+		color_att.dynamic = true;
+
+		// if(color_att.updateRange.offset>3*start)
+		color_att.updateRange.offset = 3 * start
+
+		// if(color_att.updateRange.offset+color_att.updateRange.count<end)
+		color_att.updateRange.count = 3 * (end - start);
+
+		color_att.needsUpdate = true;
+		return
 	}
-	var animate1 = animate2;
+	var animate1 = animate;
 
 	// buildmodel(list);
 
 	$('#loading').hide();
 }
-function animate2() {
-	requestAnimationFrame(animate2);
+
+function change_color_attr(start, end) {
+	let color_att = scene.children[3].children[0].geometry.attributes.color
+	let array = color_att.array
+	let lastcolor_info = color_att.last_info
+	for (let i = 3 * start; i < 3 * end + 1; i += 3) {
+		array[i] = 1;
+		array[i + 1] = 0;
+		array[i + 2] = 0;
+	}
+	color_att.needsUpdate = true;
+}
+function recover_color_attr(start, end) {
+
+
+}
+let animateReq;
+function animate() {
+	animateReq = requestAnimationFrame(animate);
 
 	if (seaActioin) {
-		water.material.uniforms['time'].value += 5.0 / 60.0;
+		water.material.uniforms['time'].value += 1.0 / 60.0;
 	}
 
 	if (renderer) {
@@ -692,29 +781,6 @@ function fill_tree_list(list, data) {
 	list.push(new_data);
 };
 
-/** 获取所有关联的id数组
- * @param {*} obj 选取对象
- * @returns [] array; 数组
- */
-function getAllRelationIds(obj) {
-	let array = [];
-	function recursion(n) {
-		// 存在构建则添加该构建ID到数组中
-		if (n.PRIMS.length > 0) {
-			array.push(n.ID);
-		};
-		let child = n.children,
-			len = child.length;
-		if (len > 0) {
-			for (let i = 0; i < len; i++) {
-				recursion(child[i])
-			};
-		};
-	};
-	recursion(obj);
-	return array;
-};
-
 //提取信息生成目录树
 function mulushu(list) {
 	var setting = {
@@ -728,8 +794,27 @@ function mulushu(list) {
 		},
 		callback: {
 			onClick: nodeClick,
+			onRightClick: function (event, treeId, treeNode) {
+				if (treeNode) {
+					// console.log('event', event);
+					// console.log('treeId', treeId);
+					// console.log('treeNode', treeNode);
+
+					const guide_dom = document.createElement('span');
+					$(guide_dom).addClass('walk_to_target').text('导航到目标').css({
+						'position': 'fixed',
+						'top': event.pageY + 'px',
+						'left': event.pageX + 'px',
+						'background-color': '#5bc0de',
+						'padding': '5px 8px',
+						'color': '#fff',
+						'border-radius': '5px',
+						'cursor': 'pointer',
+					})
+					$('body').append(guide_dom);
+				}
+			},
 			onExpand: function (event, treeId, treeNode) {
-				//console.log(treeNode);
 				addSubNode(treeNode);
 			}
 		}
@@ -748,12 +833,14 @@ function mulushu(list) {
 	var zTree = $.fn.zTree.init($("#treebg"), setting, zNodes);
 
 	// setTimeout(function () {
-	var treeObj = $.fn.zTree.getZTreeObj("treebg");
+
+	zTree_Menu = $.fn.zTree.getZTreeObj("treebg");
+	var treeObj = zTree_Menu;
 	var nodes = treeObj.getNodes();
 	for (var i = 0; i < nodes.length; i++) { //设置节点展开
 		treeObj.expandNode(nodes[i], true, false, true);
 	}
-	// addSubNode(nodes[0]);
+	addSubNode(nodes[0]);
 	console.log('自动展开')
 	// }, 3000)
 	function nodeClick(event, treeId, treeNode, clickFlag) {
@@ -761,7 +848,7 @@ function mulushu(list) {
 		console.log(rvmOriginal[treeNode.id]);
 		setInfoPanel(rvmOriginal[treeNode.id]);
 		console.log(getAllRelationIds(rvmOriginal[treeNode.id]));
-		
+
 
 		// for (let i = 0; i < last_emissive_array.length; i++) {
 		// 	last_emissive_array[i].material.emissive.r = 0;
@@ -1184,7 +1271,7 @@ let moveRight = false;
 let moveUp = false;
 let moveDown = false;
 
-function onKeyDown22(event) {
+function onKeyDown(event) {
 
 	switch (event.keyCode) {
 
@@ -1223,7 +1310,7 @@ function onKeyDown22(event) {
 	}
 
 };
-function onKeyUp22(event) {
+function onKeyUp(event) {
 
 	switch (event.keyCode) {
 
@@ -1440,6 +1527,81 @@ function explode_recover() {
 
 }
 
+let zTree_Menu;
+// = $.fn.zTree.getZTreeObj("treebg")
+// const nodes = treeObj.getNodes();
+// 	// for (var i = 0; i < nodes.length; i++) { //设置节点展开
+// 	// 	treeObj.expandNode(nodes[i], true, false, true);
+// 	// }
+
+function selectZTreeNodeById(id) {
+
+	zTree_Menu.expandAll(false); //关闭所有节点
+	// console.log(rvmOriginal[id]);
+
+	let list = [];
+
+	function expandList(id) {
+
+		let pid = rvmOriginal[id].PID;
+
+		if (pid) list.push(pid);
+
+		if (pid != 0) expandList(pid)
+
+	};
+
+	expandList(id);
+
+	function expandChildNode(i) {
+		if (i == 0) return;
+		i--;
+		zTree_Menu.expandNode(zTree_Menu.getNodeByParam("id", list[i], null), true, false, false, true);
+		expandChildNode(i);
+	};
+
+	zTree_Menu.expandNode(zTree_Menu.getNodeByParam("id", 0, null), true, false, false, true);
+	expandChildNode(list.length);
+
+	zTree_Menu.selectNode(zTree_Menu.getNodeByParam("id", id, null), false, false);
+
+};
+
+
+/** 获取所有关联的id数组
+ * @param {*} obj 选取对象
+ * @returns [] array; 数组
+ */
+function getAllRelationIds(obj) {
+	let array = [];
+
+	function aab(n){
+		let i = n.length;
+		while (i--) {
+			if(n[i].TYPE != 10 ) return true;
+		};
+		return false;
+
+	};
+	function recursion(n) {
+		// 存在构建则添加该构建ID到数组中
+		if (n.PRIMS.length > 0 && aab(n.PRIMS)) {
+			array.push(n.ID);
+		};
+		let child = n.children,
+			len = child.length;
+		if (len > 0) {
+			for (let i = 0; i < len; i++) {
+				recursion(child[i])
+			};
+		};
+	};
+	recursion(obj);
+	return array;
+};
+
+
+
 
 
 function setInfoPanel(json) {
@@ -1459,4 +1621,3 @@ function setInfoPanel(json) {
 	$("#right-info-panel").show();
 
 };
-
