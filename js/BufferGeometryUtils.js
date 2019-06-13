@@ -135,7 +135,10 @@ THREE.BufferGeometryUtils = {
     var isIndexed = geometries[0].index !== null; // console.log(isIndexed)
 
     // var attributesUsed = new Set(Object.keys(geometries[0].attributes));
-    var attributes = {};
+	var attributes = {};
+	for (var name in geometries[0].attributes) {
+		attributes[name] = [];
+	}
     // var morphAttributes = {};
     var mergedGeometry = new THREE.BufferGeometry();
     var offset = 0;
@@ -159,7 +162,6 @@ THREE.BufferGeometryUtils = {
           // return null;
         // }
 
-        if (attributes[name] === undefined) attributes[name] = [];
         attributes[name].push(geometry.attributes[name]);
       } // gather morph attributes, exit early if they're different
 

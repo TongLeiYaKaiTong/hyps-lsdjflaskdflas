@@ -16,11 +16,6 @@ function PDMSLoader() {
 
     let maxX, maxY, maxZ, minX, minY, minZ;
 
-    // ==================================================颜色数组表区域==================================================
-    const colorArray = [
-        
-    ];
-
     // ==================================================新建几何函数区域==================================================
 
     /** 盘状几何
@@ -32,7 +27,7 @@ function PDMSLoader() {
      */
     function DishGeometry(cover, radius, height, widthSegments, heightSegments) {
 
-        widthSegments = widthSegments || 6;
+        widthSegments = widthSegments || 8;
         heightSegments = heightSegments || 4;
 
         let r = Math.floor(((height * height) + (radius * radius)) / (2 * height)); //半径 
@@ -79,11 +74,6 @@ function PDMSLoader() {
         const vertices = this.vertices;
         const length = vertices.length;
 
-        // 全部向上偏移高度
-        // for (let i = 0; i < length; i++) {
-        //     const vector = vertices[i];
-        //     vector.y += height;
-        // };
 
         // 获取顶部点
         const top_vertices = vertices.slice(0, length / 2 - 1);
@@ -114,7 +104,7 @@ function PDMSLoader() {
         bottom_x_shear = bottom_x_shear || 0;
         bottom_y_shear = bottom_y_shear || 0;
 
-        THREE.CylinderGeometry.call(this, radius, radius, height, 32);
+        THREE.CylinderGeometry.call(this, radius, radius, height, 16);
 
         this.type = 'SlopedCylinderGeometry';
 
@@ -327,9 +317,8 @@ function PDMSLoader() {
             i += 6 * all_v_sum + vs_nums.length - 1;
         };
 
-        let vertices = new Float32Array(vertices_array);
         // var normals = new Float32Array( [] );
-        geo.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        geo.addAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices_array), 3));
 
         for (var i = 0; i < vertices_array.length / 3; i++) {
             index.push(i)
@@ -401,7 +390,7 @@ function PDMSLoader() {
         geometry.faces.push(new THREE.Face3(5, 2, 1));
 
         //the face normals and vertex normals can be calculated automatically if not supplied above
-        geometry.computeFaceNormals();
+        // geometry.computeFaceNormals();
         geometry.computeVertexNormals();
 
         geometry.translate(x_offset / 2, 0, y_offset / 2)
@@ -460,12 +449,6 @@ function PDMSLoader() {
             f.c = f.b;
             f.b = record_c;
         };
-        // for (let f of geometry1.faces) {
-        //     let record_c = f.c;
-        //     f.c = f.b;
-        //     f.b = record_c;
-        // };
-
         geometry.merge(geometry1);
 
         //内圈竖面
@@ -495,11 +478,6 @@ function PDMSLoader() {
             f.c = f.b;
             f.b = record_c;
         };
-        // for (let f of geometry4.faces) {
-        //     let record_c = f.c;
-        //     f.c = f.b;
-        //     f.b = record_c;
-        // };
         geometry.merge(geometry4);
 
         var geometry5 = new THREE.PlaneGeometry(2 * sectionR, height);
@@ -635,9 +613,6 @@ function PDMSLoader() {
                     children: [],
                     NAME: name,
                 };
-
-                // console.log(arr1[0]);
-
 
                 // 遍历每个对象中的属性
                 for (let j = 1, l = arr1.length - 1; j < l; j++) {
@@ -870,56 +845,57 @@ function PDMSLoader() {
     };
 
     function mergeBufferGeometries(callback) {
-        console.log('geometries', geometries);
-
-        //拆分成几段以便于merge
-        let wait_merged_array = []
-
-        var segment = 10;
-        var segment_L = Math.floor(geometries.length / 10)
-        for (let i = 0; i < segment - 1; i++) {
-            wait_merged_array.push(geometries.slice(i * segment_L, (i + 1) * segment_L))
-        }
-        wait_merged_array[segment - 1] = geometries.slice(9 * segment_L)
-        //前面的数量都相等，最后一个会多一点
-
-        console.log(wait_merged_array)
-
+        console.log('geometries',geometries);
+		
+		//拆分成几段以便于merge
+		let wait_merged_array = []
+		
+		var segment = 10;
+		var segment_L = Math.floor(geometries.length/10)
+		for(let i=0;i<segment-1;i++){
+			wait_merged_array.push(geometries.slice(i*segment_L,(i+1)*segment_L))
+		}
+		wait_merged_array[segment-1] = geometries.slice(9*segment_L)
+		
+		geometries = [];
+		//前面的数量都相等，最后一个会多一点
+		
+		console.log(wait_merged_array)
+		
         // mgeo.computeFaceNormals();
         // mgeo.computeVertexNormals();
-        var count = 0;
-        let interval = setInterval(
-            function () {
-                console.log('count', count)
-                // console.log('wait_merged_array[count-1]',wait_merged_array[count-1])
-                console.log('wait_merged_array[count]', wait_merged_array[count])
-                if (!wait_merged_array[count]) {
-                    console.log('切断interval')
-                    clearInterval(interval)
-                    geometries = [];
-                    callback();
-                    return
-                }
-                let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(wait_merged_array[count]);
+		var count = 0;
+		let interval = setInterval(
+			function(){
+				console.log('count',count)
+				// console.log('wait_merged_array[count-1]',wait_merged_array[count-1])
+				console.log('wait_merged_array[count]',wait_merged_array[count])
+				if(!wait_merged_array[count]){
+					console.log('切断interval')
+					clearInterval(interval)
+					callback();
+					return
+				}
+				let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(wait_merged_array[count]);
+				
+				//刚merge后，就清除缓存
+				for(let j=0;j<wait_merged_array[count].length;j++){
+					wait_merged_array[count][j].dispose();
+					wait_merged_array[count] = [];
+				}
+				wait_merged_array[count] = null;
+				count++;
+				
+				 // console.log('合并后的2', mgeo2);
+				// mgeo.computeFaceNormals();
+				// mgeo.computeVertexNormals();
+				let mlt = new THREE.MeshLambertMaterial({ vertexColors: true });
+				let mesh = new THREE.Mesh(mgeo, mlt);
 
-                //刚merge后，就清除缓存
-                for (let j = 0; j < wait_merged_array[count].length; j++) {
-                    wait_merged_array[count][j].dispose();
-                    wait_merged_array[count][j] = null;
-                }
-                wait_merged_array[count] = null;
-                count++;
-
-                // console.log('合并后的2', mgeo2);
-                // mgeo.computeFaceNormals();
-                // mgeo.computeVertexNormals();
-                let mlt = new THREE.MeshLambertMaterial({ vertexColors: true });
-                let mesh = new THREE.Mesh(mgeo, mlt);
-
-                PDMSGroup.add(mesh);
-
-            }, 100
-        )
+				PDMSGroup.add(mesh);
+				// renderer.render()
+			},5
+		)
     };
 
     // 修正场景包围盒
