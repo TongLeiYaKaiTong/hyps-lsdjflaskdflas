@@ -348,6 +348,7 @@ function cleanPDMS() {
 function loadingPDMS(rvmUrl, attUrl) {
 
 	cleanPDMS();
+	cancelAnimationFrame(animateReq);
 
 	rvmUrl = rvmUrl || "./PDMS/sbytcout.js";
 	attUrl = attUrl || "./PDMS/sbytc.ATT";
@@ -395,6 +396,7 @@ function loadingPDMS(rvmUrl, attUrl) {
 			if (data.geoIdArray) geoIdArray = data.geoIdArray;
 			if (data.geoCountArray) geoCountArray = data.geoCountArray;
 
+			animate();
 			loadingBox.remove();
 		},
 		function (res) {
@@ -588,12 +590,13 @@ function init(name, list) {
 	// grid.material.transparent = true;
 	// scene.add(grid);
 
-	loadingPDMS();
+	
 
 	onWindowResize()
 	window.addEventListener('resize', onWindowResize, false);
 
-	animate2();
+	animate();
+	loadingPDMS();
 	var data;
 
 	function onWindowResize() {
@@ -713,7 +716,7 @@ function init(name, list) {
 		color_att.needsUpdate = true;
 		return
 	}
-	var animate1 = animate2;
+	var animate1 = animate;
 
 	// buildmodel(list);
 
@@ -735,8 +738,9 @@ function recover_color_attr(start, end) {
 
 
 }
-function animate2() {
-	requestAnimationFrame(animate2);
+let animateReq;
+function animate() {
+	animateReq = requestAnimationFrame(animate);
 
 	if (seaActioin) {
 		water.material.uniforms['time'].value += 1.0 / 60.0;
@@ -1552,7 +1556,7 @@ let zTree_Menu;
 function selectZTreeNodeById(id) {
 
 	zTree_Menu.expandAll(false); //关闭所有节点
-	console.log(rvmOriginal[id]);
+	// console.log(rvmOriginal[id]);
 
 	let list = [];
 
