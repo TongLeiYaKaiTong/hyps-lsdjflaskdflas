@@ -366,7 +366,6 @@ function cleanPDMS() {
 };
 
 function loadingPDMS(rvmUrl, attUrl) {
-
 	cleanPDMS();
 	cancelAnimationFrame(animateReq);
 
@@ -378,12 +377,12 @@ function loadingPDMS(rvmUrl, attUrl) {
 		// "./PDMS/sbytcout.js",
 		// "./js/rvm_att/项目3out.js",
 		// "./js/rvm_att/项目3.ATT",
-		"./pdms/项目1out.js",
-		"./pdms/项目1.ATT",
+		//"./pdms/项目1out.js",
+		//"./pdms/项目1.ATT",
 		// "http://192.168.0.110/files/RVM/sbytc20190611070114out.js",
 		// "http://192.168.0.110/files/ATT/sbytc20190611070126.ATT",
-		// rvmUrl,
-		// attUrl,
+		rvmUrl,
+		attUrl,
 		function (data) {
 			console.log(data);
 
