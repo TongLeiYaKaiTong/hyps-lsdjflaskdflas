@@ -798,8 +798,9 @@ function change_and_recover_color_attr(start,end){
 		//计算前面所有的顶点总和
 		for(var i =0;i<out_i;i++){
 			num_before_vs+=group.children[i].geometry.attributes.position.count;
-			num_current_vs = num_before_vs+group.children[i+1].geometry.attributes.position.count
 		}
+		num_current_vs = num_before_vs+group.children[out_i].geometry.attributes.position.count
+		
 		if(num_current_vs<start){//如果顶点范围根本不在这里，直接跳过
 			console.log('continue')
 			continue
