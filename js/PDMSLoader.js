@@ -12,9 +12,12 @@ function PDMSLoader() {
     let geoIdArray = []; //几何id数组
     let geoCountArray = [];//几何点索引数组
 
+    let original;//原始文件
+    let rvmTree; //rvm树结构数据
     let ATTData;//ATT文件数据
 
-    let maxX, maxY, maxZ, minX, minY, minZ;
+    let rvmAnalysis = false;
+    let attAnalysis = false;
 
     // ==================================================新建几何函数区域==================================================
 
@@ -491,7 +494,7 @@ function PDMSLoader() {
 
     // ==================================================PDMS文件解析区域================================================== 
 
-    // ===================================RVM文件解析模块=================================== 
+     
 
     /** load函数
      * @param {*} rvmUrl 
@@ -505,6 +508,39 @@ function PDMSLoader() {
 
         onError = onError || function (errorInfo) { console.error(errorInfo) };
 
+        // ATT信息异步加载
+        analysisATT(attUrl, onProgress, successCallback);
+
+        // RVM信息异步加载
+        analysisRVM(rvmUrl, onProgress, successCallback)
+
+        // 成功之后的函数回调
+        function successCallback() {
+            if (rvmAnalysis && attAnalysis && onLoad) {
+                onLoad({
+                    original: original,
+                    PDMSObject: PDMSGroup,
+                    rvmTree: rvmTree, //rvm树结构数据
+                    geoIdArray: geoIdArray, //几何id数组
+                    geoCountArray: geoCountArray,//几何点索引数组
+                    ATTData: ATTData// ATT文件数据
+                    // boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
+                    // center: getCenter(),
+                });
+            };
+        };
+    };
+
+
+
+    // ===================================RVM文件解析模块===================================
+
+    /**
+     * @param {*} rvmUrl 
+     * @param {*} onProgress 
+     * @param {*} successCallback 
+     */
+    function analysisRVM(rvmUrl, onProgress, successCallback) {
         // rvm信息异步加载
         $.ajax({
             type: 'GET',
@@ -516,7 +552,7 @@ function PDMSLoader() {
                     if (evt.lengthComputable) {
                         let percentComplete = evt.loaded / evt.total;
                         if (onProgress) onProgress({
-                            text: "数据传输",
+                            text: "RVM文件数据传输",
                             progress: percentComplete
                         });
                         // console.log(Math.round(percentComplete * 100) + "%");
@@ -528,34 +564,15 @@ function PDMSLoader() {
 
                 // console.log('data',data);
 
+                original = data; //原始文件
 
+                rvmTree = formatRVMData(data); //rvm树结构数据
 
                 forEachRVMData(data, onProgress, function () {
 
-                    analysisATT(attUrl, onProgress, function () {
-
-                        mergeBufferGeometries(function () {
-                            if (onLoad) onLoad({
-                                original: data,
-                                PDMSObject: PDMSGroup,
-                                rvmTree: formatRVMData(data),
-                                boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
-                                center: getCenter(),
-                                geoIdArray: geoIdArray, //几何id数组
-                                geoCountArray: geoCountArray,//几何点索引数组
-                                ATTData: ATTData// ATT文件数据
-                            });
-
-                        });
-
-                    });
-
-                    // onProgress({ text: "merge" });
+                        mergeBufferGeometries(successCallback);
 
                 });
-
-
-                // console.log(geoIdArray,geoCountArray);
 
             },
             error: function (xhr, ajaxOptions, thrownError) { //失败
@@ -563,7 +580,10 @@ function PDMSLoader() {
                 onError(thrownError);
             },
         });
+
     };
+
+
 
     // ===================================ATT文件解析模块=================================== 
 
@@ -574,7 +594,10 @@ function PDMSLoader() {
      */
     function analysisATT(attUrl, onProgress, callback) {
 
-        if (!attUrl || attUrl == "") callback();
+        if (!attUrl || attUrl == "") {
+            attAnalysis = true;
+            return;
+        }; 
 
         let loader = new THREE.FileLoader();
         loader.setResponseType('text');
@@ -642,8 +665,18 @@ function PDMSLoader() {
 
             ATTData = json[origin];//获取总的关系
 
+            attAnalysis = true;
             callback();
 
+        },function(evt){
+            if (evt.lengthComputable) {
+                let percentComplete = evt.loaded / evt.total;
+                if (onProgress) onProgress({
+                    text: "ATT文件数据传输",
+                    progress: percentComplete
+                });
+                // console.log(Math.round(percentComplete * 100) + "%");
+            };
         });
     };
 
@@ -735,9 +768,6 @@ function PDMSLoader() {
         // co
 
         if (geo) {
-
-            geo.computeBoundingBox();
-            reviseBoundingBox(geo.boundingBox);
 
             // let mlt = new THREE.MeshLambertMaterial({ color: color, wireframe: false });
             // let mesh = new THREE.Mesh(geo, mlt);
@@ -872,7 +902,8 @@ function PDMSLoader() {
 				console.log('wait_merged_array[count]',wait_merged_array[count])
 				if(!wait_merged_array[count]){
 					console.log('切断interval')
-					clearInterval(interval)
+                    clearInterval(interval)
+                    rvmAnalysis = true;
 					callback();
 					return
 				}
@@ -896,29 +927,6 @@ function PDMSLoader() {
 				// renderer.render()
 			},5
 		)
-    };
-
-    // 修正场景包围盒
-    function reviseBoundingBox(box3) {
-        // console.log(box3.max, box3.min);
-
-        if (!maxX || (maxX && maxX < box3.max.x)) maxX = box3.max.x;
-        if (!maxY || (maxY && maxY < box3.max.y)) maxY = box3.max.y;
-        if (!maxZ || (maxZ && maxZ < box3.max.z)) maxZ = box3.max.z;
-
-        if (!minX || (minX && minX > box3.min.x)) minX = box3.min.x;
-        if (!minY || (minY && minY > box3.min.y)) minY = box3.min.y;
-        if (!minZ || (minZ && minZ > box3.min.z)) minZ = box3.min.z;
-    };
-
-    function getCenter() {
-        //计算中心点
-        return [
-            (maxX + minX) / 2000,
-            (maxY + minY) / 2000,
-            (maxZ + minZ) / 2000
-        ];
-
     };
 
     function getGeometryByGeotype(type, arr) {

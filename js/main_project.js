@@ -363,9 +363,12 @@ function cleanPDMS() {
 		scene.remove(group);
 	};
 
+	renderer.render(scene, camera);
+
 };
 
 let ATTData;
+let attLoaded = false;
 function loadingPDMS(rvmUrl, attUrl) {
 	cleanPDMS();
 	cancelAnimationFrame(animateReq);
@@ -402,8 +405,11 @@ function loadingPDMS(rvmUrl, attUrl) {
 			loadingBox.remove();
 		},
 		function (res) {
+			if (res.text == "ATT文件数据传输" && !attLoaded) return;
+			if(res.text == "模型加载" && res.progress == 1) attLoaded = true;
 			loadingBox.updateText(res.text);
 			loadingBox.updateRange(res.progress);
+			
 		}
 	);
 };
