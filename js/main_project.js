@@ -1363,8 +1363,8 @@ var viewMovement = function () {
 
 	last_delta = new THREE.Vector3(last_delta.x, moveUp - moveDown, last_delta.y);
 
-	camera.position.addScaledVector(last_delta, 4);
-	controls.target.addScaledVector(last_delta, 4);
+	camera.position.addScaledVector(last_delta, 0.5);
+	controls.target.addScaledVector(last_delta, 0.5);
 
 };
 //建立视角球
