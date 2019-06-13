@@ -173,8 +173,8 @@ THREE.BufferGeometryUtils = {
       // } // gather .userData
 
 
-      mergedGeometry.userData.mergedUserData = mergedGeometry.userData.mergedUserData || [];
-      mergedGeometry.userData.mergedUserData.push(geometry.userData);
+      // mergedGeometry.userData.mergedUserData = mergedGeometry.userData.mergedUserData || [];
+      // mergedGeometry.userData.mergedUserData.push(geometry.userData);
 
       // if (useGroups) {
         // var count;

@@ -1730,6 +1730,8 @@ function getAllRelationIds(obj) {
 
 function setInfoPanel(id, list) {
 
+	if (!ATTData) return;
+
 	json = rvmOriginal[id];
 
 	// 先获取展开列表
