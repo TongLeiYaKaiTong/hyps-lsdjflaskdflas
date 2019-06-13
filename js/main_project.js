@@ -274,9 +274,11 @@ function loadingPDMS(rvmUrl,attUrl) {
 	let loadingBox = new LoadingBox('加载');
 
 	new PDMSLoader().load(
-		"./PDMS/sbytcout.js",
-		"./PDMS/sbytc.ATT",
-		// "./js/rvm_att/项目120190611060651out.js",
+		// "./PDMS/sbytcout.js",
+		"./js/rvm_att/项目3out.js",
+		"./js/rvm_att/项目3.ATT",
+		// "./pdms/项目1out.js",
+		// "./pdms/项目1.ATT",
 		// "http://192.168.0.110/files/RVM/sbytc20190611070114out.js",
 		// "http://192.168.0.110/files/ATT/sbytc20190611070126.ATT",
 		// rvmUrl,
@@ -557,18 +559,18 @@ function init(name, list) {
 	function click(e) {
 		// console.log('是一次纯点击事件，触发clik')
 		// let raycaster = new THREE.Raycaster(); //射线
+		var group = scene.children[3]
 		let mouse = new THREE.Vector2(); //鼠标位置
 		mouse.x = e.offsetX;
 		mouse.y = e.offsetY;
 
-		
-		let color_att = scene.children[3].children[0].geometry.attributes.color
-		let array = color_att.array
-		let lastcolor_info = color_att.last_info
 		//还原上次原色
-		// console.log('lastcolor_info',scene.children[3].children[0].geometry)
-		// console.log('lastcolor_info',lastcolor_info)
-		if(lastcolor_info){
+		if(group.change_index!=undefined){
+			console.log('上次变红了，还原上次颜色，group.change_index是',group.change_index)
+			let color_att = group.children[group.change_index].geometry.attributes.color
+			let array = color_att.array
+			let lastcolor_info = color_att.last_info
+			console.log('start,end',lastcolor_info.start,lastcolor_info.end)
 			for(let i=3*lastcolor_info.start;i<3*lastcolor_info.end+1;i+=3){
 				array[i] = lastcolor_info.r;
 				array[i+1] = lastcolor_info.g;
@@ -582,18 +584,24 @@ function init(name, list) {
 		}
 		
 		//左侧目录树关联的变回去
-		for (let i = 0; i < last_emissive_array.length; i++) {
-			last_emissive_array[i].material.emissive.r = 0;
+		// for (let i = 0; i < last_emissive_array.length; i++) {
+			// last_emissive_array[i].material.emissive.r = 0;
+		// }
+
+		//让所有的物体更换为选择材质
+		for(let i=0;i<scene.children[scene.children.length-1].children.length;i++){
+			scene.children[scene.children.length-1].children[i].material_record = scene.children[scene.children.length-1].children[i].material;
+			scene.children[scene.children.length-1].children[i].material = pickingMaterial
 		}
-
-
-		let record = scene.children[scene.children.length-1].children[0].material;
-		scene.children[scene.children.length-1].children[0].material = pickingMaterial
 		
 		renderer.setRenderTarget(pickingRenderTarget);
-		renderer.render( scene.children[scene.children.length-1].children[0], camera);
+		renderer.render( scene.children[scene.children.length-1], camera);
 		renderer.setRenderTarget();
-		scene.children[scene.children.length-1].children[0].material = record;
+		
+		//渲染后还原颜色
+		for(let i=0;i<scene.children[scene.children.length-1].children.length;i++){
+			scene.children[scene.children.length-1].children[i].material = scene.children[scene.children.length-1].children[i].material_record
+		}
 		
 		// console.log(pickingRenderTarget)
 		renderer.readRenderTargetPixels(
@@ -611,16 +619,15 @@ function init(name, list) {
 			( pixelBuffer[ 1 ] << 8 ) |
 			( pixelBuffer[ 2 ] );
 			
-		// console.log('你点击的构件index是',index)
-		
-		
 		if(index>15000000){
 			console.log('什么都没选到')
-			// scene.children[3].children[0].geometry
-			color_att.needsUpdate = true;
 			return
 		}
-			
+		
+		console.log('你点击的构件index是',index)
+		group.change_index = Math.floor( index/(geoIdArray.length/group.children.length) )
+		console.log('他所在的children是第几位',group.change_index)
+		
 		console.log('点击构件的ID是',geoIdArray[index])
 		// console.log('geoCountArray',geoCountArray[index])
 		
@@ -628,13 +635,23 @@ function init(name, list) {
 		if(index == 0)
 			start = 0;
 		else 
-			start = geoCountArray[index-1]+1
+			start = geoCountArray[index-1]
 		
 		let end = geoCountArray[index]
 		
-		console.warn('点击构件的顶点范围start,end',start,end)
+		//从geoCountArray算出此次顶点的start和end
+		// console.log(group.change_index )
+		// console.log(geoCountArray.length)
+		// console.log(group.children.length)
+		start = start - geoCountArray[group.change_index *Math.floor(geoCountArray.length/group.children.length)]
+		end = end - geoCountArray[group.change_index *Math.floor(geoCountArray.length/group.children.length)]
 		
 		
+		console.warn('顶点范围在children index为',group.change_index,'的start,end是',start,end)
+		
+		color_att = group.children[group.change_index].geometry.attributes.color
+		array = color_att.array;
+			
 		//记录这次颜色
 		let r = array[3*start];
 		let g = array[3*start+1];
@@ -652,14 +669,10 @@ function init(name, list) {
 		
 		//needupdate
 		color_att.dynamic = true;
-		
-		// if(color_att.updateRange.offset>3*start)
-			color_att.updateRange.offset = 3*start
-		
-		// if(color_att.updateRange.offset+color_att.updateRange.count<end)
-			color_att.updateRange.count = 3*(end-start);
-		
+		color_att.updateRange.offset = 3*start
+		color_att.updateRange.count = 3*(end-start);
 		color_att.needsUpdate = true;
+		
 		return
 	}
 	var animate1 = animate2;
@@ -669,20 +682,32 @@ function init(name, list) {
 	$('#loading').hide();
 }
 
-function change_color_attr(start,end){
+function change_and_recover_color_attr(start,end){
 	let color_att = scene.children[3].children[0].geometry.attributes.color
 	let array = color_att.array
 	let lastcolor_info = color_att.last_info
+	
+	if(lastcolor_info){
+		for(let i=3*lastcolor_info.start;i<3*lastcolor_info.end+1;i+=3){
+			array[i] = lastcolor_info.r;
+			array[i+1] = lastcolor_info.g;
+			array[i+2] = lastcolor_info.b;
+		}
+	}
+	//记录这次颜色
+	let r = array[3*start];
+	let g = array[3*start+1];
+	let b = array[3*start+2];
+		
+	lastcolor_info = {start:start,end:end,r:r,g:g,b:b}
+	color_att.last_info = lastcolor_info
+		
 	for(let i=3*start;i<3*end+1;i+=3){
 		array[i] = 1;
 		array[i+1] = 0;
 		array[i+2] = 0;
 	}
 	color_att.needsUpdate = true;
-}
-function recover_color_attr(start,end){
-	
-	
 }
 function animate2() {
 	requestAnimationFrame(animate2);
@@ -810,9 +835,14 @@ function mulushu(list) {
 		console.log(treeNode);
 		console.log(rvmOriginal[treeNode.id]);
 		setInfoPanel(rvmOriginal[treeNode.id]);
-		console.log(getAllRelationIds(rvmOriginal[treeNode.id]));
 		
-
+		let children_id_array = getAllRelationIds(rvmOriginal[treeNode.id])
+		console.log(children_id_array);
+		
+		let start_index = geoIdArray.indexOf(children_id_array[0]),end_index = geoIdArray.indexOf(children_id_array[children_id_array.length-1]);
+		console.log(start_index,end_index)
+		console.log(geoCountArray[start_index],geoCountArray[end_index])
+		
 		// for (let i = 0; i < last_emissive_array.length; i++) {
 		// 	last_emissive_array[i].material.emissive.r = 0;
 		// }
