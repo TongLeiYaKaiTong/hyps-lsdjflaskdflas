@@ -259,6 +259,7 @@ function LoadingBox(config_array) {
 	this.text_dom_array = [];
 	this.progress_array = [];
 
+	// 添加进度条区域
 	this.addProgress = function(config) {
 		// 文字
 		const text_dom = document.createElement('p');
@@ -302,6 +303,16 @@ function LoadingBox(config_array) {
 
 	for (const config of config_array) {
 		this.addProgress(config);
+	}
+
+	// 隐藏进度条
+	this.hideProgress = function(index = 0) {
+		$(this.progress_array[index]).hide();
+	}
+
+	// 显示进度条
+	this.showProgress = function(index = 0) {
+		$(this.progress_array[index]).css('display', 'flex');
 	}
 
 	// 更新显示文本
@@ -385,8 +396,11 @@ function loadingPDMS(rvmUrl, attUrl) {
 	cleanPDMS();
 	cancelAnimationFrame(animateReq);
 	let attAppended = false;
+	let rveShow = false;
 
-	let loadingBox = new LoadingBox([{text: "模型传输", hasProgress: true}]);
+	let loadingBox = new LoadingBox([{text: "模型传输中", hasProgress: true}]);
+	loadingBox.hideProgress(0);
+
 	new PDMSLoader().load(
 		rvmUrl, //rvm路径
 		attUrl, //ATT路径
@@ -423,6 +437,10 @@ function loadingPDMS(rvmUrl, attUrl) {
 			}
 
 			if (res.text == "模型加载") {
+				if (!rveShow) {
+					loadingBox.showProgress(0);
+					rveShow = true;
+				}
 				loadingBox.updateText(res.text);
 				loadingBox.updateRange(res.progress);
 			}
