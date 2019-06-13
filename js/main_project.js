@@ -372,9 +372,10 @@ let attLoaded = false;
 function loadingPDMS(rvmUrl, attUrl) {
 	cleanPDMS();
 	cancelAnimationFrame(animateReq);
+	attLoaded = false; //att加载进度条是否开启设置为false;
 
-	rvmUrl = rvmUrl || "./PDMS/项目1out.js";
-	attUrl = attUrl || "./PDMS/项目1.ATT";
+	rvmUrl = rvmUrl || "./PDMS/项目2out.js";
+	attUrl = attUrl || "./PDMS/项目2.ATT";
 	// rvmUrl = rvmUrl || "./PDMS/sampleout.js";
 	// attUrl = attUrl || "./PDMS/sample.ATT";
 	let loadingBox = new LoadingBox('加载');
@@ -611,7 +612,7 @@ function init(name, list) {
 	animate();
 	
 	//是否调用本地模型
-	//loadingPDMS();
+	// loadingPDMS();
 	var data;
 
 	function onWindowResize() {

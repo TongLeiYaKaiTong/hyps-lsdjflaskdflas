@@ -698,6 +698,8 @@ function PDMSLoader() {
             };
 
             ATTData = json[origin];//获取总的关系
+            console.log(ATTData);
+            
 
             attAnalysis = true;
             callback();
@@ -799,7 +801,6 @@ function PDMSLoader() {
 
     function setPDMSMember(PRIM, color, id) {
         let geo = getGeometryByGeotype(PRIM.TYPE, PRIM.KEYS);
-        // co
 
         if (geo) {
 
@@ -902,7 +903,7 @@ function PDMSLoader() {
     };
 
     function mergeBufferGeometries(callback) {
-        console.log('geometries',geometries);
+        // console.log('geometries',geometries);
 		
 		//拆分成几段以便于merge
 		let wait_merged_array = []
@@ -917,18 +918,18 @@ function PDMSLoader() {
 		geometries = [];
 		//前面的数量都相等，最后一个会多一点
 		
-		console.log(wait_merged_array)
+		// console.log(wait_merged_array)
 		
         // mgeo.computeFaceNormals();
         // mgeo.computeVertexNormals();
 		var count = 0;
 		let interval = setInterval(
 			function(){
-				console.log('count',count)
+				// console.log('count',count)
 				// console.log('wait_merged_array[count-1]',wait_merged_array[count-1])
-				console.log('wait_merged_array[count]',wait_merged_array[count])
+				// console.log('wait_merged_array[count]',wait_merged_array[count])
 				if(!wait_merged_array[count]){
-					console.log('切断interval')
+					// console.log('切断interval')
                     clearInterval(interval)
                     rvmAnalysis = true;
 					callback();
