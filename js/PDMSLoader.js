@@ -923,6 +923,8 @@ function PDMSLoader() {
             };
 
             geo.addAttribute('pickingColor', pick_colorAtt);
+			
+			geoCount = geoCount + count;
         };
 
     };
