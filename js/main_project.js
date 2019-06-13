@@ -512,6 +512,10 @@ function init(name, list) {
 	pickingRenderTarget.texture.generateMipmaps = false;
 	pickingRenderTarget.texture.minFilter = THREE.NearestFilter;
 
+	pickingMaterial = new THREE.ShaderMaterial({
+		vertexShader: THREE.pickShader.vertexShader,
+		fragmentShader: THREE.pickShader.fragmentShader
+	});
 	// Water
 	var waterGeometry = new THREE.CircleBufferGeometry(100000, 16);
 
