@@ -4,6 +4,7 @@ function PDMSLoader() {
     let scope = this;
 
     let PDMSGroup = new THREE.Group();
+        PDMSGroup.name = "PDMSGroup";
 
     let geometries = [];
 
@@ -621,7 +622,7 @@ function PDMSLoader() {
                             text: "数据传输",
                             progress: percentComplete
                         });
-                        console.log(Math.round(percentComplete * 100) + "%");
+                        // console.log(Math.round(percentComplete * 100) + "%");
                     };
                 }, false);
                 return xhr;
@@ -629,6 +630,7 @@ function PDMSLoader() {
             success: function (data) { //成功
 
                 console.log('data',data);
+                console.log('onProgress',onProgress);
 
                 forEachRVMData(data, onProgress, function () {
 
@@ -642,18 +644,21 @@ function PDMSLoader() {
 					setTimeout(
 						function(){
 							console.log('开始merge')
-							mergeBufferGeometries();
-						},500)
+							mergeBufferGeometries(function(){
+								if (onLoad) onLoad({
+									original: data,
+									PDMSObject: PDMSGroup,
+									rvmTree: formatRVMData(data),
+									boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
+									center: getCenter(),
+									geoIdArray: geoIdArray, //几何id数组
+									geoCountArray: geoCountArray//几何点索引数组
+								});
+								
+							});
+						},1)
 
-                    if (onLoad) onLoad({
-                        original: data,
-                        PDMSObject: PDMSGroup,
-                        rvmTree: formatRVMData(data),
-                        boundingBox: [maxX / 1000, maxY / 1000, maxZ / 1000, minX / 1000, minY / 1000, minZ / 1000],
-                        center: getCenter(),
-                        geoIdArray: geoIdArray, //几何id数组
-                        geoCountArray: geoCountArray//几何点索引数组
-                    });
+                    
 
                 });
 
@@ -700,26 +705,57 @@ function PDMSLoader() {
             // 遍历每个New 的对象
             for (let i = 3, len = arr.length; i < len; i++) {
 
+                // 提取目录名
+                let title = arr[i].replace(/\n/g, "↵").split("↵")[0];
+                let name;
+                if(title.indexOf("of")) {
+                    name = title.split(" /")[0].replace(/(^\s*)|(\s*$)/g, "");//去掉首尾的空格，
+                } else {
+                    name = (title[0] != "/") ? title : title.substr(1);
+                };
+
+
                 let arr1 = arr[i].replace(/\n/g, "↵").replace(/\s*/g, "").replace(/END↵/g, "").split("↵"); //获得每个New 的对象
 
                 // 创建当前记录数据信息json
-                let json1 = { children: [] };
+                let json1 = { 
+                    children: [],
+                    Name:name,
+                };
+
+                // console.log(arr1[0]);
+                
 
                 // 遍历每个对象中的属性
                 for (let j = 1, l = arr1.length - 1; j < l; j++) {
 
                     let arr2 = arr1[j].split(":=");//分割字符串为数组
+                    
+
                     // if (j == 1 && arr2[0] == "Name") json[arr2[1]] = json1;//存在Name属性的 创建到json表中
                     // if (j == 4 && arr2[0] == "Owner" && json[arr2[1]]) json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
-                    if (j == 1 && reg1.test(arr2[0])) json[arr2[1]] = json1;//存在Name属性的 创建到json表中
-                    if (j == 4 && reg2.test(arr2[0]) && json[arr2[1]]) json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
-                    json1[arr2[0]] = arr2[1];//这个属性
+                    if (j == 1 && reg1.test(arr2[0])) {
+                        let nameStr = arr2[1];
+                        json[nameStr] = json1;//（先）存在Name属性的 创建到json表中
+                        nameStr = (nameStr[0] != "/") ? nameStr : nameStr.substr(1);
+                        if(json1.Name == "") json1.Name = nameStr;
+                    };
+                    // if (j == 1 && reg1.test(arr2[0])) console.log(arr2[1]);
+                    
+                    if (j == 4 && reg2.test(arr2[0]) && json[arr2[1]]) {
+                        json[arr2[1]].children.push(json1);//存在Owner属性的 添加到json表对应父级Name的children中
+                        let attr = arr2[1]; //Owner值
+                        json1[arr2[0]] = (attr[0] != "/") ? attr : attr.substr(1);//这个属性
+                    }; 
+                    if (j != 1 && j != 4) json1[arr2[0]] = arr2[1];//这个属性
 
                 };
             };
 
             let data = json[origin];//获取总的关系
-            json = undefined;//清空josn数据
+            // console.log(data);
+            
+            // json = undefined;//清空josn数据
 
             // if (onSuccess) onSuccess(data);
             console.log(data);
@@ -745,6 +781,8 @@ function PDMSLoader() {
 
         let len = data.length;//总数组数
 
+        let addNum = Math.floor(len / 5);
+
         function forEachRVMData1(i1, i2) {
 
             for (let i = i1; i < i2; i++) {
@@ -758,21 +796,21 @@ function PDMSLoader() {
             });
 
             if (i2 != len) {
-                let addNum = Math.floor(Math.random () * 1200) + 512;
+                // let addNum = Math.floor(Math.random () * 1200) + 512;
                 setTimeout(function () {
                     if (i2 + addNum < len) {
                         forEachRVMData1(i2, i2 + addNum);
                     } else {
                         forEachRVMData1(i2, len);
                     };
-                }, 500);
+                }, 100);
             } else {
                 callback();
             };
 
         };
 
-        forEachRVMData1(0, Math.floor(Math.random () * 900) + 512);
+        forEachRVMData1(0, addNum);
 
     };
 
@@ -896,10 +934,10 @@ function PDMSLoader() {
 
             //=================pick color=========================
 			// if(temp_test!=undefined&&geoCountArray.length-temp_test==0){
-				// console.log('相同的ID')
+			// 	console.log('相同的ID')
 				
 			// }else{
-				// console.log('不同的ID')
+			// 	console.log('不同的ID')
 			// }
 			temp_test = geoCountArray.length
 			
@@ -928,7 +966,7 @@ function PDMSLoader() {
 
     };
 
-    function mergeBufferGeometries() {
+    function mergeBufferGeometries(callback) {
         console.log('geometries',geometries);
 		
 		//拆分成几段以便于merge
@@ -953,6 +991,7 @@ function PDMSLoader() {
 				if(!wait_merged_array[count]){
 					console.log('切断interval')
 					clearInterval(interval)
+					callback();
 					return
 				}
 				let mgeo = THREE.BufferGeometryUtils.mergeBufferGeometries(wait_merged_array[count]);
@@ -971,7 +1010,7 @@ function PDMSLoader() {
 
 				PDMSGroup.add(mesh);
 				
-			},200
+			},400
 		)
     };
 
