@@ -227,7 +227,7 @@ function downloadModel(blob, filename) {
 
 /**
  * @name loading界面对象
- * @param {string} content 初始化文本
+ * @param {array} text_array 初始化文本数组
  * @param {*} config 配置选项 hasProgress 设置是否含有进度条
  */
 function LoadingBox(text_array, config) {
@@ -259,7 +259,7 @@ function LoadingBox(text_array, config) {
 	this.text_dom_array = [];
 	this.progress_array = [];
 
-	for (const text of this.text_array) {
+	this.addProgress = function(text) {
 		// 文字
 		const text_dom = document.createElement('p');
 		$(element).append(text_dom);
@@ -300,6 +300,9 @@ function LoadingBox(text_array, config) {
 		this.progress_array.push(progress);
 	}
 
+	for (const text of this.text_array) {
+		this.addProgress(text);
+	}
 
 	// 更新显示文本
 	this.updateText = function (text, index = 0) {
