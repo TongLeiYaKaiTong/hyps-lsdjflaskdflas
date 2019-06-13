@@ -141,7 +141,7 @@ $('#controller-tool-bar>.water>.icon').click(function () {
 // 下载按钮绑定
 $('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
 	if (!window.PDMSObject) return;
-	
+
 	let target = window.PDMSObject;
 	let fileName = target.name == '' ? 'PDMS导出文件' : target.name;
 
@@ -365,22 +365,19 @@ function cleanPDMS() {
 
 };
 
+let ATTData;
 function loadingPDMS(rvmUrl, attUrl) {
 
 	cleanPDMS();
 	cancelAnimationFrame(animateReq);
 
-	rvmUrl = rvmUrl || "./PDMS/sbytcout.js";
-	attUrl = attUrl || "./PDMS/sbytc.ATT";
+	rvmUrl = rvmUrl || "./PDMS/sampleout.js";
+	attUrl = attUrl || "./PDMS/sample.ATT";
 	let loadingBox = new LoadingBox('加载');
 
 	new PDMSLoader().load(
-		// "./PDMS/sbytcout.js",
-		// "./PDMS/sbytc.ATT",
-		// "http://192.168.0.110/files/RVM/sbytc20190611070114out.js",
-		// "http://192.168.0.110/files/ATT/sbytc20190611070126.ATT",
-		rvmUrl,
-		attUrl,
+		rvmUrl, //rvm路径
+		attUrl, //ATT路径
 		function (data) {
 			console.log(data);
 
@@ -398,6 +395,7 @@ function loadingPDMS(rvmUrl, attUrl) {
 
 			if (data.geoIdArray) geoIdArray = data.geoIdArray;
 			if (data.geoCountArray) geoCountArray = data.geoCountArray;
+			if (data.ATTData) ATTData = data.ATTData;
 
 			animate();
 			loadingBox.remove();
@@ -594,7 +592,7 @@ function init(name, list) {
 	// grid.material.transparent = true;
 	// scene.add(grid);
 
-	
+
 
 	onWindowResize()
 	window.addEventListener('resize', onWindowResize, false);
@@ -614,18 +612,18 @@ function init(name, list) {
 	function click(e) {
 		// console.log('是一次纯点击事件，触发clik')
 		// let raycaster = new THREE.Raycaster(); //射线
+		var group = scene.children[3]
 		let mouse = new THREE.Vector2(); //鼠标位置
 		mouse.x = e.offsetX;
 		mouse.y = e.offsetY;
 
-
-		let color_att = scene.children[3].children[0].geometry.attributes.color
-		let array = color_att.array
-		let lastcolor_info = color_att.last_info
 		//还原上次原色
-		// console.log('lastcolor_info',scene.children[3].children[0].geometry)
-		// console.log('lastcolor_info',lastcolor_info)
-		if (lastcolor_info) {
+		if (group.change_index != undefined) {
+			console.log('上次变红了，还原上次颜色，group.change_index是', group.change_index)
+			let color_att = group.children[group.change_index].geometry.attributes.color
+			let array = color_att.array
+			let lastcolor_info = color_att.last_info
+			console.log('start,end', lastcolor_info.start, lastcolor_info.end)
 			for (let i = 3 * lastcolor_info.start; i < 3 * lastcolor_info.end + 1; i += 3) {
 				array[i] = lastcolor_info.r;
 				array[i + 1] = lastcolor_info.g;
@@ -639,18 +637,24 @@ function init(name, list) {
 		}
 
 		//左侧目录树关联的变回去
-		for (let i = 0; i < last_emissive_array.length; i++) {
-			last_emissive_array[i].material.emissive.r = 0;
+		// for (let i = 0; i < last_emissive_array.length; i++) {
+		// last_emissive_array[i].material.emissive.r = 0;
+		// }
+
+		//让所有的物体更换为选择材质
+		for (let i = 0; i < scene.children[scene.children.length - 1].children.length; i++) {
+			scene.children[scene.children.length - 1].children[i].material_record = scene.children[scene.children.length - 1].children[i].material;
+			scene.children[scene.children.length - 1].children[i].material = pickingMaterial
 		}
 
-
-		let record = scene.children[scene.children.length - 1].children[0].material;
-		scene.children[scene.children.length - 1].children[0].material = pickingMaterial
-
 		renderer.setRenderTarget(pickingRenderTarget);
-		renderer.render(scene.children[scene.children.length - 1].children[0], camera);
+		renderer.render(scene.children[scene.children.length - 1], camera);
 		renderer.setRenderTarget();
-		scene.children[scene.children.length - 1].children[0].material = record;
+
+		//渲染后还原颜色
+		for (let i = 0; i < scene.children[scene.children.length - 1].children.length; i++) {
+			scene.children[scene.children.length - 1].children[i].material = scene.children[scene.children.length - 1].children[i].material_record
+		}
 
 		// console.log(pickingRenderTarget)
 		renderer.readRenderTargetPixels(
@@ -673,10 +677,12 @@ function init(name, list) {
 
 		if (index > 15000000) {
 			console.log('什么都没选到')
-			// scene.children[3].children[0].geometry
-			color_att.needsUpdate = true;
 			return
 		}
+
+		console.log('你点击的构件index是', index)
+		group.change_index = Math.floor(index / (geoIdArray.length / group.children.length))
+		console.log('他所在的children是第几位', group.change_index)
 
 		console.log('点击构件的ID是', geoIdArray[index])
 		// console.log('geoCountArray',geoCountArray[index])
@@ -686,12 +692,22 @@ function init(name, list) {
 		if (index == 0)
 			start = 0;
 		else
-			start = geoCountArray[index - 1] + 1
+			start = geoCountArray[index - 1]
 
 		let end = geoCountArray[index]
 
-		console.warn('点击构件的顶点范围start,end', start, end)
+		//从geoCountArray算出此次顶点的start和end
+		// console.log(group.change_index )
+		// console.log(geoCountArray.length)
+		// console.log(group.children.length)
+		start = start - geoCountArray[group.change_index * Math.floor(geoCountArray.length / group.children.length)]
+		end = end - geoCountArray[group.change_index * Math.floor(geoCountArray.length / group.children.length)]
 
+
+		console.warn('顶点范围在children index为', group.change_index, '的start,end是', start, end)
+
+		color_att = group.children[group.change_index].geometry.attributes.color
+		array = color_att.array;
 
 		//记录这次颜色
 		let r = array[3 * start];
@@ -710,14 +726,10 @@ function init(name, list) {
 
 		//needupdate
 		color_att.dynamic = true;
-
-		// if(color_att.updateRange.offset>3*start)
 		color_att.updateRange.offset = 3 * start
-
-		// if(color_att.updateRange.offset+color_att.updateRange.count<end)
 		color_att.updateRange.count = 3 * (end - start);
-
 		color_att.needsUpdate = true;
+
 		return
 	}
 	var animate1 = animate;
@@ -727,10 +739,26 @@ function init(name, list) {
 	$('#loading').hide();
 }
 
-function change_color_attr(start, end) {
+function change_and_recover_color_attr(start, end) {
 	let color_att = scene.children[3].children[0].geometry.attributes.color
 	let array = color_att.array
 	let lastcolor_info = color_att.last_info
+
+	if (lastcolor_info) {
+		for (let i = 3 * lastcolor_info.start; i < 3 * lastcolor_info.end + 1; i += 3) {
+			array[i] = lastcolor_info.r;
+			array[i + 1] = lastcolor_info.g;
+			array[i + 2] = lastcolor_info.b;
+		}
+	}
+	//记录这次颜色
+	let r = array[3 * start];
+	let g = array[3 * start + 1];
+	let b = array[3 * start + 2];
+
+	lastcolor_info = { start: start, end: end, r: r, g: g, b: b }
+	color_att.last_info = lastcolor_info
+
 	for (let i = 3 * start; i < 3 * end + 1; i += 3) {
 		array[i] = 1;
 		array[i + 1] = 0;
@@ -738,10 +766,7 @@ function change_color_attr(start, end) {
 	}
 	color_att.needsUpdate = true;
 }
-function recover_color_attr(start, end) {
 
-
-}
 let animateReq;
 function animate() {
 	animateReq = requestAnimationFrame(animate);
@@ -841,14 +866,18 @@ function mulushu(list) {
 		treeObj.expandNode(nodes[i], true, false, true);
 	}
 	addSubNode(nodes[0]);
-	console.log('自动展开')
 	// }, 3000)
 	function nodeClick(event, treeId, treeNode, clickFlag) {
-		console.log(treeNode);
-		console.log(rvmOriginal[treeNode.id]);
-		setInfoPanel(rvmOriginal[treeNode.id]);
-		console.log(getAllRelationIds(rvmOriginal[treeNode.id]));
+		// console.log(treeNode);
+		// console.log(rvmOriginal[treeNode.id]);
+		setInfoPanel(treeNode.id, []);
 
+		let children_id_array = getAllRelationIds(rvmOriginal[treeNode.id])
+		// console.log(children_id_array);
+
+		let start_index = geoIdArray.indexOf(children_id_array[0]), end_index = geoIdArray.indexOf(children_id_array[children_id_array.length - 1]);
+		// console.log(start_index,end_index)
+		// console.log(geoCountArray[start_index],geoCountArray[end_index])
 
 		// for (let i = 0; i < last_emissive_array.length; i++) {
 		// 	last_emissive_array[i].material.emissive.r = 0;
@@ -1528,11 +1557,6 @@ function explode_recover() {
 }
 
 let zTree_Menu;
-// = $.fn.zTree.getZTreeObj("treebg")
-// const nodes = treeObj.getNodes();
-// 	// for (var i = 0; i < nodes.length; i++) { //设置节点展开
-// 	// 	treeObj.expandNode(nodes[i], true, false, true);
-// 	// }
 
 function selectZTreeNodeById(id) {
 
@@ -1547,11 +1571,12 @@ function selectZTreeNodeById(id) {
 
 		if (pid) list.push(pid);
 
-		if (pid != 0) expandList(pid)
+		if (pid != 0) expandList(pid);
 
 	};
 
 	expandList(id);
+	setInfoPanel(id, list);
 
 	function expandChildNode(i) {
 		if (i == 0) return;
@@ -1575,10 +1600,11 @@ function selectZTreeNodeById(id) {
 function getAllRelationIds(obj) {
 	let array = [];
 
-	function aab(n){
+	// 一个无用的函数，只是因为线几何没有而做得将其排除的封装函数，在几何正确显示之后，将会将其去除
+	function aab(n) {
 		let i = n.length;
 		while (i--) {
-			if(n[i].TYPE != 10 ) return true;
+			if (n[i].TYPE != 10) return true;
 		};
 		return false;
 
@@ -1600,21 +1626,57 @@ function getAllRelationIds(obj) {
 	return array;
 };
 
+function setInfoPanel(id, list) {
 
+	json = rvmOriginal[id];
 
+	// 先获取展开列表
+	
+	if (list.length > 0) {
+		list.unshift(id);
+	} else {
+		function expandList(id) {
+			let pid = rvmOriginal[id].PID;
+			if (pid) list.push(pid);
+			if (pid != 0) expandList(pid);
+		};
+		expandList(id);
+	};
 
+	// 目录树和att数据name比较
+	function contrastATTName(name, attData) {
+		let arr = attData.children,
+			i = arr.length;
+		while (i--) {
+			if (arr[i].NAME == name) return arr[i];
+		};
+		return false;
+	};
 
-function setInfoPanel(json) {
-
-	let array = Object.keys(json);
-	let len = array.length;
+	// 查询对应的att数据
+	let attData = ATTData;
+	let j = list.length;
+	while (j--) {
+		let k = list[j];
+		attData = contrastATTName(rvmOriginal[k].NAME, attData);
+		if (!attData) break;
+	};
+	// console.log(attData);
 
 	let str = "";
+	str += "<li><div>NAME</div><span>" + json.NAME + "</span></li>";
+	str += "<li><div>ABOUT</div><span>" + json.ABOUT + "</span></li>";
+
+	let array = Object.keys(attData);
+	let len = array.length;
+
+
 	for (let i = 0; i < len; i++) {
 		let e = array[i];
 		let newElement = (e[0] != ":") ? e : e.substr(1);//删除数据键值上第一位是冒号的符号
+		if (e == "NAME" || e == "children") continue;
 		str += "<li><div>" + newElement + "</div>";
-		str += "<span>" + json[e] + "</span></li>";
+		str += "<span>" + attData[e] + "</span></li>";
 	};
 
 	$("#right-info-panel > .info-panel").html(str);

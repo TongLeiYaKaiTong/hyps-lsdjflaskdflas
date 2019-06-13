@@ -12,13 +12,15 @@ window.onload = function(){
 	});
 	//#删除 ,#取消 
 	$("#chooseFile>.title>.delete,.submissionArea>.buttonPane>#no").click(function(){
+		
 		//清空强制转换复选框
 		if($("#checkboxIcon").hasClass("select")){
 			$("#checkboxIcon").removeClass("select");
 			$("#checkboxIcon").addClass("unselect");
 		}
 		//清空文件
-		$("#chooseFile>.content .fileList").empty();
+		console.log("清控我");
+		$("#chooseFile>.content .fileList>span").detach();
 		//确定按钮禁用
 		if(!($("#yes").attr("disabled") == "disabled")){
 			$("#yes").attr("disabled",true);
@@ -70,6 +72,8 @@ window.onload = function(){
 						loadingPDMS(responseRVMUrl,responseATTUrl)
 					});
 				} else {
+					console.log(responseRVMUrl);
+					
 					loadingPDMS(responseRVMUrl,"")
 				};
 				$("#chooseFile>.title>.delete,.submissionArea>.buttonPane>#no").click();
@@ -184,11 +188,11 @@ function arrayMnplton(fileArray){
 	var rvmFiles = [];
 	if(!(fileArray.length==1&&fileArray[0]==undefined)){
 		for(var i=0;i<fileArray.length;i++){
-			if(fileArray[i].ATT){
-				attFiles.push(fileArray[i].ATT);
+			if(fileArray[i].att){
+				attFiles.push(fileArray[i].att);
 			}
-			if(fileArray[i].RVM){
-				rvmFiles.push(fileArray[i].RVM);
+			if(fileArray[i].rvm){
+				rvmFiles.push(fileArray[i].rvm);
 			}
 		}
 	}
@@ -268,6 +272,7 @@ function uploadFiles(formData){
 			console.log(XMLHttpRequest.status);
 			// 状态
 			console.log(XMLHttpRequest.readyState);
+			console.log(XMLHttpRequest);
 			// 错误信息   
 			console.log(textStatus);
 		}
