@@ -263,7 +263,7 @@ function LoadingBox(config_array) {
 		// 文字
 		const text_dom = document.createElement('p');
 		$(element).append(text_dom);
-		$(text_dom).text(config.text ? '正在' + config.text + '...' : '正在加载...').css({
+		$(text_dom).text(config.text ? config.text + '...' : '正在加载...').css({
 			'font-size': '20px',
 			'font-weight': 'bold',
 			'margin-top': '20px',
@@ -386,7 +386,7 @@ function loadingPDMS(rvmUrl, attUrl) {
 	cancelAnimationFrame(animateReq);
 	let attAppended = false;
 
-	let loadingBox = new LoadingBox([{text: '加载', hasProgress: true}]);
+	let loadingBox = new LoadingBox([{text: "模型传输", hasProgress: true}]);
 	new PDMSLoader().load(
 		rvmUrl, //rvm路径
 		attUrl, //ATT路径
