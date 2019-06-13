@@ -644,9 +644,6 @@ function PDMSLoader() {
             // 总json表
             let json = {};
 
-            //记录 起源数据 的Name
-            let origin = arr[3].replace(/\s*/g, "").toLowerCase().split("name:=")[0];
-
             let reg1 = RegExp(/name/i),
                 reg2 = RegExp(/Owner/i);
 
@@ -697,9 +694,7 @@ function PDMSLoader() {
                 };
             };
 
-            ATTData = json[origin];//获取总的关系
-            console.log(ATTData);
-            
+            ATTData = json[Object.keys(json)[0]];//获取总的关系
 
             attAnalysis = true;
             callback();

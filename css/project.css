@@ -639,7 +639,6 @@ a:focus {
   font-size: 14px;
 }
 #right-info-panel .info-panel li div {
-  display: flex;
   align-items: center;
   width: 90px;
   word-wrap: break-word;
