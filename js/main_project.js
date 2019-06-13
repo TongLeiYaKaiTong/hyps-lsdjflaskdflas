@@ -370,8 +370,8 @@ function loadingPDMS(rvmUrl, attUrl) {
 	cleanPDMS();
 	cancelAnimationFrame(animateReq);
 
-	rvmUrl = rvmUrl || "./PDMS/项目3out.js";
-	attUrl = attUrl || "./PDMS/项目3.ATT";
+	rvmUrl = rvmUrl || "./PDMS/项目1out.js";
+	attUrl = attUrl || "./PDMS/项目1.ATT";
 	// rvmUrl = rvmUrl || "./PDMS/sampleout.js";
 	// attUrl = attUrl || "./PDMS/sample.ATT";
 	let loadingBox = new LoadingBox('加载');

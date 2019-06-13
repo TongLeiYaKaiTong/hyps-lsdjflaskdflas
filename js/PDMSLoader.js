@@ -159,7 +159,7 @@ function PDMSLoader() {
         bottom_x_shear = bottom_x_shear || 0;
         bottom_y_shear = bottom_y_shear || 0;
 
-        THREE.CylinderGeometry.call(this, radius, radius, height, 32);
+        THREE.CylinderGeometry.call(this, radius, radius, height, 16);
 
         this.type = 'SlopedCylinderGeometry';
 
@@ -951,7 +951,7 @@ function PDMSLoader() {
 				let mesh = new THREE.Mesh(mgeo, mlt);
 
 				PDMSGroup.add(mesh);
-				
+				// renderer.render()
 			},500
 		)
     };
