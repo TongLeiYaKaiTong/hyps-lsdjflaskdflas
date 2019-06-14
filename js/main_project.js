@@ -102,22 +102,22 @@ $("#controller-tool-bar > .view-switch-btn > .view-btn").on('click', function ()
 
 	if ($(this).attr('data-key') == "first") {//第一人称
 
-		camera.recordP = camera.position.clone();
-		camera.recordT = controls.target.clone();
-		controls.reset();
-		if (controls.target.y == 0) {
-			controls.target.copy(controls.object.position);
-			controls.target.z--;
-			controls.update();
-		}
+		// camera.recordP = camera.position.clone();
+		// camera.recordT = controls.target.clone();
+		// controls.reset();
+		// if (controls.target.y == 0) {
+		// 	controls.target.copy(controls.object.position);
+		// 	controls.target.z--;
+		// 	controls.update();
+		// }
 		document.addEventListener('keydown', onKeyDown, false);
 		document.addEventListener('keyup', onKeyUp, false);
 	} else {//第三人称
 
-		controls.saveState();
-		camera.position.copy(camera.recordP);
-		controls.target.copy(camera.recordT);
-		controls.update();
+		// controls.saveState();
+		// camera.position.copy(camera.recordP);
+		// controls.target.copy(camera.recordT);
+		// controls.update();
 
 		document.removeEventListener('keydown', onKeyDown, false);
 		document.removeEventListener('keyup', onKeyUp, false);
@@ -447,7 +447,6 @@ function loadingPDMS(rvmUrl, attUrl) {
 		}
 	);
 };
-
 
 var model;//模型本身
 
