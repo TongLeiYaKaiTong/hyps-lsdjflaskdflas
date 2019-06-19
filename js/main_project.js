@@ -398,8 +398,8 @@ function loadingPDMS(rvmUrl, attUrl) {
 	let attAppended = false;
 	let rveShow = false;
 
-	// rvmUrl = rvmUrl || "./PDMS/sampleout.js";
-	// attUrl = attUrl || "./PDMS/sample.ATT";
+	rvmUrl = rvmUrl || "./PDMS/sampleout.js";
+	attUrl = attUrl || "./PDMS/sample.ATT";
 	let loadi
 	let loadingBox = new LoadingBox([{text: "模型传输中", hasProgress: true}]);
 	loadingBox.hideProgress(0);
@@ -646,7 +646,7 @@ function init(name, list) {
 	animate();
 	
 	//是否调用本地模型
-	// loadingPDMS();
+	loadingPDMS();
 	var data;
 
 	function onWindowResize() {

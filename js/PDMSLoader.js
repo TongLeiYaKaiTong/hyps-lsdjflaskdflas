@@ -240,7 +240,7 @@ function PDMSLoader() {
             if (num > 4) {
 				//对前四个点坐标进行判断
 				if(arr[i+1]==arr[i+7]&&arr[i+7]==arr[i+13]){
-					console.log('与x轴垂直的面')
+					// console.log('与x轴垂直的面')
 					var contour  = [];
 					for(let j = i + 1; j < i + 6 * num + 1; j += 6){
 						contour.push(new THREE.Vector2(arr[j+1],arr[j+2]))
@@ -255,7 +255,7 @@ function PDMSLoader() {
 						}
 					}
 				}else if(arr[i+2]==arr[i+8]&&arr[i+8]==arr[i+14]){
-					console.log('与y轴垂直的面')
+					// console.log('与y轴垂直的面')
 					var contour  = [];
 					for(let j = i + 1; j < i + 6 * num + 1; j += 6){
 						contour.push(new THREE.Vector2(arr[j],arr[j+2]))
@@ -270,13 +270,13 @@ function PDMSLoader() {
 						}
 					}
 				}else if(arr[i+3]==arr[i+9]&&arr[i+9]==arr[i+15]){
-					console.log('与z轴垂直的面')
+					// console.log('与z轴垂直的面')
 					var contour  = [];
 					for(let j = i + 1; j < i + 6 * num + 1; j += 6){
 						contour.push(new THREE.Vector2(arr[j],arr[j+1]))
 					}
 					var order_subGroup = THREE.ShapeUtils.triangulateShape(contour,[])
-					console.log(order_subGroup)
+					// console.log(order_subGroup)
 					for(let j = 0; j < order_subGroup.length; j ++){
 						for(let k=0;k<3;k++){
 							vertices_array.push(arr[i+6*order_subGroup[j][k]+1]);
@@ -285,7 +285,7 @@ function PDMSLoader() {
 						}
 					}
 				}else{
-					console.log('未知')//计算中心点(无法解决凹多边形)
+					// console.log('未知')//计算中心点(无法解决凹多边形)
 					
 					let x_sum = 0, y_sum = 0, z_sum = 0;
 					for (let j = i + 1; j < i + 6 * num + 1; j += 6) {
@@ -588,12 +588,13 @@ function PDMSLoader() {
      * @param {*} attUrl 【可选】路径  example : "js/rvm_att/project.ATT" 
      */
     scope.load = function (rvmUrl, attUrl, onLoad, onProgress, onError) {
-        if (!rvmUrl || rvmUrl == "") {
+        
+        onError = onError || function (errorInfo) { console.error(errorInfo) };
+		
+		if (!rvmUrl || rvmUrl == "") {
             onError('没有检测到rvmUrl路径');
             return;
         };
-
-        onError = onError || function (errorInfo) { console.error(errorInfo) };
 
         // ATT信息异步加载
         analysisATT(attUrl, onProgress, successCallback);
@@ -834,13 +835,15 @@ function PDMSLoader() {
         for (let j = 0; j < PRIMSNum; j++) {
 
             setPDMSMember(element.PRIMS[j], color, element.ID);
-
-        };
-
-        if (geoCount - lastCount > 0) {
             geoIdArray.push(element.ID); //几何id数组
             geoCountArray.push(geoCount);//几何点索引数组
+
         };
+
+        // if (geoCount - lastCount > 0) {
+            // geoIdArray.push(element.ID); //几何id数组
+            // geoCountArray.push(geoCount);//几何点索引数组
+        // };
 
         // };
     };
@@ -943,6 +946,7 @@ function PDMSLoader() {
             };
 
             geo.addAttribute('pickingColor', pick_colorAtt);
+			//============================================
 			
 			geoCount = geoCount + count;
 
