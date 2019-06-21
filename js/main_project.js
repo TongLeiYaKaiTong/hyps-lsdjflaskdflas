@@ -646,7 +646,7 @@ function init(name, list) {
 	animate();
 	
 	//是否调用本地模型
-	loadingPDMS();
+	//loadingPDMS();
 	var data;
 
 	function onWindowResize() {
