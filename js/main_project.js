@@ -398,8 +398,8 @@ function loadingPDMS(rvmUrl, attUrl) {
 	let attAppended = false;
 	let rveShow = false;
 
-	rvmUrl = rvmUrl || "./PDMS/sampleout.js";
-	attUrl = attUrl || "./PDMS/sample.ATT";
+	rvmUrl = rvmUrl || "./PDMS/项目3out.js";
+	attUrl = attUrl || "./PDMS/项目3.ATT";
 	let loadi
 	let loadingBox = new LoadingBox([{text: "模型传输中", hasProgress: true}]);
 	loadingBox.hideProgress(0);

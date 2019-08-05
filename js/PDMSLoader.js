@@ -246,7 +246,7 @@ function PDMSLoader() {
 						contour.push(new THREE.Vector2(arr[j+1],arr[j+2]))
 					}
 					var order_subGroup = THREE.ShapeUtils.triangulateShape(contour,[])
-					console.log(order_subGroup)
+					// console.log(order_subGroup)
 					for(let j = 0; j < order_subGroup.length; j ++){
 						for(let k=0;k<3;k++){
 							vertices_array.push(arr[i+6*order_subGroup[j][k]+1]);
@@ -261,7 +261,7 @@ function PDMSLoader() {
 						contour.push(new THREE.Vector2(arr[j],arr[j+2]))
 					}
 					var order_subGroup = THREE.ShapeUtils.triangulateShape(contour,[])
-					console.log(order_subGroup)
+					// console.log(order_subGroup)
 					for(let j = 0; j < order_subGroup.length; j ++){
 						for(let k=0;k<3;k++){
 							vertices_array.push(arr[i+6*order_subGroup[j][k]+1]);
@@ -935,14 +935,15 @@ function PDMSLoader() {
             //=================pick color=========================
 			let countx3 = count * 3;
             let pick_colorAtt = new THREE.BufferAttribute(
-                new Float32Array(countx3), 3
+                new Uint8Array(countx3), 3
             );
 
-            var col = new THREE.Color;
-            col.setHex(geoCountArray.length)
+			var p_r = geoCountArray.length >> 16 & 255  ;
+			var p_g = geoCountArray.length >> 8 & 255 ;
+			var p_b = geoCountArray.length & 255 ;
             // console.log(geoCountArray.length)
             for (let i = 0; i < count; i++) {
-                pick_colorAtt.setXYZ(i, col.r, col.g, col.b);
+                pick_colorAtt.setXYZ(i, p_r, p_g, p_b);
             };
 
             geo.addAttribute('pickingColor', pick_colorAtt);
