@@ -23,8 +23,19 @@ function CuttingPlaneTool(target_group,cutting_tool_group){
 	
 	console.log(box3,helper,box);
 	
+	this.only_show_plane = function(index){
+		console.log('只显示面',index);
+		for(let o of plane_group.children){
+			o.visible = false;
+		}
+		plane_group.children[index].visible = true;
+	}
 	
 	this.add_horizontal_plane = function(){
+		for(let o of plane_group.children){
+			o.visible = false;
+		}
+		
 		var raycaster = new THREE.Raycaster();
 		var mouse = new THREE.Vector2();
 		document.getElementById('container').addEventListener( 'click', click, false );
@@ -45,13 +56,17 @@ function CuttingPlaneTool(target_group,cutting_tool_group){
 				plane.rotateX(1.5708)
 				plane.position.copy(box.position);
 				plane.position.y = intersects[0].point.y;
-				cutting_tool_group.add(plane);
+				plane_group.add(plane);
 				document.getElementById('container').removeEventListener( 'click', click, false );
 			}
 		}
 	}
 	
 	this.add_vertical_plane = function(){
+		for(let o of plane_group.children){
+			o.visible = false;
+		}
+		
 		var raycaster = new THREE.Raycaster();
 		var mouse = new THREE.Vector2();
 		document.getElementById('container').addEventListener( 'click', click, false );
@@ -114,7 +129,7 @@ function CuttingPlaneTool(target_group,cutting_tool_group){
 					planeG.vertices[3].set(result_controlP[1].x,box.min.y,result_controlP[1].y );
 					var mesh = new THREE.Mesh(planeG,new THREE.MeshBasicMaterial({color:0x0000ff,side:2}));
 					mesh.name = '切割面';
-					cutting_tool_group.add(mesh)
+					plane_group.add(mesh)
 					
 					// draw_lineP_set = [];
 					
@@ -122,6 +137,11 @@ function CuttingPlaneTool(target_group,cutting_tool_group){
 				}
 			}
 		}
+	}
+	
+	this.show_clip_result = function(){
+		
+		
 	}
 	
 	

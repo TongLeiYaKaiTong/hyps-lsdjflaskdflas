@@ -159,7 +159,7 @@ $('#add_horizontal_plane').click(function () {
 	alert('请点击包围盒侧面任意一点确定水平剖切面高度');
 	cuttingplaneTool.add_horizontal_plane();
 	let html = $('#clip_plane_list').html();
-	$('#clip_plane_list').html(html+'<li>剖切面'+$('#clip_plane_list').children().length+' <span>删除</span></li>');
+	$('#clip_plane_list').html(html+'<li>剖切面'+$('#clip_plane_list').children().length+' <span>    结果图</span><span>    删除</span></li>');
 });
 
 $('#add_vertical_plane').click(function () {
@@ -167,15 +167,25 @@ $('#add_vertical_plane').click(function () {
 	alert('请点击包围盒顶面任意两点确定竖直剖切面角度');
 	cuttingplaneTool.add_vertical_plane();
 	let html = $('#clip_plane_list').html();
-	$('#clip_plane_list').html(html+'<li>剖切面'+$('#clip_plane_list').children().length+' <span>删除</span></li>');
+	$('#clip_plane_list').html(html+'<li>剖切面'+$('#clip_plane_list').children().length+' <span>    结果图</span><span>    删除</span></li>');
 });
 
 $('#clip_plane_list').on('click','li',function(){
 		console.log('你点击了li',$(this).text());
 		$('#clip_plane_list>li').css('background','')
 		$(this).css('background','rgb(78,244,240)')
+		cuttingplaneTool.only_show_plane(  $(this).index() );
 	}
 )
+$('#clip_plane_list').on('click','li>span',function(){
+		console.log( $(this).parent().index() );
+		$('#section_result').show();
+		cuttingplaneTool.show_clip_result( $(this).parent().index() );
+	}
+)
+$('#section_result').click(function(){
+	$(this).hide();
+})
 // 下载按钮绑定
 $('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
 	if (!window.PDMSObject) return;

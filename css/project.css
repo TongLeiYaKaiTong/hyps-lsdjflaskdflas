@@ -666,6 +666,16 @@ a:focus {
 #clip_plane_list li{
     margin-top: 10px;
 }
+
+#section_result{
+    position: fixed;
+    width: 80%;
+    height: 80%;
+    background: white;
+    z-index: 999;
+    right: 1%;
+    top: 15%;
+}
 #right-info-panel .info-panel li {
   display: flex;
   font-size: 14px;
