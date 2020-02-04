@@ -398,9 +398,11 @@ function loadingPDMS(rvmUrl, attUrl) {
 	let attAppended = false;
 	let rveShow = false;
 
+	rvmUrl = rvmUrl || "./PDMS/项目3out.js";
+	attUrl = attUrl || "./PDMS/项目3.ATT";
+	let loadi
 	let loadingBox = new LoadingBox([{text: "模型传输中", hasProgress: true}]);
 	loadingBox.hideProgress(0);
-
 	new PDMSLoader().load(
 		rvmUrl, //rvm路径
 		attUrl, //ATT路径
@@ -672,23 +674,26 @@ function init(name, list) {
 			let color_att = group.children[j].geometry.attributes.color
 			let array = color_att.array
 			let lastcolor_info = color_att.last_info;
-			if (!lastcolor_info) {
+			if (!lastcolor_info) { //这个child不需要变
 				continue
 			}
-			console.log('上次变红了，还原上次颜色，group.change_index是', group.change_index)
+			
+			// console.log('这个attr需要恢复',j,lastcolor_info)
+			for(var stru_i=0;stru_i<lastcolor_info.length;stru_i++){
+				var start = lastcolor_info[stru_i].start;
+				var end = lastcolor_info[stru_i].end;
+				var color = {r:lastcolor_info[stru_i].r,g:lastcolor_info[stru_i].g,b:lastcolor_info[stru_i].b}
+				for (let i = 3 * start; i < 3 * end + 1; i += 3) {
+					array[i] = color.r;
+					array[i + 1] = color.g;
+					array[i + 2] = color.b;
 
-			console.log('start,end', lastcolor_info.start, lastcolor_info.end)
-			for (let i = 3 * lastcolor_info.start; i < 3 * lastcolor_info.end + 1; i += 3) {
-				array[i] = lastcolor_info.r;
-				array[i + 1] = lastcolor_info.g;
-				array[i + 2] = lastcolor_info.b;
-
-				color_att.dynamic = true;
-				color_att.updateRange.offset = 3 * lastcolor_info.start;
-				color_att.updateRange.count = 3 * (lastcolor_info.end - lastcolor_info.start);
-				color_att.needsUpdate = true;
+					// color_att.updateRange.offset = 3 * lastcolor_info.start;
+					// color_att.updateRange.count = 3 * (lastcolor_info.end - lastcolor_info.start);
+				}
 			}
-			color_att.last_info = null;//清除指针
+			color_att.needsUpdate = true;
+			color_att.last_info = null;
 		}
 
 		//左侧目录树关联的变回去
@@ -737,13 +742,13 @@ function init(name, list) {
 
 		console.warn('你点击的构件总index是', index)
 		console.log('点击构件的ID是', geoIdArray[index])
-		let start
+		var start
 		if (index == 0)
 			start = 0;
 		else
 			start = geoCountArray[index - 1]
 
-		let end = geoCountArray[index]
+		var end = geoCountArray[index]
 		//在整个模型里的范围
 		console.log('全局start,end', start, end)
 
@@ -766,7 +771,7 @@ function init(name, list) {
 			num_current_vs = num_before_vs + group.children[out_i].geometry.attributes.position.count
 
 			if (num_current_vs < start) {//如果顶点范围根本不在这里，直接跳过
-				console.log('continue')
+				// console.log('continue')
 				continue
 			} else if (num_before_vs > end) {//后面都不需要再变了
 				console.log('break')
@@ -781,26 +786,20 @@ function init(name, list) {
 			}
 			console.log('本地start，end范围是', start, end)
 			//如果在，计算新的start和end，变红并且记录
-
 			//记录这次颜色
 			let r = array[3 * start];
 			let g = array[3 * start + 1];
 			let b = array[3 * start + 2];
 
-			lastcolor_info = { start: start, end: end, r: r, g: g, b: b }
+			lastcolor_info = [{start: start, end: end, r: r, g: g, b: b }]
 			color_att.last_info = lastcolor_info
 
 			//这次的变红
-			for (let i = 3 * start; i < 3 * end + 1; i += 3) {
+			for (let i = 3 * start; i < 3 * end; i += 3) {
 				array[i] = 1;
 				array[i + 1] = 0;
 				array[i + 2] = 0;
 			}
-
-			//needupdate
-			color_att.dynamic = true;
-			color_att.updateRange.offset = 3 * start
-			color_att.updateRange.count = 3 * (end - start);
 			color_att.needsUpdate = true;
 		}
 
@@ -812,8 +811,11 @@ function init(name, list) {
 	$('#loading').hide();
 }
 
-function change_and_recover_color_attr(start, end) {
+function change_and_recover_color_attr(start_indices, end_indices) {
 	var group = scene.children[3];
+	
+	//恢复颜色
+	//不同的child就是不同的
 	for (var j = 0; j < group.children.length; j++) {
 		let color_att = group.children[j].geometry.attributes.color
 		let array = color_att.array
@@ -821,71 +823,88 @@ function change_and_recover_color_attr(start, end) {
 		if (!lastcolor_info) { //这个child不需要变
 			continue
 		}
-		console.log('上次变红了，还原上次颜色', lastcolor_info)
-		console.log('start,end', lastcolor_info.start, lastcolor_info.end)
-		for (let i = 3 * lastcolor_info.start; i < 3 * lastcolor_info.end + 1; i += 3) {
-			array[i] = lastcolor_info.r;
-			array[i + 1] = lastcolor_info.g;
-			array[i + 2] = lastcolor_info.b;
+		
+		// console.log('这个attr需要恢复',j,lastcolor_info)
+		for(var stru_i=0;stru_i<lastcolor_info.length;stru_i++){
+			var start = lastcolor_info[stru_i].start;
+			var end = lastcolor_info[stru_i].end;
+			var color = {r:lastcolor_info[stru_i].r,g:lastcolor_info[stru_i].g,b:lastcolor_info[stru_i].b}
+			for (let i = 3 * start; i < 3 * end; i += 3) {
+				array[i] = color.r;
+				array[i + 1] = color.g;
+				array[i + 2] = color.b;
 
-			// color_att.dynamic = true;
-			// color_att.updateRange.offset = 3 * lastcolor_info.start;
-			// color_att.updateRange.count = 3 * (lastcolor_info.end - lastcolor_info.start);
-			color_att.needsUpdate = true;
+				// color_att.dynamic = true;
+				// color_att.updateRange.offset = 3 * lastcolor_info.start;
+				// color_att.updateRange.count = 3 * (lastcolor_info.end - lastcolor_info.start);
+			}
 		}
+		color_att.needsUpdate = true;
 		color_att.last_info = null;//清除指针
 	}
+	
+	//变红
 	//从geoCountArray算出此次顶点的start和end,变红高亮
-	for (var out_i = 0; out_i < group.children.length; out_i++) {
-		console.log('进入循环')
-		color_att = group.children[out_i].geometry.attributes.color
-		array = color_att.array;
+	for(var stru_i=0;stru_i<start_indices.length;stru_i++){
+		var start = start_indices[stru_i];
+		var end = end_indices[stru_i];
+		for (var out_i = 0; out_i < group.children.length; out_i++) {
+			// console.log('进入循环')
+			var num_before_vs = 0;
+			var num_current_vs = 0;
+			//计算前面所有的顶点总和
+			for (var i = 0; i < out_i; i++) {
+				num_before_vs += group.children[i].geometry.attributes.position.count;
+			}
+			num_current_vs = num_before_vs + group.children[out_i].geometry.attributes.position.count
 
-		var num_before_vs = 0;
-		var num_current_vs = 0;
-		//计算前面所有的顶点总和
-		for (var i = 0; i < out_i; i++) {
-			num_before_vs += group.children[i].geometry.attributes.position.count;
+			if (num_current_vs < start) {//如果顶点范围根本不在这里，直接跳过
+				// console.log('continue')
+				continue
+			} else if (num_before_vs > end) {//后面都不需要再变了
+				// console.log('break')
+				break
+			}
+			
+			//找到了
+			// console.log('他在', out_i, '个child里')
+			var color_att = group.children[out_i].geometry.attributes.color
+			array = color_att.array;
+
+
+			start = start - num_before_vs
+			end = end - num_before_vs
+			if (end > color_att.count) {
+				end = color_att.count
+			}
+			// console.log('本地start，end范围是', start, end)
+			//如果在，计算新的start和end，变红并且记录
+			start+=1;
+			//记录这次颜色
+			let r = array[3 * start];
+			let g = array[3 * start + 1];
+			let b = array[3 * start + 2];
+			if(!color_att.last_info){
+				lastcolor_info = [];
+				color_att.last_info = lastcolor_info
+			}
+			// console.log(r,g,b)
+			lastcolor_info.push({ start: start, end: end, r: r, g: g, b: b })
+			
+			// console.log('lastcolor_info',lastcolor_info,)
+			//这次的变红
+			for (let i = 3 * start; i < 3 * end + 1; i += 3) {
+				array[i] = 1;
+				array[i + 1] = 0;
+				array[i + 2] = 0;
+			}
+
+			//needupdate
+			// color_att.dynamic = true;
+			// color_att.updateRange.offset = 3*start
+			// color_att.updateRange.count = 3*(end-start);
+			color_att.needsUpdate = true;
 		}
-		num_current_vs = num_before_vs + group.children[out_i].geometry.attributes.position.count
-
-		if (num_current_vs < start) {//如果顶点范围根本不在这里，直接跳过
-			console.log('continue')
-			continue
-		} else if (num_before_vs > end) {//后面都不需要再变了
-			console.log('break')
-			break
-		}
-		console.log('他在', out_i, '个child里')
-
-		start = start - num_before_vs
-		end = end - num_before_vs
-		if (end > color_att.count) {
-			end = color_att.count
-		}
-		console.log('本地start，end范围是', start, end)
-		//如果在，计算新的start和end，变红并且记录
-
-		//记录这次颜色
-		let r = array[3 * start];
-		let g = array[3 * start + 1];
-		let b = array[3 * start + 2];
-
-		lastcolor_info = { start: start, end: end, r: r, g: g, b: b }
-		color_att.last_info = lastcolor_info
-
-		//这次的变红
-		for (let i = 3 * start; i < 3 * end + 1; i += 3) {
-			array[i] = 1;
-			array[i + 1] = 0;
-			array[i + 2] = 0;
-		}
-
-		//needupdate
-		// color_att.dynamic = true;
-		// color_att.updateRange.offset = 3*start
-		// color_att.updateRange.count = 3*(end-start);
-		color_att.needsUpdate = true;
 	}
 }
 
@@ -997,13 +1016,21 @@ function mulushu(list) {
 		setInfoPanel(treeNode.id, []);
 
 		let children_id_array = getAllRelationIds(rvmOriginal[treeNode.id])
-		console.log(children_id_array);
+		// console.log(children_id_array);
 
-		let start_index = geoIdArray.indexOf(children_id_array[0]),
-			end_index = geoIdArray.indexOf(children_id_array[children_id_array.length - 1]);
-		console.log('点击目录树获取的id范围是', start_index, end_index)
-		console.log(geoCountArray[start_index - 1], geoCountArray[end_index])
-		change_and_recover_color_attr(geoCountArray[start_index - 1], geoCountArray[end_index])
+		let start_indices = [],end_indices = [];
+		for(var i=0;i<children_id_array.length;i++){
+			var index = geoIdArray.indexOf(children_id_array[i]);
+			var start_count = geoCountArray[index-1];
+			if(index == 0)
+				start_count = 0
+			var end_count = geoCountArray[index];
+			
+			start_indices.push(start_count)
+			end_indices.push(end_count)
+		}
+
+		change_and_recover_color_attr(start_indices,end_indices)
 		// for (let i = 0; i < last_emissive_array.length; i++) {
 		// 	last_emissive_array[i].material.emissive.r = 0;
 		// }
