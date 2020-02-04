@@ -47,6 +47,9 @@
 	<!-- Exporter -->
 	<script type="text/javascript" src="./js/exporters/GLTFExporter.js" defer></script>
 
+	<!-- cutting_plane -->
+	<script type="text/javascript" src="./js/cutting_plane.js" defer></script>
+
 	<!-- main -->
 	<script type="text/javascript" src="./js/main_project.js" defer></script>
 
@@ -92,10 +95,6 @@
 					<li><a class="open" data-key="first" href="#">第一人称</a></li>
 				</ul>
 			</div>
-			<div class="water">
-				<span class="label-w">海水</span>
-				<span class="icon"></span>
-			</div>
 			<div class="btn operate">运维记录</div>
 			<div class="btn help">帮助</div> -->
 		</div>
@@ -127,7 +126,26 @@
 			<span class="label-w">海水</span>
 			<span class="icon"></span>
 		</div>
+		
+		<div class="box section">
+			<span class="label-w">剖切</span>
+		</div>
 
+	</div>
+
+	<!-- 右边的剖切信息面板 -->
+	<div id="right-section-panel" style="display: none">
+		<div class="close-btn"></div>
+		<div class="title">剖切面板</div>
+		<ul class="info-panel">
+			<div class = 'section_button' id='add_horizontal_plane'>新增水平</div>
+			<div class = 'section_button' id='add_vertical_plane'>新增竖直</div>
+			<div id = 'clip_plane_list'> 
+				<li>
+					测试条目 <span>删除</span>
+				</li>
+			</div>
+		</ul>
 	</div>
 
 	<!-- 右边的信息面板 -->

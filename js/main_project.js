@@ -50,8 +50,12 @@ $('.mask-img>.top>.close, .mask-img>.top>.back').on('click', function () {
 	$(this).parents('.mask-img').hide();
 })
 // 右边信息面板关闭按钮绑定
-$('#right-info-panel>.close-btn').on('click', function () {
-	$(this).parents('#right-info-panel').hide();
+$('.close-btn').on('click', function () {
+	$(this).parent().hide();
+});
+
+$('#right-section-panel > div.close-btn').on('click', function () {
+	
 });
 
 // 视角切换菜单事件绑定
@@ -138,6 +142,40 @@ $('#controller-tool-bar>.water>.icon').click(function () {
 	}
 });
 
+// 剖切功能开关按钮
+$('#controller-tool-bar > div.box.section').click(function () {
+	console.log('点击了剖切');
+	if(!cuttingplaneTool.group.visible){
+		cuttingplaneTool.group.visible = true;
+		$('#right-section-panel').show()
+	}else{
+		cuttingplaneTool.group.visible = false;
+	}
+});
+
+//新增剖面
+$('#add_horizontal_plane').click(function () {
+	console.log('点击了新增剖切');
+	alert('请点击包围盒侧面任意一点确定水平剖切面高度');
+	cuttingplaneTool.add_horizontal_plane();
+	let html = $('#clip_plane_list').html();
+	$('#clip_plane_list').html(html+'<li>剖切面'+$('#clip_plane_list').children().length+' <span>删除</span></li>');
+});
+
+$('#add_vertical_plane').click(function () {
+	console.log('点击了新增剖切');
+	alert('请点击包围盒顶面任意两点确定竖直剖切面角度');
+	cuttingplaneTool.add_vertical_plane();
+	let html = $('#clip_plane_list').html();
+	$('#clip_plane_list').html(html+'<li>剖切面'+$('#clip_plane_list').children().length+' <span>删除</span></li>');
+});
+
+$('#clip_plane_list').on('click','li',function(){
+		console.log('你点击了li',$(this).text());
+		$('#clip_plane_list>li').css('background','')
+		$(this).css('background','rgb(78,244,240)')
+	}
+)
 // 下载按钮绑定
 $('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
 	if (!window.PDMSObject) return;
@@ -399,7 +437,7 @@ function loadingPDMS(rvmUrl, attUrl) {
 	let rveShow = false;
 
 	rvmUrl = rvmUrl || "./PDMS/项目3out.js";
-	attUrl = attUrl || "./PDMS/项目3.ATT";
+	// attUrl = attUrl || "./PDMS/项目3.ATT";
 	let loadi
 	let loadingBox = new LoadingBox([{text: "模型传输中", hasProgress: true}]);
 	loadingBox.hideProgress(0);
@@ -427,6 +465,13 @@ function loadingPDMS(rvmUrl, attUrl) {
 
 			animate();
 			loadingBox.remove();
+			
+			//剖切工具
+			var group = new THREE.Group();
+			group.name = '剖切工具组';
+			group.visible = false;
+			scene.add(group);
+			cuttingplaneTool = new CuttingPlaneTool(data.PDMSObject,group)
 		},
 		function (res) {
 			if (res.text == "ATT文件数据传输") {
@@ -492,8 +537,8 @@ let rvmOriginal;
 let water;
 var cubeCamera;
 let seaActioin = false;
-let renderer;
-let camera;
+let renderer,scene,camera;
+let cuttingplaneTool
 let out_camera;
 let out_controls;
 let view_controller; //视角球控制
@@ -732,7 +777,7 @@ function init(name, list) {
 			(pixelBuffer[1] << 8) |
 			(pixelBuffer[2]);
 
-		// console.log('你点击的构件index是',index)
+		console.log('你点击的构件index是',index)
 
 
 		if (index > 15000000) {

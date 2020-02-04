@@ -603,7 +603,19 @@ a:focus {
 #controller-tool-bar .water.on > .icon {
   background-image: url(../img/icon/btn_on.png);
 }
-#right-info-panel {
+#controller-tool-bar .section {
+  margin-left: 32px;
+  width: 53px;
+  height: 32px;
+  background-color: #ffffff;
+  border-radius: 3px;
+  display: flex;
+}
+
+#controller-tool-bar .section .label-w {
+  margin-left: 15px;
+}
+#right-info-panel,#right-section-panel {
   position: absolute;
   right: 10px;
   top: 90px;
@@ -613,7 +625,7 @@ a:focus {
   box-shadow: 0px 0px 13px 0px rgba(0, 31, 52, 0.1);
   border-radius: 5px;
 }
-#right-info-panel .close-btn {
+#right-info-panel .close-btn,#right-section-panel .close-btn {
   position: absolute;
   top: 14px;
   right: 10px;
@@ -622,17 +634,37 @@ a:focus {
   background: url(../img/openFile/btn_cancle.png);
   cursor: pointer;
 }
-#right-info-panel .title {
+#right-info-panel .title,#right-section-panel .title {
   width: 100%;
   height: 40px;
   line-height: 40px;
   font-size: 16px;
   text-align: center;
 }
-#right-info-panel .info-panel {
+#right-info-panel .info-panel,#right-section-panel .info-panel {
   margin-left: 11px;
   overflow: auto;
   height: calc(100% - 50px);
+}
+
+.section_button{
+    width: 70px;
+    height: 30px;
+    border: 1px solid;
+    border-radius: 5px;
+    text-align: center;
+    line-height: 30px;
+    font-size: 15px;
+    background:  #bdefff;
+	display: inline-block;
+}
+#clip_plane_list{
+    margin-top: 10px;
+    height: 10px;
+    border-top: 1px solid;
+}
+#clip_plane_list li{
+    margin-top: 10px;
 }
 #right-info-panel .info-panel li {
   display: flex;
