@@ -2,7 +2,10 @@ THREE.pickShader = {
 	uniforms: {},
 	vertexShader: [
 		'precision highp float;',
-		'attribute vec3 pickingColor;',//可以被压缩
+		'//uniform mat4 modelViewMatrix;',
+		'//uniform mat4 projectionMatrix;',
+		'//attribute vec3 position;',
+		'attribute vec3 pickingColor;',
 		'varying vec3 vColor;',
 
 
@@ -18,7 +21,7 @@ THREE.pickShader = {
 		'varying vec3 vColor;',
 
 		"void main() {",
-		"gl_FragColor = vec4( float(vColor.x)/255.0,float(vColor.y)/255.0, float(vColor.z)/255.0,1.0 );",
+		"gl_FragColor = vec4( vColor, 1.0 );",
 		"}"
 
 	].join("\n")

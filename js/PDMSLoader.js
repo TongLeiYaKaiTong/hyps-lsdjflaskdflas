@@ -1,4 +1,4 @@
-// var test = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+var test = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 function PDMSLoader() {
 
     let scope = this;
@@ -238,96 +238,44 @@ function PDMSLoader() {
             // if(true){
             //计算中心点
             if (num > 4) {
-				//对前四个点坐标进行判断
-				if(arr[i+1]==arr[i+7]&&arr[i+7]==arr[i+13]){
-					// console.log('与x轴垂直的面')
-					var contour  = [];
-					for(let j = i + 1; j < i + 6 * num + 1; j += 6){
-						contour.push(new THREE.Vector2(arr[j+1],arr[j+2]))
-					}
-					var order_subGroup = THREE.ShapeUtils.triangulateShape(contour,[])
-					// console.log(order_subGroup)
-					for(let j = 0; j < order_subGroup.length; j ++){
-						for(let k=0;k<3;k++){
-							vertices_array.push(arr[i+6*order_subGroup[j][k]+1]);
-							vertices_array.push(arr[i+6*order_subGroup[j][k]+3]);
-							vertices_array.push(-arr[i+6*order_subGroup[j][k]+2])
-						}
-					}
-				}else if(arr[i+2]==arr[i+8]&&arr[i+8]==arr[i+14]){
-					// console.log('与y轴垂直的面')
-					var contour  = [];
-					for(let j = i + 1; j < i + 6 * num + 1; j += 6){
-						contour.push(new THREE.Vector2(arr[j],arr[j+2]))
-					}
-					var order_subGroup = THREE.ShapeUtils.triangulateShape(contour,[])
-					// console.log(order_subGroup)
-					for(let j = 0; j < order_subGroup.length; j ++){
-						for(let k=0;k<3;k++){
-							vertices_array.push(arr[i+6*order_subGroup[j][k]+1]);
-							vertices_array.push(arr[i+6*order_subGroup[j][k]+3]);
-							vertices_array.push(-arr[i+6*order_subGroup[j][k]+2])
-						}
-					}
-				}else if(arr[i+3]==arr[i+9]&&arr[i+9]==arr[i+15]){
-					// console.log('与z轴垂直的面')
-					var contour  = [];
-					for(let j = i + 1; j < i + 6 * num + 1; j += 6){
-						contour.push(new THREE.Vector2(arr[j],arr[j+1]))
-					}
-					var order_subGroup = THREE.ShapeUtils.triangulateShape(contour,[])
-					// console.log(order_subGroup)
-					for(let j = 0; j < order_subGroup.length; j ++){
-						for(let k=0;k<3;k++){
-							vertices_array.push(arr[i+6*order_subGroup[j][k]+1]);
-							vertices_array.push(arr[i+6*order_subGroup[j][k]+3]);
-							vertices_array.push(-arr[i+6*order_subGroup[j][k]+2])
-						}
-					}
-				}else{
-					// console.log('未知')//计算中心点(无法解决凹多边形)
-					
-					let x_sum = 0, y_sum = 0, z_sum = 0;
-					for (let j = i + 1; j < i + 6 * num + 1; j += 6) {
-						x_sum += arr[j];
-						y_sum += arr[j + 2];
-						z_sum += arr[j + 1];
-					};
-					x_sum /= num;
-					y_sum /= num;
-					z_sum /= num;
+                let x_sum = 0, y_sum = 0, z_sum = 0;
+                for (let j = i + 1; j < i + 6 * num + 1; j += 6) {
+                    x_sum += arr[j];
+                    y_sum += arr[j + 2];
+                    z_sum += arr[j + 1];
+                };
+                x_sum /= num;
+                y_sum /= num;
+                z_sum /= num;
 
-					// console.log('大面中点坐标',x_sum,y_sum,z_sum)
-					for (let j = i + 1; j < i + 6 * (num - 1) + 1; j += 6) { //一循环一个三角片
-						vertices_array.push(arr[j]);
-						vertices_array.push(arr[j + 2]);
-						vertices_array.push(-arr[j + 1]);
+                // console.log('大面中点坐标',x_sum,y_sum,z_sum)
+                for (let j = i + 1; j < i + 6 * (num - 1) + 1; j += 6) { //一循环一个三角片
+                    vertices_array.push(arr[j]);
+                    vertices_array.push(arr[j + 2]);
+                    vertices_array.push(-arr[j + 1]);
 
-						vertices_array.push(arr[j + 6]);
-						vertices_array.push(arr[j + 8]);
-						vertices_array.push(-arr[j + 7]);
+                    vertices_array.push(arr[j + 6]);
+                    vertices_array.push(arr[j + 8]);
+                    vertices_array.push(-arr[j + 7]);
 
-						//中点
-						vertices_array.push(x_sum);
-						vertices_array.push(y_sum);
-						vertices_array.push(-z_sum);
-					};
-					//最后一个面
-					vertices_array.push(arr[i + 6 * (num - 1) + 1]);
-					vertices_array.push(arr[i + 6 * (num - 1) + 3]);
-					vertices_array.push(-arr[i + 6 * (num - 1) + 2]);
-					// console.log('最后三个数字是',arr[3*(num-1)+1],arr[3*(num-1)+3],arr[3*(num-1)+2])
-					vertices_array.push(arr[i + 1]);
-					vertices_array.push(arr[i + 3]);
-					vertices_array.push(-arr[i + 2]);
+                    //中点
+                    vertices_array.push(x_sum);
+                    vertices_array.push(y_sum);
+                    vertices_array.push(-z_sum);
+                };
+                //最后一个面
+                vertices_array.push(arr[i + 6 * (num - 1) + 1]);
+                vertices_array.push(arr[i + 6 * (num - 1) + 3]);
+                vertices_array.push(-arr[i + 6 * (num - 1) + 2]);
+                // console.log('最后三个数字是',arr[3*(num-1)+1],arr[3*(num-1)+3],arr[3*(num-1)+2])
+                vertices_array.push(arr[i + 1]);
+                vertices_array.push(arr[i + 3]);
+                vertices_array.push(-arr[i + 2]);
 
-					//中点
-					vertices_array.push(x_sum);
-					vertices_array.push(y_sum);
-					vertices_array.push(-z_sum);
-				}
-				
-				
+                //中点
+                vertices_array.push(x_sum);
+                vertices_array.push(y_sum);
+                vertices_array.push(-z_sum);
             } else if (num == 3) {
                 vertices_array.push(arr[i + 1]);
                 vertices_array.push(arr[i + 3]);
@@ -524,12 +472,11 @@ function PDMSLoader() {
         // angle_r * 180 / Math.PI / 20
 
         //顶面
-        let geometry = new THREE.RingGeometry(R_in, R_out, 8, 1, 0, -angle_r);
+        let geometry = new THREE.RingGeometry(R_in, R_out, 8, 1, 0, angle_r);
 
         geometry.rotateX(0.5 * Math.PI);
         geometry.translate(0, -height / 2, 0);
 
-		//底面
         let geometry1 = geometry.clone();
         geometry1.applyMatrix(new THREE.Matrix4().makeScale(1, -1, 1));
 
@@ -542,9 +489,9 @@ function PDMSLoader() {
         geometry.merge(geometry1);
 
         //内圈竖面
-        let geometry2 = new THREE.CylinderGeometry(R_in, R_in, height, segment, 1, true, 0.5 * Math.PI, angle_r);
+        let geometry2 = new THREE.CylinderGeometry(R_in, R_in, height, segment, 1, true, 0.5 * Math.PI, -angle_r);
         //外圈竖面
-        let geometry3 = new THREE.CylinderGeometry(R_out, R_out, height, segment, 1, true, 0.5 * Math.PI, angle_r);
+        let geometry3 = new THREE.CylinderGeometry(R_out, R_out, height, segment, 1, true, 0.5 * Math.PI, -angle_r);
 
         for (let i = 0; i < geometry3.faces.length; i++) {
             let f = geometry3.faces[i];
@@ -588,13 +535,12 @@ function PDMSLoader() {
      * @param {*} attUrl 【可选】路径  example : "js/rvm_att/project.ATT" 
      */
     scope.load = function (rvmUrl, attUrl, onLoad, onProgress, onError) {
-        
-        onError = onError || function (errorInfo) { console.error(errorInfo) };
-		
-		if (!rvmUrl || rvmUrl == "") {
+        if (!rvmUrl || rvmUrl == "") {
             onError('没有检测到rvmUrl路径');
             return;
         };
+
+        onError = onError || function (errorInfo) { console.error(errorInfo) };
 
         // ATT信息异步加载
         analysisATT(attUrl, onProgress, successCallback);
@@ -835,15 +781,13 @@ function PDMSLoader() {
         for (let j = 0; j < PRIMSNum; j++) {
 
             setPDMSMember(element.PRIMS[j], color, element.ID);
-            geoIdArray.push(element.ID); //几何id数组
-            geoCountArray.push(geoCount);//几何点索引数组
 
         };
 
-        // if (geoCount - lastCount > 0) {
-            // geoIdArray.push(element.ID); //几何id数组
-            // geoCountArray.push(geoCount);//几何点索引数组
-        // };
+        if (geoCount - lastCount > 0) {
+            geoIdArray.push(element.ID); //几何id数组
+            geoCountArray.push(geoCount);//几何点索引数组
+        };
 
         // };
     };
@@ -918,6 +862,7 @@ function PDMSLoader() {
             // scene.add(mesh)
             // return
 
+            geometries.push(geo);
 
             //=================color=========================
             let count = geo.attributes.position.count;
@@ -935,23 +880,19 @@ function PDMSLoader() {
             //=================pick color=========================
 			let countx3 = count * 3;
             let pick_colorAtt = new THREE.BufferAttribute(
-                new Uint8Array(countx3), 3
+                new Float32Array(countx3), 3
             );
 
-			var p_r = geoCountArray.length >> 16 & 255  ;
-			var p_g = geoCountArray.length >> 8 & 255 ;
-			var p_b = geoCountArray.length & 255 ;
+            var col = new THREE.Color;
+            col.setHex(geoCountArray.length)
             // console.log(geoCountArray.length)
             for (let i = 0; i < count; i++) {
-                pick_colorAtt.setXYZ(i, p_r, p_g, p_b);
+                pick_colorAtt.setXYZ(i, col.r, col.g, col.b);
             };
 
             geo.addAttribute('pickingColor', pick_colorAtt);
-			//============================================
 			
 			geoCount = geoCount + count;
-
-            geometries.push(geo);
         };
 
     };
@@ -1006,14 +947,15 @@ function PDMSLoader() {
 				let mesh = new THREE.Mesh(mgeo, mlt);
 
 				PDMSGroup.add(mesh);
-			},500
+				// renderer.render()
+			},5
 		)
     };
 
     function getGeometryByGeotype(type, arr) {
         let geo;//几何
 		
-		// test[type]++
+		test[type]++
         // if(type!=7)
 			// return geo
         switch (type) {
