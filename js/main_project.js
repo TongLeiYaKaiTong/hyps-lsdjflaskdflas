@@ -500,9 +500,13 @@ var pixelBuffer = new Uint8Array(4);
 let pickingRenderTarget
 let geoIdArray
 let geoCountArray
+let stats
 function init(name, list) {
 	console.log('进入threejs场景init')
 	var container = document.getElementById("container");
+
+	stats = new Stats();
+	container.appendChild( stats.dom );
 
 	const width = $('#container').width();
 	const height = $('#container').height();
@@ -644,7 +648,7 @@ function init(name, list) {
 	animate();
 	
 	//是否调用本地模型
-	// loadingPDMS();
+	loadingPDMS('PDMS/项目1out.js','');
 	var data;
 
 	function onWindowResize() {
@@ -897,6 +901,8 @@ function animate() {
 		renderer.render(scene, camera);
 		viewMovement();
 	}
+
+	stats.update();
 }
 
 /**
