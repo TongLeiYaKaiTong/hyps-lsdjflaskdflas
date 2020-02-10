@@ -675,6 +675,7 @@ a:focus {
     z-index: 999;
     right: 1%;
     top: 15%;
+	overflow: scroll;
 }
 #right-info-panel .info-panel li {
   display: flex;

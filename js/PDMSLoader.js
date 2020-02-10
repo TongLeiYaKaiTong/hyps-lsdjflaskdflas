@@ -1014,7 +1014,7 @@ function PDMSLoader() {
         let geo;//几何
 		
 		// test[type]++
-        // if(type!=7)
+        // if(type!=8)
 			// return geo
         switch (type) {
             case 1:   //Pyramid 

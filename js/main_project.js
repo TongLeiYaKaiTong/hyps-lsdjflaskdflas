@@ -54,9 +54,6 @@ $('.close-btn').on('click', function () {
 	$(this).parent().hide();
 });
 
-$('#right-section-panel > div.close-btn').on('click', function () {
-	
-});
 
 // 视角切换菜单事件绑定
 $('#nav>.menu-area>.view-box>.dropdown-menu>li>a').click(function () {
@@ -186,6 +183,9 @@ $('#clip_plane_list').on('click','li>span',function(){
 $('#section_result').click(function(){
 	$(this).hide();
 })
+$('#right-section-panel > div.close-btn').on('click', function () {
+	cuttingplaneTool.group.visible = false;
+});
 // 下载按钮绑定
 $('#nav>.menu-area>.file-box>ul>.export>ul>li>a').click(function () {
 	if (!window.PDMSObject) return;
@@ -757,18 +757,19 @@ function init(name, list) {
 		// }
 
 		//让所有的物体更换为选择材质
-		for (let i = 0; i < scene.children[scene.children.length - 1].children.length; i++) {
-			scene.children[scene.children.length - 1].children[i].material_record = scene.children[scene.children.length - 1].children[i].material;
-			scene.children[scene.children.length - 1].children[i].material = pickingMaterial
+		let PDMSGroup = scene.getObjectByName('PDMSGroup');
+		for (let i = 0; i < PDMSGroup.children.length; i++) {
+			PDMSGroup.children[i].material_record = PDMSGroup.children[i].material;
+			PDMSGroup.children[i].material = pickingMaterial
 		}
 
 		renderer.setRenderTarget(pickingRenderTarget);
-		renderer.render(scene.children[scene.children.length - 1], camera);
+		renderer.render(PDMSGroup, camera);
 		renderer.setRenderTarget();
 
 		//渲染后还原颜色
-		for (let i = 0; i < scene.children[scene.children.length - 1].children.length; i++) {
-			scene.children[scene.children.length - 1].children[i].material = scene.children[scene.children.length - 1].children[i].material_record
+		for (let i = 0; i < PDMSGroup.children.length; i++) {
+			PDMSGroup.children[i].material = PDMSGroup.children[i].material_record
 		}
 
 		// console.log(pickingRenderTarget)
